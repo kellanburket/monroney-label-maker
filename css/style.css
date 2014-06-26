@@ -1,0 +1,511 @@
+/* OVERRIDES */
+* {
+	box-sizing: border-box;
+}
+
+li, ul, p {
+	padding: 0;
+	margin: 0;
+	text-decoration: none;
+}
+
+ul {
+	list-style: none;
+}
+
+#content {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+fieldset {
+	border: none;
+}
+
+/* FONT STYLES */
+
+.clearfix:after { 
+   content: " ";
+   display: block; 
+   height: 0; 
+   clear: both;
+}
+
+.bf {
+	font-weight: 800;
+}
+
+.ital {
+	font-style: italic;
+}
+
+.red-text {
+	color: #bf2026;
+}
+
+.black-text {
+	color: #000000;
+}
+
+.white-text {
+	color: #ffffff;	
+}
+
+.red-background {
+	background: #bf2026;
+}
+
+.green-background {
+	background: #24a649;
+}
+
+.blue-background {
+	background: #23498a;
+}
+
+.gray-background {
+	background: #929491;
+}
+
+.black-background {
+	background: #000000;
+}
+
+.white-background {
+	background: #ffffff;
+}
+
+.divider {
+	border-style: solid;
+	border-color: #dadbdc;
+	border-width: 0px
+}
+
+.divider-bottom {
+	border-bottom-width: 3px;
+}
+
+.divider-right {
+	border-right-width: 3px;
+	padding-right: 20px;
+}
+
+.align-center {
+	text-align: center;
+}
+
+.align-right {
+	text-align: right;
+}
+
+.align-left {
+	text-align: left;
+}
+
+.font-sans-serif {
+	font-family: Arial, Helvetica, sans-serif!important;
+}
+
+.font-serif {
+	font-family: "Times New Roman", Times, serif!important;
+}
+
+.font-monospace {
+	font-family: "Courier New", Courier, monospace!important;
+}
+
+.new-line {
+	display: block;
+	margin-bottom: 10px;
+}
+
+.invisible {
+	display: none!important;
+}
+
+.relative {
+	position: relative;
+}
+
+.absolute {
+	position: absolute;
+}
+
+.float-right {
+	float: right;
+}
+
+.float-left {
+	float: left;
+}
+
+.run-in {
+	display: inline-block;
+}
+
+.width-short {
+	width: 50px!important;	
+}
+
+
+/* GENERATOR ELEMENTS */
+
+.generator {
+
+}
+
+/* OPTIONS */
+#tag-preview {
+}
+
+#tag-preview-window {
+	border: 3px dashed black;
+	background: #234a8b;  	
+	padding: 0;
+	border-radius: 4px;
+}
+
+.tag-preview-section {
+	position: relative;
+	padding: 10px 14px;
+	border-radius: 4px;
+	margin: 7px;		
+	border-top: 20px solid gray;
+	box-sizing: border-box;
+	position: relative;
+}
+
+#tag-preview-header {
+	border-top: none;
+	text-align: center;
+}
+
+#tag-preview-info {
+	height: 200px;
+}
+
+#tag-preview-footer {
+}
+
+#tag-footer > * {
+	text-align: center;
+	color: white;
+}
+
+.preview-section-title {
+	top: -19px;
+	left: 0;
+	height: 17px;
+	position: absolute;
+	background: none;
+	border: none;
+	color: white;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/temp/Monroney_Plus_Logo_5.jpg */
+
+#dealershipLogo {
+	width: 100%;
+	height: auto;	
+}
+
+.upload-window {
+	width: inherit;
+}
+
+.upload-image {
+	.width: 100%;
+}
+
+
+/* HEADS */
+
+.preview-h3 {
+	padding: 0;
+	margin: 0;
+}
+
+.preview-h4 {
+	padding: 0;
+	margin: 0;
+}
+
+.preview-h4:last-child {
+	margin-bottom: 20px;
+}
+
+.tag-h2 {
+
+}
+
+.tag-h4 {
+	margin: 0;
+	padding: 0;
+	font-weight: 400;
+	
+}
+
+
+/* PREVIEW */
+
+#tag-generator {
+	width: 100%;
+}
+
+#tag-preview {
+	width: 32%;
+	margin-right: 20px;
+	height: 780px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.preview-label {
+	font-size: 12px;
+}
+
+#tag-options {
+	width: 62%;
+	margin: 0;
+	padding: 0;
+	height: 780px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.colorbox-wrap {
+	cursor: pointer;
+	padding: 5px!important;
+}
+
+.colorbox {
+	width: 40px;
+	height: 40px;
+	cursor: pointer;
+}
+
+.colorbox-wrap.selected {
+	border: 1px solid black;
+}
+
+/* FRAMES */
+
+.tag-frame {
+	display: block;
+	width: 100%;
+	border: 1px solid block;
+	border-radius: 4px;
+	padding: 30px 35px 18px 35px; 
+}
+
+
+.tag-frames {
+	border: 1px solid black;
+	border-radius: 2px;
+	margin-top: -6px;
+}
+
+/* TABS */
+
+.tag-tabs {
+}
+
+.active > .tag-tab {
+	border: 1px solid #000000;
+	border-bottom: 1px solid #ffffff;
+	background: #ffffff;
+}
+
+.inactive > .tag-tab {
+	border: none;
+	border-bottom: 1px solid #000000;
+	background: #dadbdc;
+}
+
+.inactive > .tag-tab-text {
+	color: #000000;	
+}
+
+.active > .tag-tab-text {
+	color: #bf2026;
+}
+
+.tag-tab-holder {
+	cursor: pointer;
+	display: inline-block;
+	position: relative;
+	width: 129px;
+}
+
+.tag-tabs {
+	margin-left: 10px;
+}
+
+.tag-tab {
+	-ms-transform: skew(-15deg, 0deg); /* IE 9 */
+    -webkit-transform: skew(-15deg, 0deg); /* Chrome, Safari, Opera */
+    transform: skew(-15deg, 0deg);
+	border: 1px solid #000000;
+	height: 40px;
+}
+
+.tag-tab-text {
+	padding-top: 10px;
+	text-align: center;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
+/*ROWS & COLS */
+.tag-col {
+	display: inline-block;
+	width: auto;
+	vertical-align: top;
+	margin-bottom: 20px;
+	margin-left: 20px;
+}
+
+.tag-col:first-of-type {
+	padding-left: 0;
+	margin-left: 0;
+}
+
+.tag-row {
+	display: block;
+	width: 100%;
+	margin-bottom: 23px;
+}
+
+/* LISTS */
+/* Horizontal */
+.tag-h-ul {
+	padding: 0;
+	margin: 0;
+	width: 100%;
+}
+
+.tag-h-ul > li {
+	display: inline-block;	
+	list-style: none;
+	text-decoration: none;
+	padding: 0;
+	margin: 0;
+}
+/* Vertical */
+
+.tag-v-ul {
+	position: relative;
+}
+
+.tag-v-ul > li {
+	height: 36px;
+	position: relative;
+	display: block;
+	vertical-align: top;
+	list-style: none;
+	text-decoration: none;
+	padding: 0;
+	margin: 0 0 10px 0;
+}
+
+/* Form Variables */
+
+.tag-input[type="text"], .tag-select {
+	height: 36px;
+	border: 1px solid black;
+	background: #dadbdc;
+	padding-top: 4px;
+	padding-left: 24px;
+}
+
+.char-input {
+	height: 36px;
+	position: relative;
+	padding: 4px 3px;
+	width: 25px;
+	border: 1px solid black;
+	background: #dadbdc;
+}
+
+.tag-label {
+	width: auto; 
+}
+
+button {
+	background: #ffffff;
+	cursor: pointer!important;
+	border-radius: 5px;
+	text-align: center;
+	border: 2px outset buttonface;
+	box-sizing: border-box;
+}
+
+.tag-button {
+	font-family: 'Oswald', sans-serif;
+	height: 25px;
+	padding: 0;
+	font-size: 14px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+	display: block;
+	width: 150px;
+	position: relative;
+}
+
+.add-button, .destroy-button {
+	height: 36px;
+	width: 36px;
+}
+
+[type=file] {
+	opacity: 0!important;
+	filter: alpha(opacity=0)!important;
+	position: absolute!important;
+	top: 0!important;
+	left: 0!important;
+	width: inherit!important;
+	height: inherit!important;
+	padding: inherit!important;
+	overflow: hidden;
+	z-index: 200!important;
+	cursor: pointer!important;
+}
+
+.upload-window {
+	width: auto;
+	height: 100px;
+	border: 1px solid black;
+}
+
+/* Site Specific */
+#tag-frame-0 .row-1 .col-2 {
+	width: 180px;
+}
+
+.customLabelView {
+	width: 250px;
+	height: 200px;
+	border: 1px dotted black;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.customLabelView:hover {
+	border: 3px solid #3FF;	
+	box-shadow: inset 0px 0px 10px 10px #3FF	
+}
+
+.tag-gallery {
+	height: 200px;
+	overflow: auto;
+	width: 280px;
+}
+
+#customLabel {
+	width: 100%;
+	max-height: 200px;
+}

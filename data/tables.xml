@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<tables>
+	<labelgen_makes>
+		<make>
+			<type>varchar(255)</type>
+			<options>NOT NULL UNIQUE</options>
+		</make>
+		<cid>
+			<type>varchar(10)</type>
+			<options>NOT NULL</options>
+		</cid>			
+	</labelgen_makes>
+	<labelgen_models>
+		<model>
+			<type>varchar(255)</type>
+			<options>NOT NULL UNIQUE</options>
+		</model>
+		<make_cid>
+			<type>varchar(10)</type>
+			<options>NOT NULL</options>
+		</make_cid>			
+		<cid>
+			<type>varchar(10)</type>
+			<options>NOT NULL</options>
+		</cid>			
+	</labelgen_models>
+	<labelgen_years>
+		<year>
+			<type>smallint(4)</type>
+			<options>NOT NULL</options>
+		</year>
+		<model_cid>
+			<type>varchar(10)</type>
+			<options>NOT NULL</options>
+		</model_cid>			
+		<make_cid>
+			<type>varchar(10)</type>
+			<options>NOT NULL</options>
+		</make_cid>			
+		<cid>
+			<type>varchar(10)</type>
+			<options>NOT NULL</options>
+		</cid>			
+	</labelgen_years>
+	<labelgen_options>
+		<option_name>
+			<type>varchar(255)</type>
+			<options>NOT NULL UNIQUE</options>
+		</option_name>
+		<price>
+			<type>float(8, 2)</type>
+		</price>
+		<location>
+			<type>varchar(255)</type>
+			<options>NOT NULL</options>
+		</location>
+	</labelgen_options>
+	<labelgen_discounts>
+		<discount>
+			<type>varchar(255)</type>
+			<options>NOT NULL UNIQUE</options>
+		</discount>
+		<price>
+			<type>float(8, 2)</type>		
+		</price>
+	</labelgen_discounts>
+	<labelgen_images>
+		<guid>
+			<type>varchar(255)</type>
+			<options>NOT NULL UNIQUE</options>
+		</guid>
+		<caption>
+			<type>varchar(255)</type>
+			<options>NOT NULL</options>
+		</caption>
+	</labelgen_images>
+</tables>
