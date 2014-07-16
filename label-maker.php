@@ -5,27 +5,32 @@
 define('LABEL_MAKER_ROOT', dirname(__FILE__));
 define('LABEL_MAKER_URL', plugins_url().'/label-maker'); 
 
+
 require_once(LABEL_MAKER_ROOT.'/lib/fpdf/fpdf.php');
 require_once(LABEL_MAKER_ROOT.'/models/generator.php');	
 require_once(LABEL_MAKER_ROOT.'/lib/restful-api/labelgen-api.php');
 
 add_action('wp_enqueue_scripts', function() {
+
 	wp_enqueue_script('jquery');	
 	wp_enqueue_script('underscore');	
 	wp_deregister_script('backbone');
 	wp_enqueue_script('backbone', LABEL_MAKER_URL.'/js/lib/backbone/backbone.js', array('underscore', 'jquery'));
 	wp_enqueue_script('backbone_full_extend', LABEL_MAKER_URL.'/js/backbone-fullExtend.js', array('underscore', 'jquery', 'backbone'));
-
+	
 	wp_enqueue_style('label_generator_css', LABEL_MAKER_URL.'/css/style.css');
-
-	wp_enqueue_script('label_generator_label_js', LABEL_MAKER_URL.'/js/generator-label.js', array('backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+	wp_enqueue_style('modal_css', LABEL_MAKER_URL.'/js/modal/modal.css');
+	wp_enqueue_script('modal_js', LABEL_MAKER_URL.'/js/modal/modal.js', array('backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);	
+	
+	wp_enqueue_script('label_generator_label_js', LABEL_MAKER_URL.'/js/generator-label.js', array('backbone', 'underscore', 'modal_js', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_vehicle_js', LABEL_MAKER_URL.'/js/generator-vehicle.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_option_js', LABEL_MAKER_URL.'/js/generator-option.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_image_js', LABEL_MAKER_URL.'/js/generator-image.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_discount_js', LABEL_MAKER_URL.'/js/generator-discount.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	
-	wp_enqueue_script('label_generator_js', LABEL_MAKER_URL.'/js/generator.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'label_generator_vehicle_js', 'label_generator_discount_js', 'label_generator_option_js', 'label_generator_image_js', 'backbone_full_extend'), null, true);
-	
+	wp_enqueue_script('backbone-data', LABEL_MAKER_URL.'/js/backbone-data.php', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'label_generator_vehicle_js', 'label_generator_discount_js', 'label_generator_option_js', 'label_generator_image_js', 'backbone_full_extend'), null, true);
+
+	wp_enqueue_script('label_generator_js', LABEL_MAKER_URL.'/js/generator.js', array('backbone-data'), null, true);
 	
 	wp_localize_script('label_generator_label_js', 'label', array(
 		'colors'=>array('blue'=>'#23498a', 'green'=>'#24a649', 'red'=>'#bf2026', 'gray'=>'#929491', 'black'=>'#000000')
@@ -50,7 +55,7 @@ add_shortcode('add_label_generator', function($args) {
 	ob_end_clean();
 
 	return $content; 
-});
+}, 1);
 
 add_action('wp_ajax_nopriv_do_generator_action', 'do_generator_action');
 add_action('wp_ajax_do_generator_action', 'do_generator_action');

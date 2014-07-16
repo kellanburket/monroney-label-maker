@@ -60,9 +60,13 @@
 			<type>varchar(255)</type>
 			<options>NOT NULL UNIQUE</options>
 		</discount>
-		<price>
+		<amount>
 			<type>float(8, 2)</type>		
-		</price>
+		</amount>
+		<type>
+			<type>varchar(255)</type>
+			<options>NOT NULL</options>
+		</type>
 	</labelgen_discounts>
 	<labelgen_images>
 		<guid>
@@ -74,4 +78,90 @@
 			<options>NOT NULL</options>
 		</caption>
 	</labelgen_images>
+	<labelgen_labels>
+		<label_color>
+			<type>varchar(255)</type>
+			<options>NOT NULL DEFAULT "#234a8b"</options>
+		</label_color>
+		<font_style>
+			<type>varchar(255)</type>
+			<options>NOT NULL DEFAULT "normal"</options>
+		</font_style>
+		<font_weight>
+			<type>varchar(255)</type>
+			<options>NOT NULL DEFAULT "normal"</options>
+		</font_weight>
+		<font_family>
+			<type>varchar(255)</type>
+			<options>NOT NULL DEFAULT "sans serif"</options>
+		</font_family>
+		<dealership_name>
+			<type>varchar(255)</type>
+			<options></options>
+		</dealership_name>
+		<dealership_info>
+			<type>varchar(255)</type>
+			<options></options>
+		</dealership_info>
+		<dealership_tagline>
+			<type>varchar(255)</type>
+			<options></options>
+		</dealership_tagline>
+		<dealership_logo>
+			<type>varchar(255)</type>
+			<options></options>
+		</dealership_logo>
+		<custom_label>
+			<type>int</type>
+			<options></options>
+		</custom_label>
+		<make>
+			<type>int(10)</type>
+			<options></options>
+		</make>
+		<model>
+			<type>int(10)</type>
+			<options></options>
+		</make>
+		<year>
+			<type>int(10)</type>
+			<options></options>
+		</year>
+		<vin>
+			<type>int(16)</type>
+			<options></options>
+		</vin>
+		<msrp>
+			<type>decimal(10, 2)</type>
+			<options></options>
+		</msrp>
+		<trim>
+			<type>varchar(255)</type>
+			<options></options>
+		</trim>	
+		<time>
+			<type>timestamp</type>
+			<options>NOT NULL DEFAULT CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP</options>
+		</time>
+	</labelgen_labels>
+	<labelgen_discount_relationships>
+		<discount_id>
+			<type>int(10)</type>
+			<options>NOT NULL</options>
+		</discount_id>
+		<label_id>
+			<type>int(10)</type>
+			<options>NOT NULL</options>
+		</label_id>
+	<labelgen_discount_relationships>
+	<labelgen_option_relationships>
+		<option_id>
+			<type>int(10)</type>
+			<options>NOT NULL</options>
+		</option_id>
+		<label_id>
+			<type>int(10)</type>
+			<options>NOT NULL</options>
+		</label_id>
+	<labelgen_option_relationships>
 </tables>

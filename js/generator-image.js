@@ -5,7 +5,9 @@
 			caption: '',
 		},
 	
-		initialize: function() {},
+		initialize: function(attrs, opts) {
+			console.log("New Img", attrs, opts);	
+		},
 	
 		handle_server_sync: function(model, response, options) {
 			//debug_server_response("Handling Server Sync", model, response, options);		
@@ -21,10 +23,8 @@
 	var Imgs = Backbone.Collection.extend({
 		model: Img,
 		url: restful.url + 'label_images/',
-
-		initialize: function() {
+		initialize: function(models, opts) {
 		},
-		
 		create: function(attributes, options) {
 			
 			var new_model = new Img(attributes, options);
@@ -33,6 +33,7 @@
 			
 			new_options['success'] = function(collection, response, option) {
 				that.add(new_model);
+				
 				//debug_server_response('Handling Img Save Response: Success', collection, response, option);
 			};
 			new_options['error'] = function(collection, response, option) {
@@ -44,14 +45,8 @@
 			for (i in options) {
 				new_options[i] = options[i];
 			}
-						
-			//triggers "request" event as the new model is sent to the server
+
 			Backbone.sync('create', new_model, new_options);
-			//triggers 
-	
-			//triggers "add" event on Imgs
-			
-	
 			return new_model;
 		}
 	});
@@ -61,17 +56,22 @@
 		tagName: 'img',
 		
 		initialize: function() {
-			this.model.on('change:dealershipLogo', this.renderLogo, this);	
+			//this.model.on('change:dealershipLogo', this.render, this);	
+			console.log('ImgView', this);
+			this.render();
 		},
 		
 		render: function(collection) {
-			//console.log('Rendering Image Model View');
-			//console.log('model $el', this.$el);
-			//console.log('model guid', this.model.get('guid'));
 			this.$el.attr('src', this.model.get('guid'));
-			$(collection.el).prepend(this.el);
+			
+			this.$el.click($.proxy(this.select_image, this));
+			
 			return this;
 		},
+		
+		select_image: function() {
+			Backbone.trigger('select_featured_image', this.model);
+		}
 	
 	});
 	
@@ -79,25 +79,16 @@
 		el: '.tag-gallery',
 		
 		
-		initialize: function() {
-			var that = this;
-			
+		initialize: function(attrs, opts) {
+			//console.log('Initialize ImgsView', this.collection);
 			this._imgViews = {};
-			
-			//this.listenTo(this.collection, 'change:selected', this.render_image);		
-		
+			//this.listenTo(this.collection, 'change:selected', this.render_image);				
 			this.collection.on("add", this.handle_add, this);		
-			this.collection.each(function(img) {
-				that._imgViews[img.cid] = new ImgView({model: img});
-			});
+			
 			this.render();
 		},
 		
 		handle_add: function(model, collection, options) {
-			//console.log('handle_add(model)', model);
-			//console.log('handle_add(collection)', collection);
-			//console.log('handle_add(options)', options);
-			//console.log('handle_add->this', this);
 			
 			this._imgViews[model.cid] = new ImgView({model: model});
 			this._imgViews[model.cid].render(this);
@@ -108,10 +99,11 @@
 		render: function() {
 			var images = this;
 
-			_(images._imgViews).each(function(iv) {
-				iv.render(images);
-				$(iv.el).on("click", null, $.proxy(images.image_click, images, iv, iv.model, images.collection));
-			});
+			_.each(this.collection.models, function(el, i, li) {
+				this._imgViews[el.id] = new ImgView({model: el});				
+				$(this.el).prepend(this._imgViews[el.id].el);			
+			}, this);
+
 		},
 		
 		get_view_by_cid: function(cid) {

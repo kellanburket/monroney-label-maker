@@ -4,7 +4,7 @@ class label_generator {
 
 	private $pdf;
 
-	public function __construct() {
+	public function __construct($label) {
 		$this->pdf = new FPDF('P', 'in', 'A4');
 		$this->pdf->AddPage();
 		$this->pdf->SetFont('Helvetica', '', '16');

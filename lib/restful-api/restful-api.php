@@ -1,39 +1,12 @@
 <?php
 abstract class restful_api {
-    /**
-     * Property: method
-     * The HTTP method this request was made in, either GET, POST, PUT or DELETE
-     */
-    protected $method = '';
-    /**
-     * Property: endpoint
-     * The Model requested in the URI. eg: /files
-     */
-    protected $endpoint = '';
-    /**
-     * Property: verb
-     * An optional additional descriptor about the endpoint, used for things that can
-     * not be handled by the basic methods. eg: /files/process
-     */
-    protected $verb = '';
-    /**
-     * Property: args
-     * Any additional URI components after the endpoint and verb have been removed, in our
-     * case, an integer ID for the resource. eg: /<endpoint>/<verb>/<arg0>/<arg1>
-     * or /<endpoint>/<arg0>
-     */
-    protected $args = Array();
-    /**
-     * Property: file
-     * Stores the input of the PUT request
-     */
-     protected $file = Null;
 
-    /**
-     * Constructor: __construct
-     * Allow for CORS, assemble and pre-process the data
-	 * @params $request: original uri client has requested
-     */
+    protected $method = '';
+    protected $endpoint = '';
+    protected $verb = '';
+    protected $args = array();
+    protected $file = NULL;
+
     public function __construct($request) {
         header("Access-Control-Allow-Orgin: *"); //allow requests from any origin to be processed
         header("Access-Control-Allow-Methods: *"); //allow any http method to be accepted
@@ -142,4 +115,137 @@ abstract class restful_api {
 	public function add_special_debug_values($var) {
 		$this->debug_values = $var;
 	}
+	
+	protected function parse_get_request($table, $fields, $conditions = array()) {
+		if (!is_array($fields)) {
+			$this->fail('No Fields Requested From Database.');
+		}
+		
+		if (!is_string($table)) {
+			$this->fail('Not table id given.');
+		}
+
+		if (!is_array($conditions)) {
+			$this->fail('No conditions given.');		
+		}
+		
+		$field_string = '';
+		foreach($fields as $field) {
+			if (is_string($field)) {
+				$field_string .= ' '.$field;
+				if ($field !== end($fields)) {
+					$field_string .= ',';
+				}
+			} else {
+				$this->fail('Embedded Fields Not Allowed.');
+			}
+		}
+		
+		global $wpdb;
+		if ($conditions) {
+			$format = $this->get_format($conditions);
+			$conditions_string = ' WHERE';
+			foreach($conditions as $key=>$value) {
+				if (is_string($value)) {
+					$conditions_string .= ' '.$key.' = '.$format[$key];
+					if ($value !== end($conditions)) {
+						$conditions_string .= ' AND';
+					}
+				} else {
+					$this->fail('Embedded Fields Not Allowed.');
+				}
+			}
+			$format = array_values($format);
+			$conditions = array_values($conditions);
+			$wpdb->query($wpdb->prepare('SELECT'.$field_string.' FROM '.$table.$conditions_string, $conditions, $format));
+		} else {
+			$wpdb->query('SELECT'.$field_string.' FROM '.$table);
+		}
+		
+		
+		$data = array();
+		$result = $wpdb->last_result;
+		
+		if ($result && is_array($result)) {
+			for($i = 0; $i < count($result); $i++) {
+				foreach($fields as $field) {
+					$data[$i][$field] = $result[$i]->$field;
+				}
+			}
+		} else {
+			$this->fail('No Matching Options');
+		}
+		
+		return $data;
+	 }
+	 
+	 protected function parse_post_request($table, $requests) {
+		
+		if (!is_string($table)) {
+			$this->fail('Not table id given.');
+		}
+
+		if (current_user_can('upload_files')) {
+			
+			if ($requests) {				
+				global $wpdb;
+				$format = $this->get_format($requests);
+				
+				$conditional = ' WHERE';
+				foreach($requests as $r_name=>$r_value) {
+					$conditional .= ' '.$r_name.' = '.$format[$r_name];
+					if ($r_value !== end($requests)) {
+						$conditional .= ' AND';
+					}
+				}
+				
+				$wpdb->query($wpdb->prepare('SELECT * FROM '.$table.$conditional, array_values($requests), array_values($format)));
+				
+				if($wpdb->last_result) {
+					$this->fail('Item has already been listed');	
+				}
+
+				$requests['time'] = current_time('mysql');
+				$format['time'] = '%s'; 
+
+				$wpdb->insert($table, $requests, array_values($format));
+				$requests['id'] = $wpdb->insert_id;
+				
+				if ($requests['id']) {
+					return $requests;
+				} else {
+					$this->fail(array_merge(array('message'=>'Nothing inserted'), $this->get_wpdb_values()));
+				}	
+			
+			} else {
+				$this->fail('No request data sent to server!');				
+			}
+		} else {
+			$this->fail('You do not have sufficient privileges to perform this action.');			
+		}
+	 }
+	 
+	 function parse_delete_request() {	
+		if (current_user_can('delete_posts')) {
+			$id = intval($this->request);
+						
+		} else {
+			$this->fail('You do not have sufficient privileges to perform this action.');			
+		}
+	 }
+
+	protected function get_format($var) {
+		$format = array();
+		foreach($var as $key=>$value) {
+			if (is_int($value) || is_bool($value) || is_long($value)) {
+				$format[$key] = '%d';
+			} elseif (is_float($value) || is_double($value)) {
+				$format[$key] = '%f';
+			} else {
+				$format[$key] = '%s';
+			}
+		}
+		return $format;
+	}
+	
 }
