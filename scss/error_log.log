@@ -1,3 +1,11 @@
 07/15/14 9:06:51: style.scss - parse error: failed at `padding-+bottom: 75px;` line: 273
 07/15/14 9:08:51: style.scss - parse error: failed at `padding-+bottom: 75px;` line: 273
 07/15/14 9:10:51: style.scss - parse error: failed at `padding-+bottom: 75px;` line: 273
+07/25/14 1:22:15: style.scss - parse error: failed at `/` line: 629
+07/25/14 10:28:28: style.scss - parse error: failed at `$scale = .5;` line: 6
+07/25/14 10:28:28: style.scss - parse error: failed at `$scale = .5;` line: 6
+07/25/14 10:28:39: style.scss - parse error: failed at `$preview-height: ($target-h - ($preview-padding * 2) * $scale;` line: 9
+07/25/14 10:30:02: style.scss - parse error: failed at `$preview-height: ($target-h - ($preview-padding * 2) * $scale;` line: 9
+07/25/14 11:10:27: style.scss - parse error: failed at `$headline-font-size: ;` line: 7
+07/25/14 11:12:28: style.scss - parse error: failed at `$headline-font-size: ;` line: 7
+07/25/14 11:14:28: style.scss - parse error: failed at `$headline-font-size: ;` line: 7

@@ -40,6 +40,9 @@ var $ = jQuery.noConflict();
 			optionsInterior: {},
 			optionsExterior: {},
 			
+			option_ids: {},
+			discount_ids: {},
+			
 			discounts: {},
 			
 			total: 0.00,
@@ -72,11 +75,13 @@ var $ = jQuery.noConflict();
 		},
 		
 		render: function() {
-			this.$save = $('#save');
-			this.$load = $('#load');
-			this.$inspect = $('#inspect');
-			this.$reset = $('#reset');
-			this.$print = $('#print');
+			this.scale = .7;
+			
+			this.$save = $('#save-label');
+			this.$load = $('#load-label');
+			this.$inspect = $('#inspect-label');
+			this.$reset = $('#reset-label');
+			this.$print = $('#print-label');
 		
 			this.$save.click($.proxy(this.save_form, this));
 			this.$load.click($.proxy(this.load_form, this));
@@ -86,32 +91,20 @@ var $ = jQuery.noConflict();
 		},
 		
 		save_form: function() {
-			var data = {
-				fontStyle: this.model.get('fontStyle'),
-				fontWeight: this.model.get('fontWeight'),
-				labelColor: this.model.get('labelColor'),
-				fontFamily: this.model.get('fontFamily'),
-				dealershipName: this.model.get('dealershipName'),
-				dealershipTagline: this.model.get('dealershipTagline'),
-				dealershipInfo: this.model.get('dealershipInfo'),
-				dealershipLogo: this.model.get('dealershipLogo'),
-				customLabelId: this.model.get('customLabelId'),
-				makeId: this.model.get('makeId'),
-				modelId: this.model.get('modelId'),
-				yearId: this.model.get('yearId'),
-				trim: this.model.get('trim'),
-				vin: this.model.get('vin'),
-				msrp: this.model.get('msrp'),
-				optionIds: this.model.get('optionIds'),
-				discountIds: this.model.get('discountds'),
-			};
+			console.log('save_form', data);
+			this._do_ajax(this._gather_data, 'POST', restful.url + 'labels');			
 		},
 		
 		load_form: function() {
 			
 		},
 		
-		print_form: function() {},
+		print_form: function() {
+			var data = this._gather_data();
+			data['callback'] = 'generate_pdf_label'; 
+			console.log('print_form', data);
+			this._do_ajax(data, 'POST', ajax.url);			
+		},
 		
 		inspect_form: function() {
 			var attributes = _.clone(model.attributes);
@@ -121,16 +114,132 @@ var $ = jQuery.noConflict();
 			this.model.clear();
 		},
 		
-		_do_ajax: function(form) {
-			return jQuery.ajax(ajax.url, {
-				type: 'POST',
-				data: form,
-				dataType: 'json'
+		_gather_data: function() {
+			var tree = Array();
+			tree.push(this.get_sizing($('#tag-preview-window')));
+			var data = {
+				//font_style: this.model.get('fontStyle'),
+				//font_weight: this.model.get('fontWeight'),
+				//label_color: this.model.get('labelColor'),
+				//font_family: this.model.get('fontFamily'),
+				//dealership_name: this.model.get('dealershipName'),
+				//dealership_tagline: this.model.get('dealershipTagline'),
+				//dealership_info: this.model.get('dealershipInfo'),
+				//dealership_logo: this.model.get('dealershipLogo'),
+				//custom_label_id: this.model.get('custom_label_id'),
+				//make_id: this.model.get('make_id'),
+				//model_id: this.model.get('model_id'),
+				//year_id: this.model.get('year_id'),
+				//trim: this.model.get('trim'),
+				//vin: this.model.get('vin'),
+				//msrp: this.model.get('msrp'),
+				//option_ids: this.model.get('option_ids'),
+				//discount_ids: this.model.get('discount_ids'),
+				scale: this.scale,
+				root_element: JSON.stringify(this.get_sizing($('#tag-preview-window'))),
+				elements: JSON.stringify(this.get_elements($('#tag-preview-window'), tree)),
+			};
+			
+			return data;
+		},
+		
+		get_elements: function($root, tree) {	
+			var controls = this;					
+			$root.children().each(function() {
+				var branch = controls.get_sizing($(this));
+				tree.push(branch);
+				controls.get_elements($(this), tree);				
+			});
+			return tree;
+		},
+		
+		
+		get_sizing: function($thing) {
+		return {	width: $thing.css('width'), 
+					height: $thing.css('height'), 
+					padding: $thing.css('padding'),
+					margin: $thing.css('margin'),
+					background: $thing.css('background-color'),
+					children: this.get_children_ids($thing),
+					parent: this.get_parent_id($thing),
+					border: this.get_border($thing),
+					position: $thing.css('position'),
+					tag: $thing.prop('tagName'),
+					id: $thing.attr('id'),
+					display: $thing.css('display'),
+					siblings: this.get_siblings($thing),
+					text: this.get_text($thing),
+					color: $thing.css('color'),
+					fontsize: $thing.css('font-size'),
+					fontfamily: $thing.css('font-family'),
+					fontweight: $thing.css('font-weight'),
+					fontstyle: $thing.css('font-style'),
+					textalign: $thing.css('text-align'),
+					float: $thing.css('float'),
+					top: $thing.css('top'),
+					right: $thing.css('right'),
+					bottom: $thing.css('bottom'),
+					left: $thing.css('left'),
+					image: $thing.attr('src'),
+					zindex: $thing.css('z-index'),
+					verticalalign: $thing.css('vertical-align')
+				};
+		},
+	
+		get_border: function($thing) {
+			var o = {
+			top: $thing.css('border-top'),
+			right: $thing.css('border-right'),
+			bottom: $thing.css('border-bottom'),
+			left: $thing.css('border-left')
+			}
+			return o;
+		},
+		
+		get_text: function($thing) {
+			if ($thing.val()) return $thing.val().trim(); 
+			else return $thing.clone().children().remove().end().text().trim();
+		},
+
+		get_siblings: function($thing) {
+			var siblings = Array();
+			
+			$thing.parent().children().each(function() {
+				if ($(this).attr('id') == $thing.attr('id')) {
+					return false;
+				}
+				console.log('IDS(' + $thing.attr('id') + ')', $(this).attr('id'));
+				siblings.push($(this).attr('id'));
+			});
+			return siblings;
+		},
+		
+		get_parent_id: function($child) {
+			return $child.parent().attr('id');
+		},
+		
+		get_children_ids: function($parent) {
+			var ids = Array();
+			$parent.children().each(function() {
+				ids.push($(this).attr('id'));				
+			});
+			return ids;
+		},
+		
+		_do_ajax: function(data, method, url) {
+			data['action'] = ajax.action;
+			console.log('ajax.url', data);
+			return $.ajax(url, {
+				type: method,
+				data: data,
+				dataType: 'json',
 			}).done(function(response) {
-				//console.log('post_form:done', response);
+				//console.log(response);
+				//var response = $.parseJSON(response);
+				console.log('post_form:done', response);
 			})
 			.fail(function(response) {
-				//console.log('post_form:fail', response);
+				console.log('post_form:fail', response.responseText);
 			});
 		}
 	});
@@ -250,9 +359,10 @@ var $ = jQuery.noConflict();
 			this.render();
 		},
 		render: function() {
-			$tag = $('<' + this.tag + '>', {class: this.class});
-			$name = $('<span>', {text: this.model.get('option_name')});
-			$value = $('<span>', {class: 'float-right', text: '+ $' + parseFloat(this.model.get('price')).toFixed(2)});
+			var option_name = this.model.get('option_name');
+			$tag = $('<' + this.tag + '>', {class: this.class, id: 'option_' + option_name.replace(/\s/, '_')});
+			$name = $('<span>', {text: option_name, class: 'basal-font', id: 'option_' + option_name.replace(/\s/, '_') + '_name'});
+			$value = $('<span>', {class: 'float-right basal-font', text: '+ $' + parseFloat(this.model.get('price')).toFixed(2), id: 'option_' + option_name.replace(/\s/, '_') + '_value'});
 			$tag.append($name, $value);
 			
 			$('#' + this.model.get('location') + 'Options').prepend($tag);	
@@ -274,10 +384,10 @@ var $ = jQuery.noConflict();
 		render: function() {
 			var symbol_before = (this.model.get('type') == "Value") ? '$' : '';
 			var symbol_after = (this.model.get('type') == "Percentage") ? '%' : '';
-		
-			$tag = $('<' + this.tag + '>', {class: this.class});
-			$name = $('<span>', {text: this.model.get('discount')});
-			$value = $('<span>', {class: 'float-right', text: "- " + symbol_before + this.model.get('amount').toFixed(2) + symbol_after});
+			var discount_name = this.model.get('discount');
+			$tag = $('<' + this.tag + '>', {class: this.class, id: 'discount_' + discount_name.replace(/\s/, '_')});
+			$name = $('<span>', {class: 'basal-font', text: discount_name, id: 'discount_' + discount_name.replace(/\s/, '_') + '_name'});
+			$value = $('<span>', {class: 'float-right basal-font', text: "- " + symbol_before + this.model.get('amount').toFixed(2) + symbol_after, id: 'discount_' + discount_name.replace(/\s/, '_') + '_value'});
 			
 			$tag.append($name, $value);
 
@@ -352,7 +462,7 @@ var $ = jQuery.noConflict();
 				var new_option = new LabelOption({model: model});
 				this.label_options[model.get('location')][model.get('option_name')] = new_option;				
 			}
-
+			
 			this.update_total(price, "Value", true);
 		},
 		

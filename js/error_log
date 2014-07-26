@@ -35,3 +35,12 @@
 [14-Jul-2014 19:53:54 America/Denver] PHP Notice:  Undefined index: collection in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 55
 [14-Jul-2014 19:57:57 America/Denver] PHP Notice:  Undefined index: collection in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 55
 [15-Jul-2014 15:25:55 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[23-Jul-2014 18:55:08 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[23-Jul-2014 19:00:39 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[24-Jul-2014 19:17:27 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[25-Jul-2014 15:50:57 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[25-Jul-2014 16:28:30 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[25-Jul-2014 16:28:44 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[25-Jul-2014 16:30:12 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[25-Jul-2014 17:02:35 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56
+[25-Jul-2014 17:15:11 America/Denver] PHP Warning:  Invalid argument supplied for foreach() in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/js/backbone-data.php on line 56

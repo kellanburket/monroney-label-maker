@@ -1,5 +1,200 @@
 $label-font: arial, sans-serif;
-$label-font-size: 11px;
+
+$scale: .7;
+$target-w: 390px;
+$target-h: 990px;
+
+$basal-font-size: 11px * $scale;
+$basal-font: 'Arial';
+$h3-font-size: 17px * $scale;
+
+$preview-padding: 8px * $scale;
+$preview-width: ($target-w - ($preview-padding * 2)) * $scale;
+$preview-height: ($target-h - ($preview-padding * 2)) * $scale;
+
+$section-width: ($target-w - ($preview-padding * 2)) * $scale;
+$section-height: (($target-h / 3) - ($preview-padding * 3)) * $scale;
+
+
+$section-margin: 7px * $scale;
+$section-padding-top: 10px * $scale;
+$section-padding-bottom: 10px * $scale;
+$section-padding-right: 14px * $scale;
+$section-padding-left: 14px * $scale;
+$section-border-top: 20px * $scale;
+
+$section-margin-top: 22px * $scale;
+
+$vitals-padding-bottom: 75px * $scale;
+$vitals-margin-top: 50px * $scale;
+$vitals-li-margin-bottom: 12px * $scale;
+
+$total-padding-left: 14px * $scale;
+$total-bottom: 15px * $scale;
+
+$section-title-height: 17px * $scale;
+
+#tag-preview {
+	
+	width: $preview-width;
+  	margin-right: 20px;
+  	height: $preview-height;
+  	display: inline-block;
+ 	vertical-align: top;
+	box-sizing: content-box;
+	
+	#tag-preview-window > * {
+		position: relative;
+	}
+	
+	#tag-preview-window {
+		background: #234a8b;  	
+		padding: $preview-padding;
+		width: $preview-width;
+		height: $preview-height;
+		box-sizing: content-box;
+
+		#tag-preview-header > * {
+			font-size: $h3-font-size;
+			font-family: $basal-font;
+		}
+		
+		.tag-preview-section {
+			padding: $section-padding-top $section-padding-left;
+			width: $section-width - $section-padding-left - $section-padding-right;
+			height: $section-height - $section-padding-bottom - $section-padding-top;
+			box-sizing: content-box;
+		
+			.preview-section-title {
+				top: -$section-title-height;
+				left: 0;
+				z-index: 20;
+				height: $section-title-height;
+				position: absolute;
+				background: #878787;
+				width: 100%;
+				border: none;
+				box-sizing: border-box;
+			}
+		}
+		
+		#tag-preview-header {
+			text-align: center;
+	
+			#vitalStats {
+				margin-top: $vitals-margin-top;	
+				box-sizing: content-box;
+				* {
+					text-align: left;	
+					box-sizing: content-box;
+	
+				}
+				li {
+					margin-bottom: $vitals-li-margin-bottom;
+				}
+			}
+	
+	
+		}
+		
+		#tag-preview-vitals {
+			margin-top: $section-margin-top;
+			height: $section-height - $vitals-padding-bottom - $section-padding-top;
+			padding-bottom: $vitals-padding-bottom;
+	
+		
+			.total-block {
+				position: absolute;
+				width: inherit;
+				margin: 0;
+				left: 0;
+				padding-left: $total-padding-left;
+				bottom: $total-bottom;
+				box-sizing: content-box;
+				
+				.total-label {
+					box-sizing: content-box;
+					vertical-align: top;
+					display: inline;
+				}
+				
+				.total-field {
+					box-sizing: content-box;
+					font-family: arial;
+					font-size: $basal-font-size;
+					float: right;
+					border: none;
+					width: auto;
+					vertical-align: top;
+					margin: 0;
+					display: inline;
+					padding: 0;
+					background: none;
+				}
+			}
+			
+			
+	
+		
+		}	
+		
+		#tag-preview-footer {
+			margin-top: $section-margin-top;
+			padding: 0;
+			height: $section-height;
+			width: $section-width;
+			background: #234a8b;
+		
+			#customLabel {
+				width: 100%;
+				height: $section-height - $section-margin-top;
+			}
+
+		}
+	}
+	
+	.preview-h3 {
+		padding: 0;
+		margin: 0;
+	}
+	
+	.preview-h4 {
+		padding: 0;
+		margin: 0;
+	}
+	
+	.preview-h4:last-child {
+		margin-bottom: 20px;
+	}
+	.preview-h3, preview-h4, #discounts li {
+		font-size: $h3-font-size;
+	}
+
+	.preview-label, .preview-span {
+		vertical-align: top;
+		font-weight: bold;
+	}
+}
+
+
+.basal-font {
+	font-size: $basal-font-size;
+	font-family: $basal-font;
+}
+
+
+
+
+
+#tag-options {
+	width: 62%;
+	margin: 0;
+	padding: 0;
+	height: 780px;
+	display: inline-block;
+	vertical-align: top;
+}
+
 
 /* OVERRIDES */
 * {
@@ -27,6 +222,15 @@ fieldset {
 }
 
 /* FONT STYLES */
+
+.half-width {
+	width: 47.5%;
+	margin-left: 2%;
+}
+
+.full-width {
+	width: 100%;
+}
 
 .clearfix:after { 
    content: " ";
@@ -167,7 +371,7 @@ fieldset {
 }
 
 .list-head {
-	font-size: 10px;
+	font-size: $basal-font-size;
 	font-family: sans-serif;
 	font-weight: 600;
 	border: none;
@@ -195,32 +399,6 @@ px-10 {
 }
 
 
-.total-block {
-	position: absolute;
-	width: 100%;
-	box-sizing: border-box;
-	margin: 0 7px 0 -14px;
-	padding: 0 21px 0 14px;
-	bottom: 15px;
-}
-
-.total-label {
-	vertical-align: bottom;
-}
-
-.total-field {
-	font-family: arial;
-	font-size: 10px;
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	box-sizing: border-box;
-	border: none;
-	width: auto;
-	vertical-align: bottom;
-	margin: 0 14px 0 0;
-	padding: 0;
-}
 
 
 .inline-list li {
@@ -240,68 +418,35 @@ px-10 {
 
 /* GENERATOR ELEMENTS */
 
-.generator {
 
-}
 
 /* OPTIONS */
 
-#tag-preview-window {
-	border: 3px dashed black;
-	background: #234a8b;  	
-	padding: 0;
-	border-radius: 4px;
-}
 
-.tag-preview-section {
-	position: relative;
-	padding: 10px 14px;
-	border-radius: 4px;
-	margin: 7px;		
-	border-top: 20px solid gray;
-	box-sizing: border-box;
-	position: relative;
-}
 
-#tag-preview-header {
-	border-top: none;
-	text-align: center;
-}
 
-#tag-preview-vitals {
-	padding-bottom: 75px;
-}
+
 
 
 #tag-preview-info {
 	height: 200px;
 }
 
-#tag-preview-footer {
-	padding: 0;	
-	background: #234a8b;
-	max-height: 200px;
-	overflow:hidden;
-}
 
 #tag-footer > * {
 	text-align: center;
 	color: white;
 }
 
-.preview-section-title {
-	top: -19px;
-	left: 0;
-	height: 17px;
-	position: absolute;
-	background: none;
-	border: none;
-	color: white;
-	width: 100%;
-	box-sizing: border-box;
+
+
+
+
+.main {
+	width: 1200px!important;
 }
 
-/* http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/temp/Monroney_Plus_Logo_5.jpg */
+
 
 #dealershipLogo {
 	width: 100%;
@@ -319,19 +464,7 @@ px-10 {
 
 /* HEADS */
 
-.preview-h3 {
-	padding: 0;
-	margin: 0;
-}
 
-.preview-h4 {
-	padding: 0;
-	margin: 0;
-}
-
-.preview-h4:last-child {
-	margin-bottom: 20px;
-}
 
 .tag-h2 {
 
@@ -351,29 +484,7 @@ px-10 {
 	width: 100%;
 }
 
-#tag-preview {
-	width: 32%;
-	margin-right: 20px;
-	height: 780px;
-	display: inline-block;
-	vertical-align: top;
-}
 
-.preview-label, .preview-span {
-	vertical-align: top;
-	font-size: 11px;
-	font-family: arial;
-	font-weight: bold;
-}
-
-#tag-options {
-	width: 62%;
-	margin: 0;
-	padding: 0;
-	height: 780px;
-	display: inline-block;
-	vertical-align: top;
-}
 
 .option {
 	font-family: sans-serif;
@@ -465,23 +576,19 @@ px-10 {
 }
 
 /*ROWS & COLS */
-.tag-col {
-	display: inline-block;
-	width: auto;
-	vertical-align: top;
-	margin-bottom: 20px;
-	margin-left: 20px;
-}
-
-.tag-col:first-of-type {
-	padding-left: 0;
-	margin-left: 0;
-}
 
 .tag-row {
 	display: block;
-	width: 100%;
 	margin-bottom: 23px;
+	.tag-col {
+		display: inline-block;
+		vertical-align: top;
+		margin-bottom: 20px;
+	}
+	.tag-col:first-of-type {
+		padding-left: 0;
+		margin-left: 0;
+	}
 }
 
 /* LISTS */
@@ -524,7 +631,7 @@ px-10 {
 	background: #dadbdc;
 	padding-top: 4px;
 	padding-left: 24px;
-	width: 150px;
+	width: 100%;
 	border-radius: 0;
 }
 
@@ -558,7 +665,8 @@ button {
 
 .tag-button {
 	font-family: 'Oswald', sans-serif;
-	height: 25px;
+	height: 36px;
+	border-radius: initial;
 	padding: 0;
 	font-size: 14px;
 	margin-top: 3px;
@@ -589,7 +697,7 @@ button {
 }
 
 .tag-button:hover {
-	box-shadow: 0px 0px 1px 1px #234a8b;
+	background: #dadbdc;
 }
 
 
@@ -656,10 +764,6 @@ button {
 	width: 280px;
 }
 
-#customLabel {
-	width: 100%;
-	height: 100%;
-}
 
 #tag-frame-1 > .tag-row > .tag-col {
 	width: 100%;
@@ -673,6 +777,23 @@ button {
 
 #vehicleMakeConfig, #vehicleModelConfig, #vehicleYearConfig {
 	width: 100%;	
+}
+
+[name=vehicleConfig] {
+	li {
+		input[type=text], select {
+			width: 150px!important;
+		}
+	}
+}
+
+.block-list {
+	input[type=checkbox] {
+		width: 25px!important;
+	}
+	input[type=text], select {
+		width: 150px!important;
+	}
 }
 
 .vehicle-numbers {
@@ -729,7 +850,3 @@ button {
 	width: 300px;
 }
 
-.preview-h3, preview-h4, #discounts li {
-	font-family: arial;
-	font-size: 10px;
-}

@@ -1,9 +1,6 @@
 var file = {};
 
 function get_form_data($target) {
-	//console.log('get_form_data:file', file);
-	//console.log('get_form_data:target', $target);
-	//console.log('get_form_data:target.data', $target.data());
 
 	var form = new FormData();
 	for(var i in file) {

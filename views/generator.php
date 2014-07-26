@@ -13,6 +13,16 @@ $label = $label_handler->get_form_fields(
 	array('gallery' => 'tag-gallery')						//data
 	);
 
+$debug = true;
+$default = array(
+	'stock'=>1234556,
+	'vin'=>1234567890123456,
+	'make'=>'Fast',
+	'model'=>'Car',
+	'year'=>'2014',
+	'trim'=>'Sport'
+);
+
 //'<li><input class="tag-checkbox" type="checkbox" /><span>'.$option_name.'</span><div class="option-price float-right"><span class="dollar-sign">&#36;</span><input class="tag-input" type="text"/></div></li>';
 
 ?>
@@ -27,55 +37,80 @@ $label = $label_handler->get_form_fields(
 	<div id="tag-generator">
 		<form id="tag-preview">
 	    	<h2 class="tag-h2">Label Preview</h2>
+
 	        <div id="tag-preview-window">
 	        	<div id="tag-preview-header" class="tag-preview-section white-background">
 	
 	            	<img id="dealershipLogo" class="invisible" />
-	                <h3 class="preview-h3 align-center" id="dealershipName"></h3>
-	                <h4 class="preview-h4 align-center" id="dealershipTagline"></h4>
-	                <h4 class="preview-h4 align-center" id="additionalInfo"></h4>
+	                <h3 class="preview-h3 align-center" id="dealershipName">Dealership Name</h3>
+	                <h4 class="preview-h4 align-center" id="dealershipTagline">Dealership Tagline</h4>
+	                <h4 class="preview-h4 align-center" id="additionalInfo">Dealership Info</h4>
+	                <ul id="vitalStats" class="white-background">
+	                    <li id="stockNoLabel" class="preview-label basal-font">Stock No.:<span class="float-right preview-span" id="stockNo"><?php echo ($debug) ? $default['stock'] : ''; ?></span></li>
+	                    <li id="vinLabel" class="preview-label basal-font">VIN:<span class="float-right preview-span basal-font" id="vin"><?php echo ($debug) ? $default['vin'] : ''; ?></span></li>
+	                    <li id="makeLabel" class="preview-label basal-font">Make:<span class="float-right preview-span basal-font" id="make"><?php echo ($debug) ? $default['make'] : ''; ?></span></li>
+	                    <li id="modelLabel" class="preview-label basal-font">Model:<span class="float-right preview-span basal-font" id="model"><?php echo ($debug) ? $default['model'] : ''; ?></span></li>
+	                    <li id="yearLabel" class="preview-label basal-font">Year:<span class="float-right preview-span basal-font" id="year"><?php echo ($debug) ? $default['year'] : ''; ?></span></li>
+						<li id="trimLabel" class="preview-label basal-font">Trim:<span class="float-right preview-span basal-font" id="trim"><?php echo ($debug) ? $default['trim'] : ''; ?></span></li>
+	                    <li id="msrpLabel" class="preview-label basal-font">MSRP:<span class="float-right preview-span basal-font" id="msrp">$0.00</span></li>
+	                </ul>
 	            </div>
 	            <div id="tag-preview-vitals" class="tag-preview-section white-background">
-	                <input class="preview-section-title color-white align-center" name="title_1" value="Dealer Added Equipment & Services" />
+	                <input id="tag-preview-vitals-border-top" class="preview-section-title white-text align-center basal-font" name="title_1" value="Dealer Added Equipment & Services" />
                     <!-- <input class="preview-section-title color-white align-center" name="title_0" value="Consumer Protection Label" /> -->
-	                <ul class="white-background">
-	                    <li><span class="preview-label">Stock No.:</span><span class="float-right preview-span" id="stockNo"></span></li>
-	                    <li><span class="preview-label">VIN:</span><span class="float-right preview-span" id="vin"></span></li>
-	                    <li><span class="preview-label">Make:</span><span class="float-right preview-span" id="make"></span></li>
-	                    <li><span class="preview-label">Model:</span><span class="float-right preview-span" id="model"></span></li>
-	                    <li><span class="preview-label">Year:</span><span class="float-right preview-span" id="year"></span></li>
-						<li><span class="preview-label">Trim:</span><span class="float-right preview-span" id="trim"></span></li>
-	                    <li><span class="preview-label">MSRP:</span><span class="float-right preview-span" id="msrp">$0.00</span></li>
-	                </ul>
+
 	            <!-- </div> -->
 	            <!-- <div id="tag-preview-info" class="tag-preview-section white-background"> -->
 					
 	                <ul id="addendumOptions" class="white-background">
-						<li>
-							<input class="list-head" value="Exterior Options">
-			                <ul id="exteriorOptions" class="indent-1"></ul>
+						<li id="addendumOptionsExteriorList">
+							<input id="addendumOptionsExteriorHead" class="list-head basal-font" value="Exterior Options">
+			                <ul id="exteriorOptions" class="indent-1">
+                            	<?php if ($debug) { ?>
+									<li class="option font-arial px-10" id="option_Wings">
+                                    	<span id="option_Wings_name" class="basal-font">Wings</span>
+                                        <span class="float-right basal-font" id="option_Wings_value">+ &#36;0.00</span>
+                                    </li>                                
+                                <? } ?>		
+                            </ul>
 						</li>
 						
-						<li>
-							<input class="list-head" value="Interior Options">
-			                <ul id="interiorOptions" class="indent-1"></ul>
+						<li id="addendumOptionsInteriorList">
+							<input id="addendumOptionsInteriorHead" class="list-head" value="Interior Options">
+			                <ul id="interiorOptions" class="indent-1">
+                            <?php if ($debug) { ?>
+                            	<li class="option font-arial px-10" id="option_Full_Bar">
+                                	<span id="option_Full_Bar_name" class="basal-font">Full Bar</span>
+                                 	<span class="float-right basal-font" id="option_Full_Bar_value">+ &#36;0.00</span>
+                                </li>
+                             <? } ?>		
+                            </ul>
 						</li>
 	
-						<li>
-							<input class="list-head" value="Discounts and Specials">
-			                <ul id="discounts" class="indent-1"></ul>
-						<li>
+    					<!--
+						<li id="addendumDiscountsItems">
+							<input id="addendumOptionsDiscountsHead" class="list-head" value="Discounts and Specials">
+			                <ul id="discounts" class="indent-1">
+                            	<?php //if ($debug) { ?>
+                                <li class="discount font-arial px-10" id="discount_Five_Finger">
+                                	<span id="discount_Five_Finger_name">Five Finger</span>
+                                    <span class="float-right" id="discount_Five_Finger_value">- &#36;5.00</span>
+                                </li>
+                                <?php // } ?>
+                            </ul>
+						</li>
+                        -->
 	                </ul>
 
-					<fieldset class="total-block">
-						<label class="list-head total-label" for="total">Total</label>
-						<input id="total" name="total" class="total-field align-right">
+					<fieldset id="total-block" class="total-block">
+						<label id="total-label" class="list-head total-label basal-font" for="total">Total</label>
+						<input id="total" name="total" class="total-field align-right basal-font">
 					</fieldset>
 	            </div>
 	
 	            <div id="tag-preview-footer" class="tag-preview-section white-background">
-					<input class="preview-section-title color-white align-center" name="title_2" value="Consult Free Gas Mileage Guide" />
-	           		<img id="customLabel" />
+					<input id="tag-preview-footer-border-top" class="preview-section-title white-text align-center basal-font" name="title_2" value="Consult Free Gas Mileage Guide" />
+	           		<img id="customLabel" src="<?php echo ($debug) ? 	'http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/customLabel/fuel_label.jpg' : ''; ?>" />
 	            </div>
 	        </div>
 	    </form>
@@ -96,16 +131,16 @@ $label = $label_handler->get_form_fields(
 	            	<div class="tag-tab"></div>
 	                <span class="tag-tab-text">Addendum Options</span>
 	            </div>
-	        	<div class="tag-tab-holder inactive" id="tag-tab-holder-3">
+	        	<!-- <div class="tag-tab-holder inactive" id="tag-tab-holder-3">
 	            	<div class="tag-tab"></div>
 	                <span class="tag-tab-text">Deals and Specials</span>
-	            </div>
+	            </div> -->
 	        </div>
 	        <form class="tag-frames" enctype="multipart/form-data" action="" method="POST">
 				<?php wp_nonce_field('process_user_upload', '_file_upload_handler', true, true); ?>
 	            <div class="tag-frame visible" id="tag-frame-0">
 	            	<div class="tag-row row-1 divider divider-bottom">
-	                	<div class="tag-col divider divider-right first-col col-1">
+	                	<div class="tag-col divider divider-right first-col col-1 full-width">
 	                    	<h4 class="tag-h4">Label Color</h4>
 	                    	<ul class="tag-h-ul">
 								<li class="colorbox-wrap"><div class="colorbox blue-background"></div></li>
@@ -115,29 +150,7 @@ $label = $label_handler->get_form_fields(
 	                        	<li class="colorbox-wrap"><div class="colorbox black-background"></div></li>
 	                        </ul>
 	                    </div>
-	                    <div class="tag-col col-2">
-	                    	<h4 class="tag-h4">Logo Branding</h4>
-	                    	<?php echo $logo; ?>
-	                    	<input type="checkbox" name="toggleVisibility" />
-	                        <label for="toggleVisibility">Toggle Visibility</label>
-	                    </div>
-	                </div>
-	            	<div class="tag-row divider divider-bottom row-2">
-	                	<div class="tag-col col-1">
-	                    	<h4 class="tag-h4">Custom Text Branding</h4>
-	                    	<ul class="tag-v-ul">
-	                        	<li>
-	                                <input type="text" class="tag-input absolute" name="dealershipName" placeholder="[Dealership Name]" />
-	                        	</li>
-	                        	<li>
-	                                <input type="text" class="tag-input absolute" name="dealershipTagline" placeholder="[Tagline]" />
-	                        	</li>
-	                        	<li>
-	                                <input type="text" class="tag-input absolute" name="additionalInfo" placeholder="[Additional Info]" />
-	                        	</li>
-	                        </ul>
-	                    </div>
-	                    <div class="tag-col col-2">
+						<!-- <div class="tag-col col-2">
 	                    	<h4 class="tag-h4">Font Type</h4>
 	                    	<ul class="tag-v-ul">
 	                        	<li>
@@ -166,8 +179,28 @@ $label = $label_handler->get_form_fields(
 	                                <span class="ital font-sans-serif">Italic</span>
 	                            </li>
 	                        </ul>
+	                    </div> -->	
+	                </div>
+	            	<div class="tag-row divider divider-bottom row-2 full-width">
+	                	<div class="tag-col col-1 half-width">
+	                    	<h4 class="tag-h4">Custom Text Branding</h4>
+	                    	<ul class="tag-v-ul">
+	                        	<li>
+	                                <input type="text" class="tag-input absolute" name="dealershipName" placeholder="[Dealership Name]" />
+	                        	</li>
+	                        	<li>
+	                                <input type="text" class="tag-input absolute" name="dealershipTagline" placeholder="[Tagline]" />
+	                        	</li>
+	                        	<li>
+	                                <input type="text" class="tag-input absolute" name="additionalInfo" placeholder="[Additional Info]" />
+	                        	</li>
+	                        </ul>
 	                    </div>
-	
+						<div class="tag-col col-2 half-width">
+	                    	<h4 class="tag-h4">Logo Branding</h4>
+	                    	<?php echo $logo; ?>
+	                    	<button class="tag-button" name="toggleVisibility" />Hide Logo</button>
+	                    </div>
 	                </div>
 	            	<div class="tag-row row-3">
 	                    <div class="tag-col col-1">
@@ -325,17 +358,17 @@ $label = $label_handler->get_form_fields(
 	    </div>
 	</div>
 </div>
-	    <ul class="tag-nav-buttons" id="pdfControls">
-	    	<li id="inspect" class="inline-block-li">
-	    		<button class="tag-button black-text">Inspect</button>        
-	    	</li>
-	    	<li id="save" class="inline-block-li">
-	    		<button class="tag-button black-text">Save</button>        
-	    	</li>
-	    	<li id="print" class="inline-block-li">
-	    		<button class="tag-button black-text">Print</button>        
-	    	</li>
-	    	<li id="reset" class="inline-block-li">
-	    		<button class="tag-button black-text">Reset</button>        
-	    	</li>
-		</ul>
+<ul class="tag-nav-buttons" id="pdfControls">
+    <li id="inspect-label" class="inline-block-li">
+        <button class="tag-button black-text">Inspect</button>        
+    </li>
+    <li id="save-label" class="inline-block-li">
+        <button class="tag-button black-text">Save</button>        
+    </li>
+    <li id="print-label" class="inline-block-li">
+        <button class="tag-button black-text">Print</button>        
+    </li>
+    <li id="reset-label" class="inline-block-li">
+        <button class="tag-button black-text">Reset</button>        
+    </li>
+</ul>

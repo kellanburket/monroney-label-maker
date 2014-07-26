@@ -1,4 +1,130 @@
-/* OVERRIDES */
+#tag-preview {
+  width: 265.16px;
+  margin-right: 20px;
+  height: 685.16px;
+  display: inline-block;
+  vertical-align: top;
+  box-sizing: content-box;
+}
+#tag-preview #tag-preview-window > * {
+  position: relative;
+}
+#tag-preview #tag-preview-window {
+  background: #234a8b;
+  padding: 5.6px;
+  width: 265.16px;
+  height: 685.16px;
+  box-sizing: content-box;
+}
+#tag-preview #tag-preview-window #tag-preview-header > * {
+  font-size: 11.9px;
+  font-family: 'Arial';
+}
+#tag-preview #tag-preview-window .tag-preview-section {
+  padding: 7px 9.8px;
+  width: 245.56px;
+  height: 205.24px;
+  box-sizing: content-box;
+}
+#tag-preview #tag-preview-window .tag-preview-section .preview-section-title {
+  top: -11.9px;
+  left: 0;
+  z-index: 20;
+  height: 11.9px;
+  position: absolute;
+  background: #878787;
+  width: 100%;
+  border: none;
+  box-sizing: border-box;
+}
+#tag-preview #tag-preview-window #tag-preview-header {
+  text-align: center;
+}
+#tag-preview #tag-preview-window #tag-preview-header #vitalStats {
+  margin-top: 35px;
+  box-sizing: content-box;
+}
+#tag-preview #tag-preview-window #tag-preview-header #vitalStats * {
+  text-align: left;
+  box-sizing: content-box;
+}
+#tag-preview #tag-preview-window #tag-preview-header #vitalStats li {
+  margin-bottom: 8.4px;
+}
+#tag-preview #tag-preview-window #tag-preview-vitals {
+  margin-top: 15.4px;
+  height: 159.74px;
+  padding-bottom: 52.5px;
+}
+#tag-preview #tag-preview-window #tag-preview-vitals .total-block {
+  position: absolute;
+  width: inherit;
+  margin: 0;
+  left: 0;
+  padding-left: 9.8px;
+  bottom: 10.5px;
+  box-sizing: content-box;
+}
+#tag-preview #tag-preview-window #tag-preview-vitals .total-block .total-label {
+  box-sizing: content-box;
+  vertical-align: top;
+  display: inline;
+}
+#tag-preview #tag-preview-window #tag-preview-vitals .total-block .total-field {
+  box-sizing: content-box;
+  font-family: arial;
+  font-size: 7.7px;
+  float: right;
+  border: none;
+  width: auto;
+  vertical-align: top;
+  margin: 0;
+  display: inline;
+  padding: 0;
+  background: none;
+}
+#tag-preview #tag-preview-window #tag-preview-footer {
+  margin-top: 15.4px;
+  padding: 0;
+  height: 219.24px;
+  width: 265.16px;
+  background: #234a8b;
+}
+#tag-preview #tag-preview-window #tag-preview-footer #customLabel {
+  width: 100%;
+  height: 203.84px;
+}
+#tag-preview .preview-h3 {
+  padding: 0;
+  margin: 0;
+}
+#tag-preview .preview-h4 {
+  padding: 0;
+  margin: 0;
+}
+#tag-preview .preview-h4:last-child {
+  margin-bottom: 20px;
+}
+#tag-preview .preview-h3, #tag-preview preview-h4, #tag-preview #discounts li {
+  font-size: 11.9px;
+}
+#tag-preview .preview-label, #tag-preview .preview-span {
+  vertical-align: top;
+  font-weight: bold;
+}
+.basal-font {
+  font-size: 7.7px;
+  font-family: 'Arial';
+}
+#tag-options {
+  width: 62%;
+  margin: 0;
+  padding: 0;
+  height: 780px;
+  display: inline-block;
+  vertical-align: top;
+  /* OVERRIDES */
+}
 * {
   box-sizing: border-box;
 }
@@ -18,6 +144,13 @@ ul {
 fieldset {
   border: none;
   /* FONT STYLES */
+}
+.half-width {
+  width: 47.5%;
+  margin-left: 2%;
+}
+.full-width {
+  width: 100%;
 }
 .clearfix:after {
   content: " ";
@@ -126,7 +259,7 @@ fieldset {
   cursor: pointer;
 }
 .list-head {
-  font-size: 10px;
+  font-size: 7.7px;
   font-family: sans-serif;
   font-weight: 600;
   border: none;
@@ -147,30 +280,6 @@ fieldset {
 px-10 {
   font-size: 10px;
 }
-.total-block {
-  position: absolute;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0 7px 0 -14px;
-  padding: 0 21px 0 14px;
-  bottom: 15px;
-}
-.total-label {
-  vertical-align: bottom;
-}
-.total-field {
-  font-family: arial;
-  font-size: 10px;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  box-sizing: border-box;
-  border: none;
-  width: auto;
-  vertical-align: bottom;
-  margin: 0 14px 0 0;
-  padding: 0;
-}
 .inline-list li {
   display: inline;
   padding-right: 10px;
@@ -182,56 +291,17 @@ px-10 {
 .full-width {
   width: 100%;
   /* GENERATOR ELEMENTS */
-}
-.generator {
   /* OPTIONS */
-}
-#tag-preview-window {
-  border: 3px dashed black;
-  background: #234a8b;
-  padding: 0;
-  border-radius: 4px;
-}
-.tag-preview-section {
-  position: relative;
-  padding: 10px 14px;
-  border-radius: 4px;
-  margin: 7px;
-  border-top: 20px solid gray;
-  box-sizing: border-box;
-  position: relative;
-}
-#tag-preview-header {
-  border-top: none;
-  text-align: center;
-}
-#tag-preview-vitals {
-  padding-bottom: 75px;
 }
 #tag-preview-info {
   height: 200px;
-}
-#tag-preview-footer {
-  padding: 0;
-  background: #234a8b;
-  max-height: 200px;
-  overflow: hidden;
 }
 #tag-footer > * {
   text-align: center;
   color: white;
 }
-.preview-section-title {
-  top: -19px;
-  left: 0;
-  height: 17px;
-  position: absolute;
-  background: none;
-  border: none;
-  color: white;
-  width: 100%;
-  box-sizing: border-box;
-  /* http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/temp/Monroney_Plus_Logo_5.jpg */
+.main {
+  width: 1200px !important;
 }
 #dealershipLogo {
   width: 100%;
@@ -244,17 +314,6 @@ px-10 {
   .width: 100%;
   /* HEADS */
 }
-.preview-h3 {
-  padding: 0;
-  margin: 0;
-}
-.preview-h4 {
-  padding: 0;
-  margin: 0;
-}
-.preview-h4:last-child {
-  margin-bottom: 20px;
-}
 .tag-h4 {
   margin: 0;
   padding: 0;
@@ -263,27 +322,6 @@ px-10 {
 }
 #tag-generator {
   width: 100%;
-}
-#tag-preview {
-  width: 32%;
-  margin-right: 20px;
-  height: 780px;
-  display: inline-block;
-  vertical-align: top;
-}
-.preview-label, .preview-span {
-  vertical-align: top;
-  font-size: 11px;
-  font-family: arial;
-  font-weight: bold;
-}
-#tag-options {
-  width: 62%;
-  margin: 0;
-  padding: 0;
-  height: 780px;
-  display: inline-block;
-  vertical-align: top;
 }
 .option {
   font-family: sans-serif;
@@ -357,23 +395,20 @@ px-10 {
   width: 100%;
   /*ROWS & COLS */
 }
-.tag-col {
-  display: inline-block;
-  width: auto;
-  vertical-align: top;
-  margin-bottom: 20px;
-  margin-left: 20px;
-}
-.tag-col:first-of-type {
-  padding-left: 0;
-  margin-left: 0;
-}
 .tag-row {
   display: block;
-  width: 100%;
   margin-bottom: 23px;
   /* LISTS */
   /* Horizontal */
+}
+.tag-row .tag-col {
+  display: inline-block;
+  vertical-align: top;
+  margin-bottom: 20px;
+}
+.tag-row .tag-col:first-of-type {
+  padding-left: 0;
+  margin-left: 0;
 }
 .tag-h-ul {
   padding: 0;
@@ -408,7 +443,7 @@ px-10 {
   background: #dadbdc;
   padding-top: 4px;
   padding-left: 24px;
-  width: 150px;
+  width: 100%;
   border-radius: 0;
 }
 .tag-input[type="number"] {
@@ -437,7 +472,8 @@ button {
 }
 .tag-button {
   font-family: 'Oswald', sans-serif;
-  height: 25px;
+  height: 36px;
+  border-radius: initial;
   padding: 0;
   font-size: 14px;
   margin-top: 3px;
@@ -459,7 +495,7 @@ button {
   margin: 2px;
 }
 .tag-button:hover {
-  box-shadow: 0px 0px 1px 1px #234a8b;
+  background: #dadbdc;
 }
 .tag-button:focus {
   border-top: 2px solid #777;
@@ -514,10 +550,6 @@ button {
   overflow: auto;
   width: 280px;
 }
-#customLabel {
-  width: 100%;
-  height: 100%;
-}
 #tag-frame-1 > .tag-row > .tag-col {
   width: 100%;
 }
@@ -528,6 +560,15 @@ button {
 }
 #vehicleMakeConfig, #vehicleModelConfig, #vehicleYearConfig {
   width: 100%;
+}
+[name=vehicleConfig] li input[type=text], [name=vehicleConfig] li select {
+  width: 150px !important;
+}
+.block-list input[type=checkbox] {
+  width: 25px !important;
+}
+.block-list input[type=text], .block-list select {
+  width: 150px !important;
 }
 .vehicle-numbers {
   width: 242px;
@@ -569,8 +610,4 @@ button {
 }
 #tag-frame-3 .row-2 .list-vertical li {
   width: 300px;
-}
-.preview-h3, preview-h4, #discounts li {
-  font-family: arial;
-  font-size: 10px;
 }

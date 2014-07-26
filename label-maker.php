@@ -2,10 +2,11 @@
 /** Plugin Name: PDF Label Maker 
 *	Author: Kellan Cummings
 */
+$uploads = wp_upload_dir();
 define('LABEL_MAKER_ROOT', dirname(__FILE__));
 define('LABEL_MAKER_URL', plugins_url().'/label-maker'); 
-
-
+define('LABEL_MAKER_UPLOADS', $uploads['basedir'].'/label-generator/customLabel'); 
+define('MONRONEY_LABEL_GENERATOR_ACTION', 'do_monroney_label_generator_action');
 require_once(LABEL_MAKER_ROOT.'/lib/fpdf/fpdf.php');
 require_once(LABEL_MAKER_ROOT.'/models/generator.php');	
 require_once(LABEL_MAKER_ROOT.'/lib/restful-api/labelgen-api.php');
@@ -37,7 +38,7 @@ add_action('wp_enqueue_scripts', function() {
 	));
 	
 	wp_localize_script('label_generator_label_js', 'ajax', array(
-		'action'=>'do_generator_action', 'url'=>get_admin_url(get_current_blog_id(), 'admin-ajax.php')
+		'action'=>MONRONEY_LABEL_GENERATOR_ACTION, 'url'=>get_admin_url(get_current_blog_id(), 'admin-ajax.php')
 	));
 	
 	wp_localize_script('label_generator_label_js', 'restful', array(
@@ -57,12 +58,22 @@ add_shortcode('add_label_generator', function($args) {
 	return $content; 
 }, 1);
 
-add_action('wp_ajax_nopriv_do_generator_action', 'do_generator_action');
-add_action('wp_ajax_do_generator_action', 'do_generator_action');
+add_action('wp_ajax_nopriv_'.MONRONEY_LABEL_GENERATOR_ACTION, MONRONEY_LABEL_GENERATOR_ACTION);
+add_action('wp_ajax_'.MONRONEY_LABEL_GENERATOR_ACTION, MONRONEY_LABEL_GENERATOR_ACTION);
 
-function do_generator_action() {
+function do_monroney_label_generator_action() {
 	//show_request_variables();
+
 	call_user_func($_POST['callback']);
+}
+
+function generate_pdf_label() {
+	$elements = json_decode(stripslashes($_POST['elements']), true);
+	$root_element = json_decode(stripslashes($_POST['root_element']), true);
+	$scale = floatval($_POST['scale']);
+	$gen = new PDFAddendumGenerator($root_element, $elements, $scale);
+	echo json_encode(array('pdf'=>$gen->get_file_url()));
+	exit;
 }
 
 function show_request_variables() {
