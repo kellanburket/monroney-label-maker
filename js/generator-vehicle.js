@@ -401,6 +401,8 @@
 
 			if (this.selected.type == 'model' || this.selected.type == 'make' || this.selected.type == 'year' ) {
 				//console.log('set_selected(' + id + ',' + this.selected.type + ')', this.selected);
+				Backbone.trigger(this.type + 'Selected', id);
+
 				for (i in this.parent.bigBrothers) {
 					var bb_select = this.parent.bigBrothers[i].select;
 					//console.log('Thread:' + this.type + '(' + id + ')');

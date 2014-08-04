@@ -112,37 +112,13 @@
 			<options></options>
 		</dealership_logo>
 		<custom_label>
-			<type>int</type>
+			<type>mediumint(9)</type>
 			<options></options>
 		</custom_label>
-		<make>
-			<type>int(10)</type>
+		<user_id>
+			<type>mediumint(9)</type>
 			<options></options>
-		</make>
-		<model>
-			<type>int(10)</type>
-			<options></options>
-		</make>
-		<year>
-			<type>int(10)</type>
-			<options></options>
-		</year>
-		<vin>
-			<type>int(16)</type>
-			<options></options>
-		</vin>
-		<msrp>
-			<type>decimal(10, 2)</type>
-			<options></options>
-		</msrp>
-		<trim>
-			<type>varchar(255)</type>
-			<options></options>
-		</trim>	
-		<time>
-			<type>timestamp</type>
-			<options>NOT NULL DEFAULT CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP</options>
-		</time>
+		</user_id>
 	</labelgen_labels>
 	<labelgen_discount_relationships>
 		<discount_id>
@@ -153,7 +129,7 @@
 			<type>int(10)</type>
 			<options>NOT NULL</options>
 		</label_id>
-	<labelgen_discount_relationships>
+	</labelgen_discount_relationships>
 	<labelgen_option_relationships>
 		<option_id>
 			<type>int(10)</type>
@@ -163,5 +139,34 @@
 			<type>int(10)</type>
 			<options>NOT NULL</options>
 		</label_id>
-	<labelgen_option_relationships>
+	</labelgen_option_relationships>
+	<labelgen_users>
+		<name>
+			<type>varchar(255)</type>
+			<options>NOT NULL</options>
+		</name>	
+		<email>
+			<type>varchar(255)</type>
+			<options>NOT NULL UNIQUE</options>
+		</email>	
+		<password>
+			<type>binary(64)</type>
+			<options>NOT NULL</options>
+		</password>	
+	</labelgen_users>
+	<labelgen_user_relationships>
+		<user_id>
+			<type>mediumint(9)</type>
+			<options>NOT NULL</options>
+		</user_id>	
+		<table_name>
+			<type>varchar(255)</type>
+			<options>NOT NULL</options>
+		</table_name>	
+		<default_id>
+			<type>mediumint(9)</type>
+			<options>NOT NULL</options>
+		</default_id>	
+	</labelgen_user_relationships>
+	
 </tables>

@@ -26,17 +26,22 @@ class PDFAddendumGenerator {
 	private $pdf_frame;
 	private $allowed_image_exts = array('PNG'=>'image/png', 'JPEG'=>'image/jpeg', 'GIF'=>'image/gif');
 	
-	public function __construct($root_element, $elements, $scale) {
+	public function __construct($root_element, $elements, $filepath, $fileurl, $scale, $left_margin, $top_margin) {
+		$this->left_margin = $left_margin;
+		$this->top_margin = $top_margin;
+		
 		$this->scale = $scale;
 		$this->pdf = new FPDF('P', 'pt', 'A4');
 		$this->pdf->AddPage();
-		$this->filepath = LABEL_MAKER_ROOT . '/pdfs/test.pdf';
-		$this->fileurl = LABEL_MAKER_URL . '/pdfs/test.pdf';
+
+		$this->filepath = $filepath; 
+		$this->fileurl = $fileurl; 
+
 		$this->root_id = $root_element["id"];
 
 		$this->sort_elements($root_element, $elements);
 		
-		$this->pdf->SetXY(0, 0);
+		$this->pdf->SetXY($this->left_margin, $this->top_margin);
 		
 		foreach($this->views as &$view) {
 			$this->parse_cell_data($view);		
@@ -52,11 +57,36 @@ class PDFAddendumGenerator {
 		foreach($this->views as $id=>$view) {
 			$this->return_val[$id] = $view;
 		}		
-				
+		
+		$this->return_val['pdf'] = $this->get_url();
+		$this->return_val['success'] = true;		
+		$this->return_val['width'] = $this->get_output_width();
+		$this->return_val['height'] = $this->get_output_height();
+		
 		echo json_encode($this->return_val);
-		exit;
+		exit;	
 	}
 	
+	public function get_root_height() {
+		return $this->views[$this->root_id]['height'];
+	}
+	
+	public function get_root_width() {
+		return $this->views[$this->root_id]['width'];
+	}
+	
+	public function get_output_height() {
+		return $this->points_to_pixels($this->get_root_height()) + ($this->points_to_pixels($this->top_margin) * 2);	
+	}
+
+	public function get_output_width() {
+		return $this->points_to_pixels($this->get_root_width()) + ($this->points_to_pixels($this->left_margin) * 2);	
+	}
+	
+	public function get_url() {
+		return $this->fileurl;	
+	}
+
 	private function sort_elements($root, $els) {
 		$this->views = array();
 
@@ -105,9 +135,11 @@ class PDFAddendumGenerator {
 	private function build_tree($view, &$tree) {
 		if ($view['children']) {
 			foreach($view['children'] as $child) {
-				$child_view = $this->views[$child];
-				$tree[$child] = array();
-				$this->build_tree($child_view, $tree[$child]);
+				if (array_key_exists($child, $this->views)) {
+					$child_view = $this->views[$child];
+					$tree[$child] = array();
+					$this->build_tree($child_view, $tree[$child]);
+				}
 			}
 		} else {
 			$tree = 'no_children';
@@ -135,7 +167,6 @@ class PDFAddendumGenerator {
 		
 		if ($cell["font"]["style"] === 0) $cell["font"]["style"] = '';
 
-		
 		$cell["color"] = $this->parse_rgb_color($cell["color"]);
 
 		$cell["absolute_position"] = $this->parse_absolute_position($cell["top"], $cell["right"], $cell["bottom"], $cell["left"]);
@@ -150,6 +181,18 @@ class PDFAddendumGenerator {
 		//final w and h defined
 		$cell["width"] = $this->parse_pixels($cell["width"]) + $cell["padding"]["left"] + $cell["padding"]["right"];		
 		$cell["height"] = $this->parse_pixels($cell["height"]) + $cell["padding"]["top"] + $cell["padding"]["bottom"];	
+
+		if ($cell["tag"] == "input") {
+			//$cell["width"] -= 2;
+			//$cell["height"] -= 1;
+		}
+		
+		if (array_key_exists('parent', $cell) && $cell['parent'] == $this->root_id) {
+			$cell['width'] -= 1;		
+		} else {
+			$cell['width'] -= 3;		
+		}
+
 
 		$cell["image"] = $this->parse_image_file($cell);			
 		//final x and y defined;
@@ -397,23 +440,27 @@ class PDFAddendumGenerator {
 				switch($cell['display']) {
 					case('block'):
 						foreach($cell['siblings'] as $sibling_id) {
-							$sibling = $this->views[$sibling_id];
-							if ( ($sibling["position_flags"] & (REL | STAT)) && !(($sibling["position_flags"] & (FLEFT | FRIGHT)))) {
-								$cell["y"] += $this->add_sibling_to_y_stack($sibling);
+							if (array_key_exists($sibling_id, $this->views)) {
+								$sibling = $this->views[$sibling_id];
+								if ( ($sibling["position_flags"] & (REL | STAT)) && !(($sibling["position_flags"] & (FLEFT | FRIGHT)))) {
+									$cell["y"] += $this->add_sibling_to_y_stack($sibling);
+								}
 							}
 						}
 						break;
 					case('inline-block'):
 						foreach($cell['siblings'] as $sibling_id) {
-							$sibling = $this->views[$sibling_id];	
-							if ( ($sibling["position_flags"] & (REL | STAT)) && !(($sibling["position_flags"] & (FLEFT | FRIGHT)))) {
-								switch($sibling["display"]) {
-									case('block'):
-										$cell["y"] += $this->add_sibling_to_y_stack($sibling);
-										break;								
-									case('inline-block'):
-										$cell["x"] += $this->add_sibling_to_x_stack($sibling);
-										break;
+							if (array_key_exists($sibling_id, $this->views)) {
+								$sibling = $this->views[$sibling_id];	
+								if ( ($sibling["position_flags"] & (REL | STAT)) && !(($sibling["position_flags"] & (FLEFT | FRIGHT)))) {
+									switch($sibling["display"]) {
+										case('block'):
+											$cell["y"] += $this->add_sibling_to_y_stack($sibling);
+											break;								
+										case('inline-block'):
+											$cell["x"] += $this->add_sibling_to_x_stack($sibling);
+											break;
+									}
 								}
 							}
 						}
@@ -427,11 +474,13 @@ class PDFAddendumGenerator {
 				$cell['text_width'] = $cell['width'];
 				if (array_key_exists('siblings', $cell) && is_array($cell['siblings'])) {
 					foreach($cell['siblings'] as $sibling_id) {
-						$sibling = $this->views[$sibling_id];
-						if (array_key_exists('text_width', $sibling) && !($sibling['position_flags'] & FRIGHT)) {
-							$cell['left_offset'] += $sibling['text_width'];								
-						} else if (array_key_exists('right_offset', $sibling) && ($sibling['position_flags'] & FRIGHT)) {
-							$cell['right_offset'] += $sibling['text_width'];																
+						if (array_key_exists($sibling_id, $this->views)) {
+							$sibling = $this->views[$sibling_id];
+							if (array_key_exists('text_width', $sibling) && !($sibling['position_flags'] & FRIGHT)) {
+								$cell['left_offset'] += $sibling['text_width'];								
+							} else if (array_key_exists('right_offset', $sibling) && ($sibling['position_flags'] & FRIGHT)) {
+								$cell['right_offset'] += $sibling['text_width'];																
+							}
 						}
 					}
 				}
@@ -568,62 +617,67 @@ class PDFAddendumGenerator {
 	private function pixels_to_points($px) {
 		return floatval($px) * 72.0/96.0;	
 	}
+
+	private function points_to_pixels($pt) {
+		return floatval($pt) / (72.0/96.0);	
+	}
 	
 	public function set_cell($attrs) {
-		$defaults = array(
-			'width'=>0,
-			'height'=>0,
-			'text'=>'',
-			'border'=>0,
-			'line_number'=>1,
-			'alignment'=>'',
-			'fill'=>false,
-			'link'=>''
-		);
 		
-		
-		$var = array_replace($defaults, $attrs);
-		
-		extract($var);
+		if (!is_null($attrs)) {
+			$defaults = array(
+				'width'=>0,
+				'height'=>0,
+				'text'=>'',
+				'border'=>0,
+				'line_number'=>1,
+				'alignment'=>'',
+				'fill'=>false,
+				'link'=>''
+			);
 
-		if ($image) {
-			$this->pdf->Image($image['file'], $x, $y, $width, $height, $image['mime']);	
-		} else {
-			$this->pdf->SetXY($x, $y);
-
-			$border_string = '';
-			if ($border && is_array($border)) {
-				foreach($border as $b) {
-					if (is_null($b)) {
-						continue;
-					} elseif (is_array($b)) {
-						$this->pdf->SetLineWidth($b['width']);
-						$this->pdf->SetDrawColor($b['color']['red'], $b['color']['green'], $b['color']['blue']);
-						$this->pdf->Line($b['x1'], $b['y1'], $b['x2'], $b['y2']);									
-					} elseif (is_string($b)) {
-						$border_string += $this->convert_side_to_string($b);					
-					} else {
-						continue;
+			$var = array_replace($defaults, $attrs);
+			extract($var);
+	
+			if ($image) {
+				$this->pdf->Image($image['file'], $x + $this->left_margin, $y + $this->top_margin, $width, $height, $image['mime']);	
+			} else {
+				$this->pdf->SetXY($x + $this->left_margin, $y + $this->top_margin);
+	
+				$border_string = '';
+				if ($border && is_array($border)) {
+					foreach($border as $b) {
+						if (is_null($b)) {
+							continue;
+						} elseif (is_array($b)) {
+							$this->pdf->SetLineWidth($b['width']);
+							$this->pdf->SetDrawColor($b['color']['red'], $b['color']['green'], $b['color']['blue']);
+							$this->pdf->Line($b['x1'] + $this->left_margin, $b['y1'] + $this->top_margin, $b['x2'] + + $this->left_margin, $b['y2'] + + $this->top_margin);									
+						} elseif (is_string($b)) {
+							$border_string += $this->convert_side_to_string($b);					
+						} else {
+							continue;
+						}
 					}
 				}
-			}
-
-			$border_string = ($border_string) ? $border_string : '';
-			if ($text) {
-				//$this->pdf->SetXY($x, $y);
-				if ($color) $this->pdf->SetTextColor($color["red"], $color["green"], $color["blue"]);
-				if ($font) $this->pdf->SetFont($font['family'], $font['style'], $font['size']);
-				//if ($text) $this->pdf->Write($height, $text);
-			}
-			
-			if ($fill) $this->pdf->SetFillColor($fill["red"], $fill["green"], $fill["blue"]);
-			$this->pdf->Cell($width, $height, (($flags & SET_INLINE_TEXT)) ? '' : $text, 0, $line_number, $alignment, ($fill) ? true : false, $link);
-			
-			if ($flags & SET_INLINE_TEXT) {
-				if ($position_flags & FRIGHT) {
-					$this->pdf->Text($x + $right_offset, $y, $text);			
-				} else {
-					$this->pdf->Text($x + $left_offset, $y, $text);							
+	
+				$border_string = ($border_string) ? $border_string : '';
+				if ($text) {
+					//$this->pdf->SetXY($x, $y);
+					if ($color) $this->pdf->SetTextColor($color["red"], $color["green"], $color["blue"]);
+					if ($font) $this->pdf->SetFont($font['family'], $font['style'], $font['size']);
+					//if ($text) $this->pdf->Write($height, $text);
+				}
+				
+				if ($fill) $this->pdf->SetFillColor($fill["red"], $fill["green"], $fill["blue"]);
+				$this->pdf->Cell($width, $height, (($flags & SET_INLINE_TEXT)) ? '' : $text, 0, $line_number, $alignment, ($fill) ? true : false, $link);
+				
+				if ($flags & SET_INLINE_TEXT) {
+					if ($position_flags & FRIGHT) {
+						$this->pdf->Text($x + $right_offset + $this->left_margin, $y + + $this->top_margin, $text);			
+					} else {
+						$this->pdf->Text($x + $left_offset + $this->left_margin, $y + $this->top_margin, $text);							
+					}
 				}
 			}
 		}

@@ -35,13 +35,25 @@ abstract class restful_api {
         }
 		
 		if ($this->method == 'POST') {
-			$this->request = $_POST;
+			$this->file = file_get_contents("php://input", "r");
+			$this->request = array();
+			parse_str($this->file, $this->request);
+			//$this->request = $_POST;
+
+			//echo json_encode($this->request);
+			//exit;
+			
 		} elseif ($this->method == 'GET') {
 			$this->request = $_GET;
 		} elseif ($this->method == 'PUT') {
-			$this->request = $_GET;
-			$this->file = file_get_contents("php://input");	//will have to discover how this works
+			$this->file = file_get_contents("php://input", "r");
+			$this->request = array();
+			parse_str($this->file, $this->request);
+			//echo json_encode($this->request);
+			//exit;
 		} elseif($this->method == 'DELETE') { 
+            $this->method = 'DELETE';
+			$this->request = $_GET;		
 		} else {
 			$this->_response('Invalid Method', 405);
 		}
@@ -73,12 +85,46 @@ abstract class restful_api {
 	
 	protected function win($message) {
 	 	return $this->prepare_message_array($message, true);
-	 }
+	}
 	 
-	 protected function fail($message) {
+	protected function fail($message) {
 		echo $this->_response($this->prepare_message_array($message, false));
 	 	exit;
-	 }
+	}
+
+	protected function decrypt($input, $hash) {		
+		$hash = trim($hash);
+		$input = trim($input);
+		
+		$result = crypt($input, $hash);
+		$compare = strcmp($result, $hash);
+
+		if ($compare === 0) {
+			//echo json_encode(array('result'=>$result, 'saved'=>$hash, 'input'=>$input, 'success'=>true, 'compare'=>$compare));
+			//exit;		
+			return true;
+		} else {
+			//echo json_encode(array('result'=>$result, 'saved'=>$hash, 'input'=>$input, 'success'=>false, 'compare'=>$compare));
+			//exit;		
+			return false;
+		}
+	}
+		
+	protected function encrypt($passw, $cost = 10) {
+		// Create a random salt
+		$salt = strtr(base64_encode(mcrypt_create_iv(16, MCRYPT_DEV_URANDOM)), '+', '.');		
+		// Prefix information about the hash so PHP knows how to verify it later.
+		// "$2a$" Means we're using the Blowfish algorithm. The following two digits are the cost parameter.
+		$salt = sprintf("$2a$%02d$", $cost) . $salt;
+		
+		// Hash the password with the salt
+		$hash = crypt($passw, $salt);
+
+		//echo json_encode(array('password'=>$passw, 'hash'=>$hash, 'salt'=>$salt));
+		//exit;
+
+		return $hash;
+	}
 
 	private function process_message($messages) {
 		$m = array();
@@ -115,23 +161,74 @@ abstract class restful_api {
 	public function add_special_debug_values($var) {
 		$this->debug_values = $var;
 	}
-	
-	protected function parse_get_request($table, $fields, $conditions = array()) {
-		if (!is_array($fields)) {
-			$this->fail('No Fields Requested From Database.');
+
+	protected function build_conditional_string($conditions, $format) {
+
+		$conditions_string = ' WHERE';
+		foreach($conditions as $key=>$value) {
+
+			if (is_string($value)||is_numeric($value)) {
+				$conditions_string .= ' '.$key.' = '.$format[$key];
+				if ($value !== end($conditions)) {
+					$conditions_string .= ' AND';
+				}
+			} else {
+				$this->fail('Embedded Fields Not Allowed.');
+			}
 		}
-		
+		return $conditions_string;
+	}
+
+	protected function validate_table($table) {
 		if (!is_string($table)) {
 			$this->fail('Not table id given.');
 		}
+	}
 
-		if (!is_array($conditions)) {
-			$this->fail('No conditions given.');		
+	protected function validate_request_data($request) {
+		if (!is_array($request) || !$request) {
+			$this->fail('No request data sent to server!');	
 		}
+	}
+	 
+	protected function validate_conditions($conditions) {
+		if (!is_array($conditions)) {
+			$this->fail('No conditions given.');
+		}
+	}
+	
+	protected function check_user_credentials() {
+		$cred = true;
+		
+		//$this->request['method'] = $this->method;
+		//echo json_encode($this->request);
+		//exit;
+		
+		if (!array_key_exists('user_id', $this->request)) {
+			$cred = false;								
+		} else if (!$this->request['user_id']) {
+			$cred = false;
+		}
+
+		if (!$cred) {
+			$this->fail('You do not have the credentials to perform this action.');
+		}
+	}
+	
+	protected function validate_fields($fields) {
+		if (!is_array($fields)) {
+			$this->fail('No Fields Requested From Database.');
+		}
+	}
+
+	protected function parse_get_request($table, $fields, $conditions = array()) {
+		$this->validate_fields($fields);
+		$this->validate_table($table);
+		$this->validate_conditions($conditions);
 		
 		$field_string = '';
 		foreach($fields as $field) {
-			if (is_string($field)) {
+			if (is_string($field) || is_numeric($field)) {
 				$field_string .= ' '.$field;
 				if ($field !== end($fields)) {
 					$field_string .= ',';
@@ -144,17 +241,10 @@ abstract class restful_api {
 		global $wpdb;
 		if ($conditions) {
 			$format = $this->get_format($conditions);
-			$conditions_string = ' WHERE';
-			foreach($conditions as $key=>$value) {
-				if (is_string($value)) {
-					$conditions_string .= ' '.$key.' = '.$format[$key];
-					if ($value !== end($conditions)) {
-						$conditions_string .= ' AND';
-					}
-				} else {
-					$this->fail('Embedded Fields Not Allowed.');
-				}
-			}
+
+			$conditions_string = $this->build_conditional_string($conditions, $format);
+
+
 			$format = array_values($format);
 			$conditions = array_values($conditions);
 			$wpdb->query($wpdb->prepare('SELECT'.$field_string.' FROM '.$table.$conditions_string, $conditions, $format));
@@ -173,59 +263,86 @@ abstract class restful_api {
 				}
 			}
 		} else {
-			$this->fail('No Matching Options');
+			echo json_encode(array('success'=>true, 'results'=>0));
+			exit;
 		}
 		
 		return $data;
-	 }
-	 
-	 protected function parse_post_request($table, $requests) {
+	}
+	 	
+	protected function parse_put_request($table, $requests, $conditions) {
+	 	$this->validate_table($table);
+		$this->validate_request_data($requests);
+		$this->validate_conditions($conditions);
+
+		global $wpdb;
+		$format = $this->get_format($requests);
+		$conditional_string = $this->build_conditional_string($conditions, $format);
 		
-		if (!is_string($table)) {
-			$this->fail('Not table id given.');
-		}
-
-		if (current_user_can('upload_files')) {
-			
-			if ($requests) {				
-				global $wpdb;
-				$format = $this->get_format($requests);
-				
-				$conditional = ' WHERE';
-				foreach($requests as $r_name=>$r_value) {
-					$conditional .= ' '.$r_name.' = '.$format[$r_name];
-					if ($r_value !== end($requests)) {
-						$conditional .= ' AND';
-					}
-				}
-				
-				$wpdb->query($wpdb->prepare('SELECT * FROM '.$table.$conditional, array_values($requests), array_values($format)));
-				
-				if($wpdb->last_result) {
-					$this->fail('Item has already been listed');	
-				}
-
-				$requests['time'] = current_time('mysql');
-				$format['time'] = '%s'; 
-
-				$wpdb->insert($table, $requests, array_values($format));
-				$requests['id'] = $wpdb->insert_id;
-				
-				if ($requests['id']) {
-					return $requests;
-				} else {
-					$this->fail(array_merge(array('message'=>'Nothing inserted'), $this->get_wpdb_values()));
-				}	
-			
-			} else {
-				$this->fail('No request data sent to server!');				
+		$format = array_values($format);
+		
+		$set_string = ' SET';
+		unset($requets['id']);
+		
+		foreach($requests as $key=>$value) {
+			$set_string .= ' '.$key.' = '.$value;						
+			if ($value != end($requests)) {
+				$set_string .= ',';
 			}
-		} else {
-			$this->fail('You do not have sufficient privileges to perform this action.');			
 		}
+		$wpdb->query($wpdb->prepare('UPDATE '.$table.$set_string.$conditional_string, $format));
+		$requests['id'] = $wpdb->insert_id;
+		if ($requests['id']) {
+			return $requests;
+		} else {
+			$this->fail('We were not able to update your profile.');
+		}
+	}
+	
+	public function array_select($array, $keys) {
+		$new_array = array();
+		foreach($array as $key=>$value) {
+			if (in_array($key, $keys)) {
+				$new_array[$key] = $value;
+			}		
+		}
+		return $new_array;
+	}
+	
+	protected function parse_post_request($table, $requests, $check_duplicates = true) {
+		$this->validate_table($table);
+		$this->validate_request_data($requests);
+
+		global $wpdb;
+		$format = $this->get_format($requests);
+		
+
+		if ($check_duplicates) {			
+			$conditional = $this->build_conditional_string($requests, $format);
+
+			$wpdb->query($wpdb->prepare('SELECT * FROM '.$table.$conditional, array_values($requests), array_values($format)));
+			
+			if($wpdb->last_result) {
+				$this->fail('Item has already been listed');	
+			}
+		}
+
+		$requests['time'] = current_time('mysql');
+		$format['time'] = '%s'; 
+
+		$wpdb->insert($table, $requests, array_values($format));
+		
+		$requests['id'] = $wpdb->insert_id;
+		if ($requests['id']) {
+			return $requests;
+		} else {
+			$this->fail(array_merge(array('message'=>'Nothing inserted'), $this->get_wpdb_values()));
+		}	
+
 	 }
 	 
 	 function parse_delete_request() {	
+		$this->check_user_credentials();
 		if (current_user_can('delete_posts')) {
 			$id = intval($this->request);
 						

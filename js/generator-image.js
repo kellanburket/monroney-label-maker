@@ -6,7 +6,7 @@
 		},
 	
 		initialize: function(attrs, opts) {
-			console.log("New Img", attrs, opts);	
+			//console.log("New Img", attrs, opts);	
 		},
 	
 		handle_server_sync: function(model, response, options) {
@@ -20,35 +20,12 @@
 		urlRoot: restful.url + 'label_images/'
 	});
 	
-	var Imgs = Backbone.Collection.extend({
+	var Imgs = Backbone.ExtendedCollection.extend({
 		model: Img,
 		url: restful.url + 'label_images/',
 		initialize: function(models, opts) {
+			
 		},
-		create: function(attributes, options) {
-			
-			var new_model = new Img(attributes, options);
-			var new_options = {}
-			var that = this;
-			
-			new_options['success'] = function(collection, response, option) {
-				that.add(new_model);
-				
-				//debug_server_response('Handling Img Save Response: Success', collection, response, option);
-			};
-			new_options['error'] = function(collection, response, option) {
-				//debug_server_response('Handling Img Save Response: Error', collection, response, option);						
-			};
-			new_options['data'] = {guid: new_model.get('guid'), caption: new_model.get('caption')};
-			new_options['processData'] = true;
-			
-			for (i in options) {
-				new_options[i] = options[i];
-			}
-
-			Backbone.sync('create', new_model, new_options);
-			return new_model;
-		}
 	});
 	
 	var ImgView = Backbone.View.extend({
@@ -84,8 +61,20 @@
 			this._imgViews = {};
 			//this.listenTo(this.collection, 'change:selected', this.render_image);				
 			this.collection.on("add", this.handle_add, this);		
-			
+			Backbone.on('customLabelAdded', this.add_new_image, this);
+			Backbone.on('requestCustomLabel', this.handle_request, this); 
+
 			this.render();
+		},
+		
+		handle_request: function(id) {
+			var img = this.collection.get(id);
+			console.log('Handle Request', id, img);
+			if (img) Backbone.trigger('returnCustomLabel', img); 
+		},
+		
+		add_new_image: function(guid, caption) {
+			this.collection.create({guid: guid, caption: caption});
 		},
 		
 		handle_add: function(model, collection, options) {

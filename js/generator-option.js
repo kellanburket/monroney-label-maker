@@ -64,19 +64,35 @@ var OptionsList = Backbone.View.extend({
 	defaults: {
 	},
 	initialize: function(attrs, opts) {
+		
+		
 		this.collection = attrs.collection;
+		this.input_container = attrs.input_container;
 		this.add_item = attrs.add_item;
 		this.save_button = attrs.save_button;
 		this.input = attrs.input;
 		this.list_items =  {};
-
+		this.listenTo(Backbone, 'requestOptions', this.fetch_options);
 		this.render(attrs.el);
 	},
+	
+	fetch_options: function(ids, prices) {
+		//var filtered_collection = [];
+		
+		for (var i = 0; i < ids.length; i++) {
+			//Backbone.trigger(
+			var model = this.collection.findWhere({id: ids[i]});
+			Backbone.trigger('add_option', model, prices[ids[i]]);
+			//);
+			//filtered_collection.push();		
+		}
+		
+		//Backbone.trigger('returnOptions', filtered_collection);
+	},
+	
 	render: function(el) {
 		this.el = el;
 		this.$el = $(this.el);
-		$(this.save_button).hide();
-		$(this.input).hide();
 		$(this.add_item).click($.proxy(this.show_input, this));
 		$(this.save_button).click($.proxy(this.add_new_option, this));
 		this.listenTo(this.collection, "add", this.render_list_item);	
@@ -90,14 +106,21 @@ var OptionsList = Backbone.View.extend({
 		this.list_items[model.id].render(this);
 	},
 	show_input: function() {
-		$(this.input).show();
-		$(this.save_button).show();
+		console.log('Click');
+		Backbone.trigger('requestUserId', this);
+		this.listenToOnce(Backbone, 'returnUserId', function(id) {
+			$(this.input_container).removeClass('invisible');
+			$(this.add_item).addClass('invisible');
+			$(this.input).focus();
+		});
+		
 	},
 	add_new_option: function() {
 		console.log("Collection", this.collection);
 		var new_option_name = $(this.input).val();
 		$(this.input).val('');
-		$(this.input).hide();
+		$(this.input_container).addClass('invisible');
+		$(this.add_item).removeClass('invisible');
 		$(this.save_button).hide();		
 		this.collection.create({option_name: new_option_name, location: this.collection.location});
 	}

@@ -41,7 +41,9 @@ jQuery(document).ready(function($) {
 		
 	function LabelGenerator() {
 		
-		this.label = new Label();
+		this.label = new Label({user_id: -1});
+		this.labelCollection = new LabelCollection([this.label]);
+
 		this.trimModel = new LabelFieldModel({type: 'trim'});
 		this.vinModel = new VIN();
 		this.msrpModel = new MSRP();
@@ -57,8 +59,8 @@ jQuery(document).ready(function($) {
 			stockNo: new LabelStat({model: this.stockNoModel, el: '#stockNo'})
 		};
 
-		this.view = new LabelView({model: this.label}, {fields: this.fields});
-		this.pdfControls = new PDFControls({model: this.label});
+		this.view = new LabelView({model: this.label, collection: this.labelCollection}, {fields: this.fields});
+		this.pdfControls = new PDFControls({model: this.label, collection: this.labelCollection});
 		this.view.render();
 		//this.label_images = new Imgs(App.label_images);
 		this.label_images_view = new ImgsView({collection: App.label_images});		
@@ -91,10 +93,10 @@ jQuery(document).ready(function($) {
 		this.vehicle_msrp = new VehicleStat({model: this.msrpModel, el:'[name=msrp]'});
 		this.vehicle_trim = new VehicleStat({model: this.trimModel, el:'[name=trim]'});
 				
-		console.log('App', App);
-		this.exterior_options_view = new OptionsList({collection: App.exterior_options, input: '#exterior-input', add_item: '#add-new-exterior-item', save_button: '#exterior-add-button', el: '#exterior-options'});
+		//console.log('App', App);
+		this.exterior_options_view = new OptionsList({collection: App.exterior_options, input_container: '#exterior-input-container', input: '#exterior-input', add_item: '#add-new-exterior-item', save_button: '#exterior-add-button', el: '#exterior-options'});
 		
-		this.interior_options_view = new OptionsList({collection: App.interior_options, input: '#interior-input', add_item: '#add-new-interior-item', save_button: '#interior-add-button', el: '#interior-options'});
+		this.interior_options_view = new OptionsList({collection: App.interior_options, input_container: '#interior-input-container', input: '#interior-input', add_item: '#add-new-interior-item', save_button: '#interior-add-button', el: '#interior-options'});
 		
 		this.discount_view = new DiscountList({collection: App.discounts, el: "#discountList"});
 
@@ -135,8 +137,8 @@ jQuery(document).ready(function($) {
 	};
 
 	$(window).load(function() {
-		$('#overlay').animate({opacity: 1}, {duration: 400});
-		$('#modal').fadeOut();	
+		$('#generator-spinner-overlay').fadeOut();
+		$('#generator-page-loader').fadeOut();	
 	});
 	
 	
