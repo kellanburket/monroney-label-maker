@@ -6,17 +6,9 @@
 		},
 	
 		initialize: function(attrs, opts) {
-			//console.log("New Img", attrs, opts);	
+			console.log("New Img", attrs, opts);	
 		},
-	
-		handle_server_sync: function(model, response, options) {
-			//debug_server_response("Handling Server Sync", model, response, options);		
-		},
-		
-		handle_server_error: function(model, response, options) {
-			//debug_server_response("Handling Server Error", model, response, options);		
-		},
-	
+
 		urlRoot: restful.url + 'label_images/'
 	});
 	
@@ -24,9 +16,54 @@
 		model: Img,
 		url: restful.url + 'label_images/',
 		initialize: function(models, opts) {
-			
+			console.log("New Imgs Collection", models, opts);
 		},
 	});
+	
+	var Logos = Backbone.ExtendedCollection.extend({
+		model: Logo
+	});
+
+	var Logo = Backbone.Model.extend({
+		defaults: {
+			guid: '',
+			id: ''
+		},
+		initialize: function(attrs, opts) {
+			console.log("New Logo", attrs, opts);	
+		},
+	
+	});
+
+	var LogosView = Backbone.View.extend({
+		tagName: 'img',	
+		initialize: function(attrs, opts) {
+			Backbone.on('requestDealershipLogo', this.handle_request, this); 
+			this.render();
+		},
+		
+		handle_request: function(id) {
+			console.log('Handle Logo Request', id);
+			if (this.model.get('guid')) {
+				Backbone.trigger('returnCustomLabel', this.model); 
+			}
+		},
+			
+		render: function() {
+
+		},
+	});
+
+	var LogoView = Backbone.View.extend({
+		tagName: 'img',	
+		initialize: function(attrs, opts) {
+			this.render();
+		},
+		render: function() {
+
+		},
+	});
+	
 	
 	var ImgView = Backbone.View.extend({
 		className: 'customLabelView',

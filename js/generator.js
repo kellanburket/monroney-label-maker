@@ -1,48 +1,9 @@
-var file = {};
-
-function get_form_data($target) {
-
-	var form = new FormData();
-	for(var i in file) {
-		//console.log('get_form_data:file(key, value)', i, file[i]);
-		form.append(i, file[i]);	
-	}
-
-	form.append('action', ajax.action);
-
-	//console.log('get_form:form', form);
-	
-	_.each($target.data(), function(value, key, list) {
-		//console.log('get_form_data:$target.data(key, value)', key, value);
-		form.append(key, value);
-	});
-
-	//console.log('get_form:form', form);
-	return form;
-}
-
-function post_form(form) {
-	//console.log('post_form');			
-	return jQuery.ajax(ajax.url, {
-		type: 'POST',
-		data: form,
-		dataType: 'json',
-		processData: false,
-		contentType: false
-	}).done(function(response) {
-		//console.log('post_form:done', response);
-	})
-	.fail(function(response) {
-		//console.log('post_form:fail', response);
-	});
-}
-
 jQuery(document).ready(function($) {
 		
 	function LabelGenerator() {
 		
-		this.label = new Label({user_id: -1});
-		this.labelCollection = new LabelCollection([this.label]);
+		this.label = new Label({user_id: 0});
+		this.labels = new Labels([this.label]);
 
 		this.trimModel = new LabelFieldModel({type: 'trim'});
 		this.vinModel = new VIN();
@@ -59,12 +20,15 @@ jQuery(document).ready(function($) {
 			stockNo: new LabelStat({model: this.stockNoModel, el: '#stockNo'})
 		};
 
-		this.view = new LabelView({model: this.label, collection: this.labelCollection}, {fields: this.fields});
-		this.pdfControls = new PDFControls({model: this.label, collection: this.labelCollection});
+		this.view = new LabelView({model: this.label, collection: this.labels}, {fields: this.fields});
+		this.pdfControls = new PDFControls({model: this.label, collection: this.labels});
 		this.view.render();
 		//this.label_images = new Imgs(App.label_images);
 		this.label_images_view = new ImgsView({collection: App.label_images});		
-		
+		this.logo_view = new LogoView();
+		this.logos = new Logos();
+		this.logos_view = new LogosView({collection: this.logos});
+
 		//this.label.set('_label_image_collection', this.label_images);
 		
 		this.get_request_messages = function(tag) {

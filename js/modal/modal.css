@@ -40,20 +40,20 @@
 
 #modal-close {
 	position: absolute;
-	right: 5px;
+	right: 10px;
 	top: 5px;
-	background: black;
-	color: white;
+	color: black;
 	opacity: .3;
+	font-family: sans-serif;
 	text-decoration: none;
 	display: inline-block;
 	padding: 1px 2px 2px 2px;
-	border: 1px solid black;
 	cursor: pointer;
 }
 
 #modal-close:hover {
 	opacity: 1;
+	color: red;
 }
 
 

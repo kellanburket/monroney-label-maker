@@ -1,17 +1,19 @@
 <?php 
 $logo_handler = get_user_upload_handler('dealershipLogo'); 
 $logo = $logo_handler->get_form_fields(
-	array("Choose File", "Upload Your Logo"), 
+	"Drag or Click to Upload Your Logo", 
 	"tag-button red-text", 
 	array('choose-file', 'upload-logo'));
 
 $label_handler = get_user_upload_handler('customLabel'); 
 $label = $label_handler->get_form_fields(
-	array("Choose Image", "Upload Image"), 					//button text
+	"Drag or Click to Upload Your Label", 					//button text
 	"tag-button red-text", 									//classes
 	array('choose-label', 'upload-label'),					//indices
 	array('gallery' => 'tag-gallery')						//data
 	);
+
+
 
 $debug = false;
 $default = array(
@@ -44,7 +46,7 @@ $default = array(
         <div id="tag-preview-window">
             <div id="tag-preview-header" class="tag-preview-section white-background">
                 <div id="logoWrap">
-                    <img id="dealershipLogo" class="invisible" />
+                    <img id="dealershipLogo" class="invisible">
                     <div id="dealershipText">
                         <h3 class="preview-h3 align-center" id="dealershipName">Dealership Name</h3>
                         <h4 class="preview-h4 align-center" id="dealershipTagline">Dealership Tagline</h4>
@@ -116,7 +118,8 @@ $default = array(
 
             <div id="tag-preview-footer" class="tag-preview-section white-background">
                 <input id="tag-preview-footer-border-top" class="preview-section-title white-text align-center basal-font" name="title_2" value="Consult Free Gas Mileage Guide" />
-                <img id="customLabel" src="<?php echo ($debug) ? 	'http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/customLabel/fuel_label.jpg' : ''; ?>" />
+                <img id="customLabel"> 	
+                <!--'http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/customLabel/fuel_label.jpg' : ''; ?>" /> -->
             </div>
         </div>
     </form>
@@ -124,14 +127,18 @@ $default = array(
 
     <div id="tag-options">
         <h2 class="tag-h2 float-left">Label Options</h2>
-                        <ul class="float-right login-links">
-                           <li id="login-label" class="float-left">
-                                <button class="icon-button black-text"><span class="icon-key2"></span> Log In</button>        
-                            </li>
-                            <li id="signup-label" class="float-left">
-                                <button class="icon-button black-text"><span class="icon-pencil"></span> Sign Up</button>        
-                            </li>
-                        </ul>
+                        <div id="login-info">
+                            <ul class="float-right login-links">
+                               <li id="login-label" class="float-left">
+                                    <button class="icon-button black-text"><span class="icon-key2"></span><span class="login-txt">Log In</span></button>        
+                                </li>
+                                <li id="signup-label" class="float-left">
+                                    <button class="icon-button black-text"><span class="icon-pencil"></span><span class="login-txt">Sign Up</span></button>        
+                                </li>
+                            </ul>
+                            <h3 class="welcome-user-text float-right tag-h2 invisible">
+                            </h3>
+                         </div>
         <div class="tag-tabs clear">
             <div class="tag-tab-holder active" id="tag-tab-holder-0">
                 <div class="tag-tab"></div>
@@ -150,7 +157,7 @@ $default = array(
                 <span class="tag-tab-text">Deals and Specials</span>
             </div> -->
         </div>
-        <form class="tag-frames" enctype="multipart/form-data" action="" method="POST">
+        <div class="tag-frames">
             <?php wp_nonce_field('process_user_upload', '_file_upload_handler', true, true); ?>
             <div class="tag-frame visible" id="tag-frame-0" name="branding_options">
                 <div class="tag-row row-1 divider divider-bottom">
@@ -235,19 +242,20 @@ $default = array(
                     <div class="tag-col col-2 half-width">
                         <h4 class="tag-h4">Logo Branding</h4>
                         <?php echo $logo; ?>
-                        <button class="tag-button" name="toggleVisibility" />Hide Logo</button>
+                        <!--<button class="tag-button" name="toggleVisibility" />Hide Logo</button> -->
                     </div>
                 </div>
                 <div class="tag-row row-3">
                     <div class="tag-col col-1">
-                        <h4 class="tag-h4">Label Button</h4>
+                        <h4 class="tag-h4">Label Bottom</h4>
                         <p class="tag-headnote">Use your own image:</p>
-                        <?php echo $label; ?>
                         <label for="labelCaption" class="tag-label new-line">Caption (If Any)</label>
                         <textarea name="labelCaption" class="tag-input"></textarea>
                     </div>
                     <div class="tag-col col-2">
                         <div class="tag-gallery">
+                        	<?php echo $label; ?>
+
                         </div>	
                     </div>
                 </div>
@@ -395,7 +403,7 @@ $default = array(
                     </div>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
 
     </div>

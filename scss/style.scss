@@ -39,9 +39,15 @@ $logo-height: 60px * $scale;
 $logo-margin-bottom: 10px * $scale;
 
 
+.fail-message {
+	width: 100%;
+}
+
 .entry-header {
 	display: none;
 }
+
+
 
 #tag-generator {
 	position: relative;
@@ -121,7 +127,8 @@ $logo-margin-bottom: 10px * $scale;
 	
 					#dealershipLogo {
 						width: auto;
-						height:$logo-height;	
+						height: auto;
+						max-height:$logo-height;	
 					}
 				}
 		
@@ -218,6 +225,30 @@ $logo-margin-bottom: 10px * $scale;
 	}
 }
 	
+.dz-preview {
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	
+	.dz-details {
+		img {
+		}
+		.dz-filename {
+			display: none;
+		}
+		.dz-size {
+			display: none;
+		}
+	}
+	.dz-success-mark {
+		display: none;
+	}
+	.dz-error-mark {
+		display: none;
+	}
+
+}
+
 
 .basal-font {
 	font-size: $basal-font-size;
@@ -445,7 +476,9 @@ px-10 {
 }
 
 
-
+.inline {
+	display: inline;
+}
 
 .inline-list li {
 	display: inline;
@@ -777,6 +810,29 @@ button {
 	border: 1px solid black;
 }
 
+#upload-logo, #upload-label {
+	background: #dadbdc;
+	height: 75px;	
+	text-align: center;
+	position: relative;
+}
+
+#upload-logo {
+	padding-top: 10%;
+	border: 1px solid black;
+}
+
+#upload-label {
+	padding-top: 45%;
+}
+
+.vertical-center {
+	text-align: center;
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
 /* Site Specific */
 [name=labelCaption] {
 	width: 257px;
@@ -804,9 +860,16 @@ $custom-label-h: 250px;
 
 .tag-gallery {
 	height: $custom-label-h;
-	overflow: auto;
+	overflow-y: auto;
 	width: 256px;
+	overflow-x: hidden;
+	border: 1px solid black;
+
+	#upload-label {
+		height: inherit;
+	}
 }
+
 
 
 #tag-frame-1 > .tag-row > .tag-col {
@@ -1048,5 +1111,24 @@ $block-list-item-padding: 5px 5px 3px 5px;
 	button {
 		margin: 15px auto 0px auto;
 		display: block;
+	}
+}
+
+#login-info {
+	overflow:hidden;
+	.login-links {
+		margin-top: 21.165px;
+		.login-label {
+			.icon-button {
+				.login-txt {
+					.padding-left: 4px;
+				}
+			}
+		
+		}
+	}
+	.welcome-user-text {
+		display: inline;
+		padding-right: 15px;
 	}
 }

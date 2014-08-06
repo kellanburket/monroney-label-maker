@@ -2,12 +2,34 @@
 		require_once('restful-api.php');
 		
 		class labelgen_api extends restful_api {
-			
-			//protected $User;
-		
 			public function __construct($request, $origin) {
 				parent::__construct($request);
-			
+				$this->user_table = 'labelgen_user_relationships';
+
+				if ($_FILES) {
+					switch($this->request['file_dir']) {
+						case('labels'): $this->file_dir = 'labels'; break;
+						case('logos'): $this->file_dir = 'logos'; break;						
+						default: $this->fail('Are you sure you want to do that?');
+					}
+	
+					$this->pathname = WP_CONTENT_DIR.'/uploads/label-maker/user_data/'.$this->file_dir.'/';
+					$this->baseurl = content_url('uploads/label-maker/user_data/'.$this->file_dir.'/');
+					$this->allowed_exts = array("image"=>array("gif", "jpeg", "jpg", "pjpeg", "x-png", "bmp", "tiff", "png"));
+				
+					if (!is_dir(WP_CONTENT_DIR.'/uploads/label-maker')) {
+						mkdir(WP_CONTENT_DIR.'/uploads/label-maker');
+					}
+					
+					if (!is_dir(WP_CONTENT_DIR.'/uploads/label-maker/user_data')) {
+						mkdir(WP_CONTENT_DIR.'/uploads/label-maker/user_data');
+					}
+					
+					if (!is_dir($this->pathname)) {
+						mkdir($this->pathname);
+					}
+				}
+					
 				// Abstracted out for example
 				
 				//$APIKey = new Models\APIKey();
@@ -47,20 +69,64 @@
 				switch ($this->method) {
 					case ('GET'):
 						$conditions = array();
-						if ($this->request['loginEmail'] && $this->request['loginPassword']) {
+						if (array_key_exists('loginEmail', $this->request) 
+							&& $this->request['loginEmail'] 
+							&& array_key_exists('loginPassword', $this->request) 
+							&& $this->request['loginPassword']) 
+						{
 							//$conditions['password'] = trim($this->request['loginPassword']);
 							$conditions['email'] = is_email($this->request['loginEmail']) ? $this->request['loginEmail'] : $this->fail('Not a valid email address!');
+						} else if(@ $this->user_id == 0) {
+							$conditions['id'] = 0;
+						} else {
+							$this->fail('You do not have the authorization to perform this action!');	
 						}
 						
 						$results = $this->parse_get_request($table, $fields, $conditions);
-						//echo json_encode($results);
-						//exit;
-						if ( $this->decrypt($this->request['loginPassword'], $results[0]['password']) ) {
-							return array('success'=>true, 'name'=>$results[0]['name'], 'id'=>$results[0]['id']);
-						} else {
-							$this->fail('Incorrect Password!');
+						
+						if (isset($this->request['loginPassword'])) 
+							if (!$this->decrypt($this->request['loginPassword'], $results[0]['password']))
+								$this->fail('Incorrect Password!');
+
+						$id = $results[0]['id'];
+						$user = array('success'=>true, 'name'=>$results[0]['name'], 'id'=>$id);
+						global $wpdb;
+						$tables = array("labelgen_images", "labelgen_logos", "labelgen_makes", "labelgen_models", "labelgen_years", "labelgen_options", "labelgen_discounts", "labelgen_labels");
+						foreach($tables as $tbl) {							
+							$num_results = $wpdb->query(
+								$wpdb->prepare(
+									"SELECT * FROM {$tbl} tx 
+										INNER JOIN labelgen_user_relationships ty
+										ON tx.id = ty.item_id 
+										WHERE ty.user_id = %d AND ty.table_name = %s", 
+									intval($id), $tbl
+								)
+							);
+							if ($num_results) {
+								$user[$tbl] = $wpdb->last_result;
+								
+								if (is_array($user[$tbl])) {
+									foreach($user[$tbl] as &$ut) {
+										
+										$ut->id = $ut->item_id;
+										unset($ut->table_name);
+										unset($ut->item_id);
+										unset($ut->time);
+									}
+								}
+								
+							}							 
 						}
-		
+						
+						if (isset($user['labelgen_options']) && is_array($user['labelgen_options'])) {
+							foreach($user['labelgen_options'] as $option) {
+								$user["{$option['location']}_options"][] = $option;
+							}		 
+														
+						}
+						
+						return $user;
+
 					case ('POST'):
 						if ($this->request['signupEmail'] && $this->request['signupPassword'] && $this->request['signupName']) {
 							$request['password'] = $this->encrypt(trim($this->request['signupPassword']));
@@ -82,19 +148,19 @@
 			protected function parse_label_request() {
 				if (array_key_exists('user_id', $this->request) && $this->request['user_id']) {
 					$request = array();
-					$request['user_id'] = intval($this->request['user_id']);
-					$request['id'] = $this->request['id'] ? intval($this->request['id']) : '';
+					$request['user_id'] = $this->user_id;
+					$request['id'] = $this->request['id'] ? intval($this->request['id']) : NULL;
 
 					@ $request['label_color'] = ($this->request['label_color']) ? (preg_match('/^#[a-zA-Z0-9]{6,8}$/', $this->request['label_color']) ? $this->request['label_color'] : '#234a8b') : '#234a8b';
 					@ $request['font_style'] = ($this->request['font_style']) ? (in_array(array('Italic', 'Normal'), $this->request['font_style']) ? $this->request['font_style'] : 'Normal') : 'Normal';
 					@ $request['font_weight'] = ($this->request['font_weight']) ? (in_array(array('Bold', 'Normal'), $this->request['font_weight']) ? $this->request['font_weight'] : 'Normal') : 'Normal';
 					@ $request['font_family'] = ($this->request['font_family']) ? (in_array(array('Sans Serif', 'Monospace', 'Serif'), $this->request['font_family']) ? $this->request['font_family'] : 'Sans Serif') : 'Sans Serif';
-					@ $request['dealership_name'] = $this->request['dealership_name'] ? sanitize_text_field($this->request['dealership_name']) : '';				
-					@ $request['dealership_logo'] = $this->request['dealership_logo'] ? esc_url_raw($this->request['dealership_logo']) : '';				
-					@ $request['dealership_tagline'] = $this->request['dealership_tagline'] ? sanitize_text_field($this->request['dealership_tagline']) : '';				
+					@ $request['dealership_name'] = $this->request['dealership_name'] ? sanitize_text_field($this->request['dealership_name']) : NULL;				
+					@ $request['dealership_logo_id'] = $this->request['dealership_logo_id'] ? intval($this->request['dealership_logo_id']) : NULL;				
+					@ $request['dealership_tagline'] = $this->request['dealership_tagline'] ? sanitize_text_field($this->request['dealership_tagline']) : NULL;				
 					//$request['dealership_info'] = $this->request['dealership_info'] ? sanitize_text_field($this->request['dealership_info']) : '';				
-					@ $request['custom_label_id'] = $this->request['custom_label_id'] ? intval($this->request['custom_label_id']) : '';
-					@ $request['name'] = $this->request['name'] ? sanitize_text_field($this->request['name']) : '';
+					@ $request['custom_label_id'] = $this->request['custom_label_id'] ? intval($this->request['custom_label_id']) : NULL;
+					@ $request['name'] = $this->request['name'] ? sanitize_text_field($this->request['name']) : NULL;
 					//$request['make_id'] = $this->request['make_id'] ? intval($this->request['make_id']) : '';
 					//$request['model_id'] = $this->request['model_id'] ? intval($this->request['model_id']) : '';
 					//$request['year_id'] = $this->request['year_id'] ? intval($this->request['year_id']) : '';
@@ -173,7 +239,7 @@
 			
 			protected function labels() {
 				$table = 'labelgen_labels'; 
-				$fields = array('id', 'label_color', 'font_style', 'font_weight', 'font_family', 'dealership_name', 'dealership_logo', 'dealership_tagline', 'custom_label_id', 'user_id', 'name');
+				$fields = array('id', 'label_color', 'font_style', 'font_weight', 'font_family', 'dealership_name', 'dealership_logo_id', 'dealership_tagline', 'custom_label_id', 'user_id', 'name');
 				$conditions = array();
 				
 				switch ($this->method) {
@@ -312,23 +378,42 @@
 				}
 			}
 		
-			protected function label_images() {
-				$table = 'labelgen_images';
-			
+			protected function logos() {
+				$table = 'labelgen_logos';
+				$conditions = array();
 				switch ($this->method) {
 					case ('GET'):
-						$conditions = array();
+						if (array_key_exists('id', $this->request)) $condition['id'] = intval($this->request['id']);
+						$fields = array('id', 'guid');
+						return $this->parse_get_request($table, $fields, $conditions);
+					case ('POST'):
+						$this->check_user_credentials();
+						$request['guid'] = $this->process_user_upload();
+						return $this->parse_post_request($table, $request);						
+					case ('PUT'):
+						break;
+					case ('DELETE'):
+						return $this->parse_delete_request();
+					default:
+						$this->fail('Database Update Failed!');
+				}
+			}
+			
+			protected function label_images() {
+				$table = 'labelgen_images';
+				$conditions = array();
+				switch ($this->method) {
+					case ('GET'):
+						if (array_key_exists('id', $this->request)) $condition['id'] = intval($this->request['id']);
 						$fields = array('id', 'guid', 'caption');
 						return $this->parse_get_request($table, $fields, $conditions);
 					case ('POST'):
 						$this->check_user_credentials();
-						if (isset($this->request['guid'])) {
-							$request['guid'] = filter_var($this->request['guid'], FILTER_VALIDATE_URL);
-							$request['caption'] = (isset($this->request['caption'])) ? sanitize_text_field($this->request['caption']) : '';
-							return $this->parse_post_request($table, $request);			
-						} else {
-							return $this->fail('Fields Not Set');
-						}
+						$request['guid'] = $this->process_user_upload();
+
+						//$request['caption'] = (isset($this->request['caption'])) ? sanitize_text_field($this->request['caption']) : '';
+
+						return $this->parse_post_request($table, $request);						
 					case ('DELETE'):
 						return $this->parse_delete_request();
 					default:
@@ -402,7 +487,7 @@
 			 protected function years() {
 				
 				$table = 'labelgen_years'; 		
-				$request = array();
+				$request = array();				
 				if ($this->method == 'GET') {
 					$fields = array('id', 'make_id', 'model_id', 'year');
 					//$conditions = array('make_id'=>$this->request['make_id'], 'model_id'=>$this->request['model_id']);
@@ -420,7 +505,8 @@
 						if($result) {				
 							return $this->fail(array('message'=>'Already Added', 'id'=>$result[0]->id));
 						} else {
-							return $this->parse_post_request($table, $request);			
+							$posted = $this->parse_post_request($table, $request);			
+							return $posted;
 						}
 					} else {
 						$this->fail('Fields Not Set');			

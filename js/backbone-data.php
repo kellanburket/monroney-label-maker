@@ -1,30 +1,55 @@
 <?php
-define('API_PATH', 'http://www.taglinemediagroup.com/monroney/label-generator/api/');
+extract($_SERVER);
+define('API_PATH', "{$HTTP_HOST}/label-generator/api/");
+$api_url = API_PATH.'users?id=0';
+
+$curl = curl_init();
+$options = array(
+	CURLOPT_URL=>$api_url,
+	CURLOPT_RETURNTRANSFER=>1
+);
+curl_setopt_array($curl, $options);
+$data = curl_exec($curl); 
+curl_close($curl);   
+
+$data = json_decode($data, true);
 
 $backbone_tables = array(
 	'label_images' => array(
 		'collection' => 'Imgs',
 		'url' => 'restful.url + "label_images"',
 		'options' => array(),
-		'data'	=>	json_decode(file_get_contents(API_PATH.'label_images'))
+		'data'	=> $data['labelgen_images']
+	),
+	'logos' => array(
+		'collection' => 'Logos',
+		'url' => 'restful.url + "logos"',
+		'options' => array(),
+		'data'	=> $data['labelgen_logos']
+	),
+	'labels' => array(
+		'collection' => 'Labels',
+		'url' => 'restful.url + "labels"',
+		'options' => array(),
+		'data'	=> $data['labelgen_labels']
 	),
 	'models' => array(
 		'collection' => 'Object',
 		'url' => 'restful.url + "models"',
 		'options' => array(),
-		'data'	=>	json_decode(file_get_contents(API_PATH.'models'))
+		'data'	=> $data['labelgen_models']
 	),
 	'makes' => array(
 		'collection' => 'Object',
 		'url' => 'restful.url + "makes"',
 		'options' => array(),
-		'data'	=> json_decode(file_get_contents(API_PATH.'makes'))
+		'data'	=> $data['labelgen_makes']
 	),
 	'years' => array(
 		'collection' => 'Object',
 		'url' => 'restful.url + "years"',
 		'options' => array(),
-		'data'	=> json_decode(file_get_contents(API_PATH.'years'))
+		'data'	=> $data['labelgen_years']
 	),
 	'exterior_options' => array(
 		'collection' => 'Options',
@@ -32,7 +57,7 @@ $backbone_tables = array(
 		'options' => array(
 			"location"=>"exterior"
 		),
-		'data' => json_decode(file_get_contents(API_PATH.'options&location=exterior'))
+		'data' => $data['exterior_options']
 	),
 	'interior_options' => array( 
 		'collection' => 'Options',
@@ -40,13 +65,13 @@ $backbone_tables = array(
 		'options' => array(
 			"location"=>"interior"
 		),
-		'data'	=> json_decode(file_get_contents(API_PATH.'options&location=interior'))
+		'data'	=> $data['interior_options']
 	),
 	'discounts' => array( 
 		'collection' => 'Discounts',
 		'url' => 'restful.url + "discounts"',
 		'options' => array(),
-		'data'	=> json_decode(file_get_contents(API_PATH.'discounts'))
+		'data'	=> $data['labelgen_discounts']
 	)
 );
 
@@ -54,7 +79,7 @@ echo "var App = {};\n";
 foreach ($backbone_tables as $key => $table) {	
 	echo "\tApp.".$key." = new ".$table['collection']." ([\n";
 	foreach($table['data'] as $row) {
-		if (is_object($row)) {
+		if (is_object($row) || is_array($row)) {
 			echo "\t\t{";
 			foreach($row as $key => $value) {
 				if (!$value) {
@@ -94,5 +119,34 @@ foreach ($backbone_tables as $key => $table) {
 	}
 	
 	echo "});\n\n";
+}
+
+
+function to_string($vars, $id = null, $depth = 0) {
+	if (!is_null($id)) {
+		echo "<p><strong>{$id}:</strong>";
+	}
+	$recursive_read = function($key, $val, $depth, $callback) {
+		$indent = 10 * $depth;
+		$css = "style='text-indent: {$indent}px; line-height:10px;'";
+		if (is_string($val) || is_numeric($val)) {
+			echo "<p {$css}><strong>{$key}:</strong> {$val}</p>";
+		} else if (is_array($val) || is_object($val)) {
+			echo "<p {$css}><strong>{$key}</strong>: </p>";
+			++$depth;
+			foreach($val as $a=>$b) {
+				call_user_func_array($callback, array($a, $b, $depth, $callback));
+			}
+		}
+	};
+
+	if (is_array($vars) || is_object($vars)) {
+		echo "</p>";
+		foreach($vars as $k=>$v) {
+			call_user_func_array($recursive_read, array($k, $v, $depth, $recursive_read));
+		}
+	} else {
+		echo ": {$vars}</p>"; 		
+	}
 }
 ?>

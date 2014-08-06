@@ -11,9 +11,9 @@ var Modal = (function($){
 
 	$loader = $('<img id="page-loader" class="snakeskin-loader" src="' + path + '/loader.gif">');
 	$content = $('<div id="modal-content"></div>');
-	$close = $('<div id="modal-close" href="">close</div>');
+	$close = $('<div id="modal-close" href="">x</div>');
 	
-	$modal.hide();
+	$modal.css({visibility: 'hidden'});
 	$overlay.hide();
 	$modal.append($content, $close);
 
@@ -22,56 +22,44 @@ var Modal = (function($){
 	});
 	
 	method.handle = function() {
-		$modal
-			.on("click", $content, function(event) {
-				console.log('in the content');
-				event.stopPropagation();
-			})
-			.on("click", function() {
-				//console.log('anywhere else');
-				modal.close();
-			});
-		$overlay.click( function() {
-			modal.close();
-		});
+		$overlay.click(method.close);
+		$close.click(method.close);
+		$('.ok-button').click(method.close);			
 	};
 	
 	method.overlay = function(settings) {
 		$overlay.addClass(settings.overlayClass);
 		$(settings.parent).append($overlay);
-	
 	};
 	
 	method.displayMessage = function(text, clz) {
-		method.hideLoader();
 		method.replaceContent('h3', {text: text, class: clz});			
 		method.appendContent('button', {text: 'OK', class:'tag-button ok-button'});
 		method.show();
-		$('.ok-button').click(method.close);			
 	}
 	
+	
+	//Append a new html tag item to the content
 	method.appendContent = function (tag, options) {
 		$new_content = $('<' + tag + '>', options);
 		$content.append($new_content);	
-		var w = $content.width();
-		var h = $content.height();
-		method.adjustDimensions(w, h);
+		method.adjustDimensions();
 	};
 
+	//Empty content and replace with new html element
+	method.replaceContent = function (tag, options) {
+		$new_content = $('<' + tag + '>', options);
+		$content.empty().append($new_content);	
+		method.adjustDimensions();
+	};
 
-	method.adjustDimensions = function(w, h) {
+	method.adjustDimensions = function() {
+		var w = $content.width();
+		var h = $content.height();
 		$modal.width(w + 20);
 		$modal.height(h + 40);	
 	}
 
-	method.replaceContent = function (tag, options) {
-		method.hideLoader();
-		$new_content = $('<' + tag + '>', options);
-		$content.empty().append($new_content);	
-		var w = $content.width();
-		var h = $content.height();
-		method.adjustDimensions(w, h);
-	};
 
 	method.animateDimensions = function() {
 		$modal.animate({width: 0, height: 0}, {duration: 200}).done(function() {
@@ -121,19 +109,20 @@ var Modal = (function($){
 	}
 	
 	method.open = function (tag, options, modal_animation) {
-		method.hideLoader();
 		method.appendContent(tag, options);		
 		method.show(modal_animation);
 	};
 
 	method.show = function(animation, properties) {
+		method.hideLoader();
+		
 		$modal.append($content);
 		animation = animation || {};
 		properties = properties || {};
 
 		$overlay.show();				
-		$modal.show();
-		
+		$modal.css({visibility: 'visible'});
+		$overlay.css({background: 'black'}, {opacity: 0});
 		var overlay_animation = {opacity: .7};
 		$overlay.animate(overlay_animation, {duration: 400});	
 		
@@ -154,21 +143,8 @@ var Modal = (function($){
 			$modal.css({opacity: 1, height: height, width: width});	
 		}
 		
-		$overlay.click(method.close);
-		$close.click(method.close);
+		method.handle();
 	}
-	
-	method.appendToTarget = function(target, parent, settings) {
-		$(target).appendTo($overlay);
-		
-		$overlay.append($modal);
-		
-		settings.content = $loader;
-		settings.parent = parent;
-		console.log($overlay, settings);
-
-		method.overlay(settings);
-	};
 	
 	method.hideLoader = function() {
 		$loader.detach();
@@ -176,16 +152,14 @@ var Modal = (function($){
 	};
 	
 	method.showLoader = function(settings) {
-		if (!$modal.is(':visible')) {
-			method.show();
-		}
 		$modal.append($loader);
 		$content.css({opacity: .1});	
+		method.show();
 	};
 	
 	method.close = function() {
 		console.log('Method Close');
-		$modal.hide();
+		$modal.css({visibility: 'hidden'});
 		$modal.removeClass('modalIsOpen');
 		$overlay.css({opacity: 1, background: "none"});
 		$content.empty();

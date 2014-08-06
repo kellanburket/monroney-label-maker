@@ -1,3 +1,6 @@
+.fail-message {
+  width: 100%;
+}
 .entry-header {
   display: none;
 }
@@ -71,7 +74,8 @@
 }
 #tag-generator #tag-preview #tag-preview-window #tag-preview-header #logoWrap #dealershipLogo {
   width: auto;
-  height: 42px;
+  height: auto;
+  max-height: 42px;
 }
 #tag-generator #tag-preview #tag-preview-window #tag-preview-header .preview-h3, #tag-generator #tag-preview #tag-preview-window #tag-preview-header .preview-h4 {
   padding: 0;
@@ -141,6 +145,23 @@
 #tag-generator #tag-preview .preview-label, #tag-generator #tag-preview .preview-span {
   vertical-align: top;
   font-weight: bold;
+}
+.dz-preview {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+.dz-preview .dz-details .dz-filename {
+  display: none;
+}
+.dz-preview .dz-details .dz-size {
+  display: none;
+}
+.dz-preview .dz-success-mark {
+  display: none;
+}
+.dz-preview .dz-error-mark {
+  display: none;
 }
 .basal-font {
   font-size: 7.7px;
@@ -314,6 +335,9 @@ fieldset {
 }
 px-10 {
   font-size: 10px;
+}
+.inline {
+  display: inline;
 }
 .inline-list li {
   display: inline;
@@ -555,6 +579,25 @@ button {
   width: auto;
   height: 100px;
   border: 1px solid black;
+}
+#upload-logo, #upload-label {
+  background: #dadbdc;
+  height: 75px;
+  text-align: center;
+  position: relative;
+}
+#upload-logo {
+  padding-top: 10%;
+  border: 1px solid black;
+}
+#upload-label {
+  padding-top: 45%;
+}
+.vertical-center {
+  text-align: center;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
   /* Site Specific */
 }
 [name=labelCaption] {
@@ -575,8 +618,13 @@ button {
 }
 .tag-gallery {
   height: 250px;
-  overflow: auto;
+  overflow-y: auto;
   width: 256px;
+  overflow-x: hidden;
+  border: 1px solid black;
+}
+.tag-gallery #upload-label {
+  height: inherit;
 }
 #tag-frame-1 > .tag-row > .tag-col {
   width: 100%;
@@ -769,4 +817,17 @@ button {
 .dialogForm button {
   margin: 15px auto 0px auto;
   display: block;
+}
+#login-info {
+  overflow: hidden;
+}
+#login-info .login-links {
+  margin-top: 21.165px;
+}
+#login-info .login-links .login-label .icon-button .login-txt {
+  .padding-left: 4px;
+}
+#login-info .welcome-user-text {
+  display: inline;
+  padding-right: 15px;
 }

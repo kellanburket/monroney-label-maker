@@ -45,7 +45,7 @@ var $ = jQuery.noConflict();
 		
 		snakeToCamelCase: function (snakes) {
     		var camels = []
-			console.log('SNAKES', snakes);
+			//console.log('SNAKES', snakes);
 			for (var i in snakes) {
 				camels.push(this._recursiveSnakes(snakes[i]));
 			}
@@ -54,7 +54,7 @@ var $ = jQuery.noConflict();
 		
 		_recursiveSnakes: function(snakes) {
 			if (typeof snakes == 'string') {
-				console.log('SnakeCamel:string', snakes);
+				//console.log('SnakeCamel:string', snakes);
 
 				return snakes.toLowerCase().replace(/_(.)/g, function(match, horse) {
 					return horse.toUpperCase();
@@ -62,16 +62,19 @@ var $ = jQuery.noConflict();
 			} else if (typeof snakes == 'object') {
 				camel = {};
 				for (var key in snakes) {
-					console.log('SnakeCamel:object', key, snakes[key]);
-					camel[this._recursiveSnakes(key)] = this._recursiveSnakes(snakes[key]);
+					if (snakes[key] != null) {
+						//console.log('SnakeCamel:object', key, snakes[key]);
+						camel[this._recursiveSnakes(key)] = this._recursiveSnakes(snakes[key]);
+					}
 				}
 				return camel;				
 			} else if (typeof snakes == 'number') {
-				console.log('SnakeCamel:number', snakes);
+				//console.log('SnakeCamel:number', snakes);
 
 				return snakes;
 			} else {
-				console.log('SnakeCamel:undefined', snakes);
+				//return null;
+				//console.log('SnakeCamel:undefined', snakes);
 			}
 		}
 				
@@ -200,65 +203,23 @@ var $ = jQuery.noConflict();
 			}			
 		},
 		
-		log_in: function() {
-			$email = $('<input>', {type: 'text', value: 'kellan.burket@gmail.com', class: 'tag-input', name: 'loginEmail'});
-			$passw = $('<input>', {type: 'password', value: 'gaiden', class: 'tag-input', name: 'loginPassword'});
-			
-			var dialog = new Backbone.Dialog(
-				{	fields: 
-					[
-						{label: 'Email', field: $email}, 
-						{label: 'Enter a Password', field: $passw}, 
-					],
-					id: 'loginForm', 
-					submitText: 'Log In',
-					submitId: 'loginButton'
-				},
-				{callback: this.on_user_login, context: this}
-			);
-		},
-
-		on_user_login: function(data) {
-			//console.log('on_user_login', data);
-			this._do_ajax(data, 'GET', restful.url + '/users', this.on_successful_log_user_in);
-		},
-
-		sign_up: function() {
-			$name = $('<input>', {type: 'text', class: 'tag-input', name: 'signupName'});
-			$email = $('<input>', {type: 'text', class: 'tag-input', name: 'signupEmail'});
-			$passw = $('<input>', {type: 'password', class: 'tag-input', name: 'signupPassword'});
-			$retype = $('<input>', {type: 'password', class: 'tag-input', name: 'signupPasswordRetype'});
-			console.log('User Sign Up');
-			
-			var dialog = new Backbone.Dialog(
-				{fields: 
-					[
-						{label: 'Full Name', field: $name}, 
-						{label: 'Email', field: $email}, 
-						{label: 'Enter a Password', field: $passw}, 
-						{label: 'Retype Password', field:$retype}, 
-					],
-					id: 'signupForm', 
-					submitText: 'Sign Up',
-					submitId: 'signup-button'
-				},
-				{callback: this.on_user_signup, context: this}
-			);
-		},
-				
-		on_user_signup: function(data) {
-			console.log('on_user_signup', data);
-			if(data.signupPassword != data.signupPasswordRetype) {
-				$('[name="signupPasswordRetype"]').animate({backgroundColor: '#bf2026'}, {duration: 600});
-				$('[name="signupPasswordRetype"]').val('');
+		validate_user: function() {
+			if (this.model.id > 0) {
+				return true;
 			} else {
-				this._do_ajax(data, 'POST', restful.url + '/users', this.on_successful_sign_user_up);
+				this.show_fail_message('You must be logged in to perform this action!');
+				return false;
 			}
 		},
-		
+
+		/**
+		**		On Save Click
+		**/
 		save_form: function() {
+			if (!this.validate_user()) return false;
+			
 			$name = $('<input>', {type: 'text', class: 'tag-input nonmandatory', name: 'labelName'});
-			$select = this.get_label_select(false); 	
+			$select = this.get_label_select(this.model.get('id'), false); 	
 
 			var dialog = new Backbone.Dialog(
 				{fields: 
@@ -275,12 +236,35 @@ var $ = jQuery.noConflict();
 
 
 		},
+		
+		_gather_save_data: function() {
+			
+			var data = {
+					//font_style: this.model.get('fontStyle'),
+					//font_weight: this.model.get('fontWeight'),
+					label_color: this.model.get('labelColor'),
+					//font_family: this.model.get('fontFamily'),
+					dealership_name: this.model.get('dealershipName'),
+					dealership_tagline: this.model.get('dealershipTagline'),
+					//dealership_info: this.model.get('dealershipInfo'),
+					dealership_logo_id: this.model.get('dealershipLogoId'),
+					custom_label_id: this.model.get('customLabelId'),
+					option_ids: this.model.get('optionIds'),
+					option_prices: this.model.get('optionPrices'),
+					//discount_ids: this.model.get('discount_ids')
+					user_id: this.model.get('userId'),
+					id: (parseInt(this.model.get('id')) > 0) ? this.model.get('id') : null,
+					name: this.model.get('name')
+				};
+			console.log('Gather Data', this.model, data);
+
+			return data;		
+		},
 
 		on_user_save: function(data) {
 			var data = _.extend(this._gather_save_data(), {name: data.labelName});
-			console.log('save_form', data);
+			//console.log('save_form', data);
 			var request;
-			
 			var id = $('#label-selector option:selected').val();
 			
 			if (id > 0) {
@@ -303,19 +287,30 @@ var $ = jQuery.noConflict();
 			this.model.set('name', data.name);
 		},
 		
-		get_label_select: function(appendAddNew) {
+		get_label_select: function(selected_id, appendAddNew) {
 			appendAddNew = appendAddNew || true;
+			selected_id = selected_id || 0;
+
 			$select = $('<select>', {id: 'label-selector', class: 'tag-select', style: 'width: 250px; display: block; margin: 0 auto;'});			
 			
 			if (appendAddNew) {
 				$newLabel = $('<option>', {text: 'New Label', id: 'new_selection', value: '0'});
 				$select.append($newLabel);	
 			}
+			var labels = this.collection.models;
 			
-			for (var label in this.collection.models) {
-				var name = this.collection.models[label].get('name');
+			for (var l in labels) {
+				var name = labels[l].get('name');
+				var label_id = labels[l].get('id');
 				if (name) {
-					$select.append($('<option>', {text: name, value: this.collection.models[label].get('id')}));
+					var vals = {text: name, value: label_id};
+					if (selected_id == label_id) {
+						$select.append('<option selected value="' + label_id + '">' + name + '</option>');
+						//$select.val(label_id);
+						console.log("Get Label Select", $select, selected_id, label_id);
+					} else {
+						$select.append($('<option>', vals));
+					}
 				}
 			}
 			return $select;
@@ -333,23 +328,19 @@ var $ = jQuery.noConflict();
 				submitClass: 'tag-button',
 				submitId: 'load-button'
 			},
-				{callback: this.on_user_load, context: this}
+				{callback: $.proxy(this.on_label_load, this, $select), context: this}
 			);
 		},
 		
-		on_user_load: function(data) {
-			console.log('on_user_load', data);
-			var id = $('#label-selector option:selected').val();
+		on_label_load: function($select) {
+			$selected = $select.children(':selected');
+			var name = $selected.text(); 
+			var id = $selected.val();
+			console.log('on_label_load', $select, $selected, id, name);
 			Modal.close();	
-			this.stopListening(this.collection, 'add');
-			this.load_label(id, data);	
-		},
-
-		load_label: function(id, data) {
-			console.log('load_label', id, data);
 			if (id <= 0) {
 				this.model.set('id', id);
-				this.model.set('name', data.name);
+				this.model.set('name', name);
 			} else {
 				var model = this.collection.findWhere({id: id});
 				//console.log('loading label:', model, this.collection);
@@ -371,29 +362,6 @@ var $ = jQuery.noConflict();
 
 		reset_form: function() {
 			Backbone.trigger('requestReset');
-		},
-		
-		_gather_save_data: function() {
-			console.log(this.model);
-			
-			var data = {
-					//font_style: this.model.get('fontStyle'),
-					//font_weight: this.model.get('fontWeight'),
-					label_color: this.model.get('labelColor'),
-					//font_family: this.model.get('fontFamily'),
-					dealership_name: this.model.get('dealershipName'),
-					dealership_tagline: this.model.get('dealershipTagline'),
-					//dealership_info: this.model.get('dealershipInfo'),
-					dealership_logo: this.model.get('dealershipLogo'),
-					custom_label_id: this.model.get('customLabelId'),
-					option_ids: this.model.get('optionIds'),
-					option_prices: this.model.get('optionPrices'),
-					//discount_ids: this.model.get('discount_ids')
-					user_id: this.userId || this.model.get('userId'),
-					id: (parseInt(this.model.get('id')) > 0) ? this.model.get('id') : null,
-					//user_name: this.model.get('user_name')
-				};
-			return data;		
 		},
 		
 		_gather_data: function() {
@@ -535,33 +503,127 @@ var $ = jQuery.noConflict();
 			
 		},
 		
-		on_successful_log_user_in: function(data) {
-			Backbone.trigger('userLoggedIn', data.id, data.name); 
-			this.userId = data.id;
-			Modal.close();
+		/** 
+		**	Called when user clicks on log in button
+		**/
+		log_in: function() {
+			$email = $('<input>', {type: 'text', value: 'kellan.burket@gmail.com', class: 'tag-input', name: 'loginEmail'});
+			$passw = $('<input>', {type: 'password', value: 'gaiden', class: 'tag-input', name: 'loginPassword'});
 			
-			$doc = $('<div>');
-			$head = $('<h3>', {text: 'Welcome back, ' + data.name + '. Please select a label:', class: 'success-message align-center'});			
-			$select = this.get_label_select(); 
-			$ok = $('<button>', {text: 'OK', class: 'tag-button ok-button', style: 'margin-bottom: 50px'});
-			$doc.append($head, $select, $ok);
-			Modal.openDomDocument($doc);
-			$options = [];
-			
-			this.listenTo(this.collection, 'add', function(model) {
-				$new_option = $('<option>', {text: model.get('name'), value: model.get('id')});
-				$options.push($new_option);	
-				$select.append($options[$options.length - 1]);
-			});
-			
-			$ok.click($.proxy(this.on_user_load, this, data));
+			var dialog = new Backbone.Dialog(
+				{	fields: 
+					[
+						{label: 'Email', field: $email}, 
+						{label: 'Enter a Password', field: $passw}, 
+					],
+					id: 'loginForm', 
+					submitText: 'Log In',
+					submitId: 'loginButton'
+				},
+				
+				{
+					callback: $.proxy(function(data) {
+							this._do_ajax(data, 'GET', restful.url + '/users', this.on_successful_log_user_in);
+						}, this),
+					context: this
+				}
+			);
 		},
 
+		on_successful_log_user_in: function(data) {
+			this._init_user(data);
+			$doc = $('<div>');
+			$head = $('<h3>', {text: 'Welcome back, ' + data.name + '. Please select a label:', class: 'success-message align-center'});			
+
+			$select = this.get_label_select(); 
+
+			$ok = $('<button>', {text: 'OK', class: 'tag-button ok-button', style: 'margin-bottom: 50px'});
+			$doc.append($head, $select, $ok);
+			
+			Modal.openDomDocument($doc);
+			$options = [];
+						
+			$ok.one('click', $.proxy(this.on_label_load, this, $select));
+		},
+
+		/** 
+		**	Initializes the user element
+		**	TRIGGERS--Backbone: userLoggedIn
+		**/		
+
+		_init_user: function(data) {
+			this.model.set('userId', data.id);
+			this.model.set('userName', data.name);		
+			this.collection.userId = data.id;
+			this.collection.userName = data.name;		
+
+			if (data.labelgen_labels) this.collection.add(this.collection.parse(data.labelgen_labels));
+			if (data.labelgen_logos) Backbone.trigger('dealershipLogosFetched', data.dealershipLogos); 
+			if (data.labelgen_images) Backbone.trigger('customLabelsFetched', data.labelgen_images); 
+			if (data.labelgen_makes) Backbone.trigger('makesFetched', data.labelgen_makes); 
+			if (data.labelgen_models) Backbone.trigger('modelsFetched', data.labelgen_models); 
+			if (data.labelgen_years) Backbone.trigger('yearsFetched', data.labelgen_years); 
+			if (data.exterior_options) Backbone.trigger('exteriorOptionsFetched', data.exterior_options); 
+			if (data.interior_options) Backbone.trigger('interiorOptionsFetched', data.interior_options); 
+
+			this.hide_login_links();
+			Backbone.trigger('userLoggedIn');
+		},
+		
+		/** 
+		**	Maniupulate the visibility of login links at the top of the form
+		**/		
+		
+		hide_login_links: function() {
+			$('.login-txt').addClass('invisible');
+			$('.welcome-user-text').removeClass('invisible').text('Welcome ' + this.model.get('userName') + '!');			
+		},
+		
+		show_login_links: function() {
+			$('.login-txt').removeClass('invisible');
+			
+		},
+		
+		/** 
+		**	Called when user clicks on signup button
+		**/
+		sign_up: function() {
+			$name = $('<input>', {type: 'text', class: 'tag-input', name: 'signupName'});
+			$email = $('<input>', {type: 'text', class: 'tag-input', name: 'signupEmail'});
+			$passw = $('<input>', {type: 'password', class: 'tag-input', name: 'signupPassword'});
+			$retype = $('<input>', {type: 'password', class: 'tag-input', name: 'signupPasswordRetype'});
+			//console.log('User Sign Up');
+			
+			var dialog = new Backbone.Dialog(
+				{fields: 
+					[
+						{label: 'Full Name', field: $name}, 
+						{label: 'Email', field: $email}, 
+						{label: 'Enter a Password', field: $passw}, 
+						{label: 'Retype Password', field: $retype}, 
+					],
+					id: 'signupForm', 
+					submitText: 'Sign Up',
+					submitId: 'signup-button'
+				},
+				{	
+					callback: $.proxy(function(data) {
+							//console.log('on_user_signup', data);
+							if(data.signupPassword != data.signupPasswordRetype) {
+								$('[name="signupPasswordRetype"]').animate({backgroundColor: '#bf2026'}, {duration: 600});
+								$('[name="signupPasswordRetype"]').val('');
+							} else {
+								this._do_ajax(data, 'POST', restful.url + '/users', this.on_successful_sign_user_up);
+							}
+						}, this), 
+					context: this
+				}
+			);
+		},
+		
 		on_successful_sign_user_up: function(data) {
 			Modal.displayMessage('Congratulations, ' + data.name + '. You have been signed up to use the Monroney Label Generator. You can login again using your password and the email you registered with. Thank you for doing business with us.', 'success-message align-center');			
-			this.userId = data.id;
-			this.model.set('userId', data.id);
-			this.model.set('user_name', data.name);
+			this._init_user(data);			
 		},
 		
 		show_fail_message: function(message) {
@@ -748,9 +810,11 @@ var $ = jQuery.noConflict();
 	var LabelOption = Backbone.View.extend({
 		tag: 'li',
 		class: 'option font-arial px-10',
+		
 		initialize: function(attrs) {
 			this.render();
 		},
+		
 		render: function() {
 			var option_name = this.model.get('option_name');
 			$tag = $('<' + this.tag + '>', {class: this.class, id: 'option_' + option_name.replace(/\s/, '_')});
@@ -797,7 +861,7 @@ var $ = jQuery.noConflict();
 		defaults: {
 			userId: 0,
 			id: null,
-			name: '',
+			name: null,
 			labelColor: '#23498a',
 			
 			fontStyle: 'normal',
@@ -813,9 +877,10 @@ var $ = jQuery.noConflict();
 			_dealershipTagline: '[Tagline]',
 			_additionalInfo: '[Additional Info]',
 			
-			dealershipLogo: '',
-			customlabel: '',
-			customLabelId: '',	
+			dealershipLogo: null,
+			dealershipLogoId: null,
+			customLabel: null,
+			customLabelId: null,	
 			
 			make: '',
 			make_id: '',
@@ -843,7 +908,7 @@ var $ = jQuery.noConflict();
 		},
 				
 		initialize: function(attrs, opts) {
-			console.log('New Model', attrs, opts);
+			console.log('New Label', attrs, opts);
 		},
 
 		set_all_attributes: function() {
@@ -854,11 +919,12 @@ var $ = jQuery.noConflict();
 
 		set_featured_image: function(model) {
 			var id = model.get('id');
-			console.log('Set Featured Image', model, id);
+			var guid = model.get('guid');
 			
-			this.set('customLabel', model.get('guid'));
+			
+			//console.log('Set Featured Image', model, id);
+			this.set('customLabel', guid);
 			this.set('customLabelId', id);
-			
 		},
 
 		get_total: function() {
@@ -908,29 +974,18 @@ var $ = jQuery.noConflict();
 		},
 	});	
 	
-	var LabelCollection = Backbone.ExtendedCollection.extend({
+	var Labels = Backbone.ExtendedCollection.extend({
 		model: Label,
 		
 		initialize: function(models, options) {
 			this.userId = null;
-			this.user_name = null;
+			this.userName = null;
 		},
 		
 		clone_model: function(model, value, opts) {
 			var changes = model.changedAttributes();			
 			console.log('Clone Model', changes, model, value);
 			
-		},
-		
-		load_user_model: function(userId, user_name) {
-		
-			this.userId = userId;
-			this.user_name = user_name;
-			//console.log('URL', this.url());
-			this.fetch({
-				success: function() {console.log('Success', arguments)},
-				error: function() {console.log('Failure', arguments)},
-			});
 		},
 		
 		parse: function(snake, options) {
@@ -964,7 +1019,7 @@ var $ = jQuery.noConflict();
 			this.fields = opts.fields;
 			this.label_options = {interior: {}, exterior: {}};
 			this.label_discounts = {};
-			
+			this.render_dropzone_elements();
 		},
 		
 		render: function() {
@@ -992,27 +1047,29 @@ var $ = jQuery.noConflict();
 			
 			this.model.on('change:labelColor', this.renderLabelColor, this);
 			this.renderLabelColor();
+			
+			this.listenTo(Backbone, 'userLoggedIn', this.enable_dropzones);
 
 			this.model.on('change:fontFamily change:fontWeight change:fontStyle', this.renderTextStyle, this);
 			
 			this.model.on('change:dealershipName change:dealershipTagline change:additionalInfo', this.renderText, this);
+
+			/* Deal with images */
 			this.model.on('change:dealershipLogo', $.proxy(function(model, value) {
 				this.$dealershipLogo.attr('src', value);
 			}, this));
 
-			this.$dealershipName.text(this.model.get('dealershipName'));
-			this.$dealershipTagline.text(this.model.get('dealershipTagline'));
-
 			this.listenTo(this.model, 'change:customLabel', $.proxy(function(model, value) {
 				this.$customLabel.attr('src', value);				
 			}, this));
-			this.fetch_custom_label();			
+			
+			this.listenTo(Backbone, 'dealershipLogoAdded', this.toggle_visibility);
 
 			this.listenTo(this.model, 'change:msrp', $.proxy(this.update_total, this, 0, "Value", true));
 
 			$('.tag-input[type=text]').on('blur', null, $.proxy(this.setText, null, this, this.model));
 			this.$fontFamily.on('change', null, $.proxy(this.setAttr, null, this, this.model));
-			this.$toggleVisibility.on('change', null, {view: this}, this.toggleVisibility);
+			this.$toggleVisibility.on('change', null, {view: this}, this.toggle_visibility);
 			this.$colorbox.on('click', null, {view: this}, this.setLabelColor);		
 			$('[type=fontStyle], [name=fontWeight]').on('change', null, $.proxy(this.setCheckboxAttr, null, this, this.model));
 			
@@ -1021,20 +1078,24 @@ var $ = jQuery.noConflict();
 			Backbone.on("modelSelected", this.model.set_model, this.model);
 			Backbone.on("yearSelected", this.model.set_year, this.model);
 			Backbone.on("requestReset", this.model.reset_attributes, this.model);
-			Backbone.on("userLoggedIn", this.collection.load_user_model, this.collection);
 			Backbone.on("labelSelected", this.replace_model, this);
 			
-			this.$uploadLogo.on('click', $.proxy(this.upload_logo, null, this, this.model));
-			this.$uploadLabel.on('click', $.proxy(this.post_label, null, this, this.model));
 			this.model.on("change:id", this.collection.clone_model, this.collection);
 			
 			this.listenTo(Backbone, "add_option", this.add_option);
 			this.listenTo(Backbone, "remove_option", this.remove_option);
-			this.fetch_options();
 						
 			this.listenTo(Backbone, "add_discount", this.add_discount);
 			this.listenTo(Backbone, "remove_discount", this.remove_discount);
 			
+			/* load stuff */
+			
+			this.fetch_options();
+			this.fetch_image('customLabel');
+			this.fetch_image('dealershipLogo');
+			this.$dealershipName.text(this.model.get('dealershipName'));
+			this.$dealershipTagline.text(this.model.get('dealershipTagline'));
+
 			return this;
 		},
 
@@ -1129,7 +1190,6 @@ var $ = jQuery.noConflict();
 		},
 	
 		renderLabelColor: function(event) {
-			console.log(this.model);
 			var new_color = this.model.get('labelColor');
 			this.$footer.css({background: new_color});		
 			this.$window.css({background: new_color});		
@@ -1174,39 +1234,31 @@ var $ = jQuery.noConflict();
 			model.set(name, value);
 		},
 
-		toggleVisibility: function(event) {
+		toggle_visibility: function(event) {
+			console.log('Toggle Visibility');
 			$('#dealershipLogo, #dealershipText').toggleClass('invisible');
 		},
 		
-		upload_logo: function(view, model) {
-			//console.log('upload_logo(view, model)', view, model);
-			
-			var form = get_form_data($(this));
-			var img_name = $(this).data('name');
-			
-			$.when(post_form(form)).done(function(data) {
-				if (data.guid) {
-					model.set('dealershipLogo', data.guid);
-					$('#dealershipLogo').attr('src', data.guid); 
-					view.toggleVisibility();
+		fetch_image: function(name) {
+			var guid = this.model.get(name);
+			var id = this.model.get(name + 'Id');
+			var name_ucfirst = name.charAt(0).toUpperCase() + name.substr(1, name.length);
+				
+			console.log('Fetch ' + name, guid, id, name_ucfirst);
+
+			if (!guid) {
+				if (id) {
+					this.listenToOnce(Backbone, 'return' + name_ucfirst, $.proxy(function(img) {
+						console.log(name + " Returned", img);					
+						this.model.set(name, img.get('guid'));
+					}, this));
+					Backbone.trigger('request' + name_ucfirst, id);
 				}
-			});
-		
+			} else {
+				$('#' + name).attr('src', guid);
+			}		
 		},
-		
-		fetch_custom_label: function() {
-			var label_id = this.model.get('customLabelId');
-			if (label_id) {
-				/*
-				this.listenToOnce(Backbone, 'returnCustomLabel', $.proxy(function(img) {
-					console.log("Image Returned", img);					
-					this.model.set('customLabel', img.get('guid'));
-				}, this));
-				*/
-				Backbone.trigger('requestCustomLabel', label_id);
-			}
-		},
-		
+						
 		fetch_options: function() {
 			var ids = this.model.get('optionIds');
 			var prices = this.model.get('optionPrices');
@@ -1222,26 +1274,80 @@ var $ = jQuery.noConflict();
 			*/
 			Backbone.trigger('requestOptions', ids, prices);
 		},
-		
-		post_label: function(view, model) {
-			//console.log('post_label(view, model)->this', view, model, '->', this);
-			var form = get_form_data($(this));
-			
-			$gallery = $('#' + $(this).data('gallery'));	
-			
-			$text = $(this).siblings('textarea');
-			if ($text.length > 0) {
-				form.append($text.attr('name'), $text.val());
+
+		render_dropzone_elements: function() {
+			var init = function(id, dir, view) {
+				this.on("click", function() {
+					console.log('click', arguments);
+				});
+				this.on("addedFile", function(file) {
+					console.log("addedFile", file);
+				});
+				this.on("drop", function(event) {
+					console.log("drop", event);
+				});
+				this.on("thumbnail", function(file, dataUrl) {
+					console.log("thumbnail", dataUrl);
+				});
+				this.on("error", function(file, errorMessage) {
+					console.log("error", file, errorMessage);
+				});
+				this.on("processing", function(file) {
+					console.log("processing", file);
+				});
+				this.on("uploadProgress", function(file, progress, bytesSent) {
+					console.log("uploadProgress", file, progress, bytesSent);
+				});
+				this.on("sending", function(file, xhr, form) {
+					//id = view.model.get('userId');
+					var user_id = view.model.get('userId');
+					form.append("user_id", user_id);
+					form.append("file_dir", dir); 
+					console.log("sending", dir, user_id);
+				});
+				this.on("success", function(file, data) {
+					var big_event = id + 'Added';
+					console.log("success", data, big_event);
+					data = $.parseJSON(data);
+					if (data.guid) {
+						view.model.set(id, data.guid);
+						$('#' + id).attr('src', data.guid); 
+						view.model.set(id + "Id", data.id);
+						Backbone.trigger(big_event, data.guid, data.caption || {});
+					}
+				});
 			}
-			
-			$.when(post_form(form)).done(function(data) {
-				console.log('Data Posted', data);
-				if (data.guid) {
-					Backbone.trigger('customLabelAdded', data.guid, data.caption);
-					//var i_collection = model.get('label_image_collection');
-					////console.log('Imgs: ', i_collection);
-					//i_collection.create({guid: data.guid, caption: data.caption});
-				}
+
+			var view = this;
+			this.labelDropzone = new Dropzone("#upload-label", {
+				url: restful.url + "/label_images",
+				method: "post",
+				maxFileSize: 10,
+				init: $.proxy(init, null, "customLabel", "labels", view)
 			});
+
+			this.logoDropzone = new Dropzone("#upload-logo", {
+				url: restful.url + "/logos",
+				method: "post",
+				maxFileSize: 10,
+				thumbnailWidth: 245,
+				thumbnailHeight: 42,
+				init: $.proxy(init, null, "dealershipLogo", "logos", view)
+			});
+
+			$("#upload-logo").text('< Log In to Upload Your Custom Logo >');			
+			$("#upload-label").text('< Log In to Upload Your Custom Label >');			
+			
+			this.labelDropzone.disable();
+			this.logoDropzone.disable();
+		},
+		
+		enable_dropzones: function() {
+			console.log('Enable Dropzones');
+			this.labelDropzone.enable();
+			this.logoDropzone.enable();
+			$("#upload-logo").text('< Drag or Click to Upload Your Custom Logo >');			
+			$("#upload-label").text('< Drag or Click to Upload Your Custom Label >');			
 		}
+		
 	});

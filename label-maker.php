@@ -11,11 +11,6 @@ require_once(LABEL_MAKER_ROOT.'/lib/fpdf/fpdf.php');
 require_once(LABEL_MAKER_ROOT.'/models/generator.php');	
 require_once(LABEL_MAKER_ROOT.'/lib/restful-api/labelgen-api.php');
 
-
-
-
-
-
 add_action('wp_enqueue_scripts', function() {
 
 	wp_enqueue_script('jquery');	
@@ -27,6 +22,8 @@ add_action('wp_enqueue_scripts', function() {
 	wp_enqueue_script('pdf_js', LABEL_MAKER_URL.'/js/lib/pdf.js/build/generic/build/pdf.js');
 	wp_enqueue_script('compatability_js', LABEL_MAKER_URL.'/js/lib/pdf.js/build/generic/web/compatibility.js', 'pdf_js');
 	
+	wp_enqueue_script('dropzone', LABEL_MAKER_URL.'/js/lib/dropzone/dropzone.js');
+	
 	wp_enqueue_style('label_generator_css', LABEL_MAKER_URL.'/css/style.css');
 	wp_enqueue_style('modal_css', LABEL_MAKER_URL.'/js/modal/modal.css');
 	wp_enqueue_script('modal_js', LABEL_MAKER_URL.'/js/modal/modal.js', array('backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);	
@@ -36,6 +33,8 @@ add_action('wp_enqueue_scripts', function() {
 	wp_enqueue_script('label_generator_option_js', LABEL_MAKER_URL.'/js/generator-option.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_image_js', LABEL_MAKER_URL.'/js/generator-image.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_discount_js', LABEL_MAKER_URL.'/js/generator-discount.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+	wp_enqueue_script('label_generator_user_js', LABEL_MAKER_URL.'/js/generator-user.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+	
 	
 	wp_enqueue_script('backbone-data', LABEL_MAKER_URL.'/js/backbone-data.php', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'label_generator_vehicle_js', 'label_generator_discount_js', 'label_generator_option_js', 'label_generator_image_js', 'backbone_full_extend'), null, true);
 
