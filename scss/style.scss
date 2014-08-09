@@ -168,6 +168,7 @@ $logo-margin-bottom: 10px * $scale;
 			
 				.total-block {
 					position: absolute;
+					display: block;
 					width: inherit;
 					margin: 0;
 					left: 0;
@@ -225,11 +226,7 @@ $logo-margin-bottom: 10px * $scale;
 	}
 }
 	
-.dz-preview {
-	position: absolute;
-	top: 5px;
-	left: 5px;
-	
+.dz-preview {	
 	.dz-details {
 		img {
 		}
@@ -815,15 +812,22 @@ button {
 	height: 75px;	
 	text-align: center;
 	position: relative;
+	overflow: auto;
+	img {
+		width: 100%;	
+		position: absolute;
+		top: 15px;
+		left: 0;
+		cursor: pointer;
+	}
+	img:hover {
+		border: 1px solid #bf2026;
+	}
 }
 
 #upload-logo {
 	padding-top: 10%;
 	border: 1px solid black;
-}
-
-#upload-label {
-	padding-top: 45%;
 }
 
 .vertical-center {
@@ -844,31 +848,46 @@ button {
 }
 
 $custom-label-w: 300px;
-$custom-label-h: 250px;
+$custom-label-h: 255px;
 
 
-.customLabelView {
-	width: 100%;
-	border: 2px dotted #878787;
-	display: inline-block;
-	cursor: pointer;
-}
-
-.customLabelView:hover {
-	border: 2px dotted $primary-color;	
-}
 
 .tag-gallery {
 	height: $custom-label-h;
-	overflow-y: auto;
-	width: 256px;
-	overflow-x: hidden;
+	width: 100%;
 	border: 1px solid black;
+	padding: 0;	
 
 	#upload-label {
-		height: inherit;
+		padding-top: 20%;
+		margin: 0;
+		height: $custom-label-h - 2;
+		vertical-align: top;
+		display: inline-block;
+		overflow: hidden;
+		width: 49.5%;
 	}
+	.image-collection {
+		display: inline-block;
+		overflow-y: auto;
+		overflow-x: hidden;
+		height: $custom-label-h;
+		width: 49.5%;
+		.customLabelView {
+			display: block;
+			width: 100%;
+			border: 2px dotted #878787;
+			display: inline-block;
+			cursor: pointer;
+		}
+		
+		.customLabelView:hover {
+			border: 2px dotted $primary-color;	
+		}
+	}
+
 }
+
 
 
 
@@ -876,28 +895,23 @@ $custom-label-h: 250px;
 	width: 100%;
 }
 
-.config-input {
-	position: absolute;
-	right: 40px;
-	top: 0;
-}
-
-#vehicleMakeConfig, #vehicleModelConfig, #vehicleYearConfig {
-	width: 100%;	
-}
+$config-field-w: 300px;
+$config-label-w: 100px;
 
 [name=vehicleConfig] {
 	display: block!important;
-	
 	.tag-v-ul {	
-	
 		li {
+			width: 100%;	
 			input[type=text], select {
-				width: 150px!important;
+				width: $config-field-w;
+				position: absolute;
+				left: $config-label-w + 5;
+				top: 0;
 			}
 			
 			.tag-label {
-				width: 90px;	
+				width: $config-label-w;	
 			}
 		}
 	}
@@ -934,10 +948,8 @@ $block-list-item-padding: 5px 5px 3px 5px;
 	.block-list-add-container {
 		height: $block-list-item-height;
 		padding: $block-list-item-padding;
-	
 		.block-list-new-item {
 			color: white;
-			border: 1px solid black;
 			height: $block-list-item-height;
 			padding: $block-list-item-padding;
 			

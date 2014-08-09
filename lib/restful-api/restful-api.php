@@ -79,8 +79,10 @@ abstract class restful_api {
 			if ($this->endpoint == 'users') {
 				if(array_key_exists('id', $this->request) && is_numeric($this->request['id'])) {
 					$this->user_id = intval($this->request['id']);				
-				} else if ($this->method = "GET") {
-					$this->user_id = 0;								
+				} else if ($this->method == "GET") {
+					$this->user_id = 0;
+				} else if ($this->method == "POST") {
+					$this->user_id = NULL;
 				} else {
 					$this->fail('Cannot process requests without a proper user id.');				
 				}
@@ -371,7 +373,9 @@ abstract class restful_api {
 		$this->filter_requests($requests);		
 		$format = $this->get_format($requests);
 
-
+		//echo json_encode($requests);
+		//exit;
+		
 		if ($check_duplicates) {			
 			$conditional = $this->build_conditional_string($requests, $format);
 

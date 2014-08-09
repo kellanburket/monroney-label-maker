@@ -106,6 +106,7 @@
 }
 #tag-generator #tag-preview #tag-preview-window #tag-preview-vitals .total-block {
   position: absolute;
+  display: block;
   width: inherit;
   margin: 0;
   left: 0;
@@ -145,11 +146,6 @@
 #tag-generator #tag-preview .preview-label, #tag-generator #tag-preview .preview-span {
   vertical-align: top;
   font-weight: bold;
-}
-.dz-preview {
-  position: absolute;
-  top: 5px;
-  left: 5px;
 }
 .dz-preview .dz-details .dz-filename {
   display: none;
@@ -585,13 +581,21 @@ button {
   height: 75px;
   text-align: center;
   position: relative;
+  overflow: auto;
+}
+#upload-logo img, #upload-label img {
+  width: 100%;
+  position: absolute;
+  top: 15px;
+  left: 0;
+  cursor: pointer;
+}
+#upload-logo img:hover, #upload-label img:hover {
+  border: 1px solid #bf2026;
 }
 #upload-logo {
   padding-top: 10%;
   border: 1px solid black;
-}
-#upload-label {
-  padding-top: 45%;
 }
 .vertical-center {
   text-align: center;
@@ -607,44 +611,55 @@ button {
 #tag-frame-0 .row-3 .col-1 {
   width: 272px;
 }
-.customLabelView {
+.tag-gallery {
+  height: 255px;
+  width: 100%;
+  border: 1px solid black;
+  padding: 0;
+}
+.tag-gallery #upload-label {
+  padding-top: 20%;
+  margin: 0;
+  height: 253px;
+  vertical-align: top;
+  display: inline-block;
+  overflow: hidden;
+  width: 49.5%;
+}
+.tag-gallery .image-collection {
+  display: inline-block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 255px;
+  width: 49.5%;
+}
+.tag-gallery .image-collection .customLabelView {
+  display: block;
   width: 100%;
   border: 2px dotted #878787;
   display: inline-block;
   cursor: pointer;
 }
-.customLabelView:hover {
+.tag-gallery .image-collection .customLabelView:hover {
   border: 2px dotted #bf2026;
 }
-.tag-gallery {
-  height: 250px;
-  overflow-y: auto;
-  width: 256px;
-  overflow-x: hidden;
-  border: 1px solid black;
-}
-.tag-gallery #upload-label {
-  height: inherit;
-}
 #tag-frame-1 > .tag-row > .tag-col {
-  width: 100%;
-}
-.config-input {
-  position: absolute;
-  right: 40px;
-  top: 0;
-}
-#vehicleMakeConfig, #vehicleModelConfig, #vehicleYearConfig {
   width: 100%;
 }
 [name=vehicleConfig] {
   display: block !important;
 }
+[name=vehicleConfig] .tag-v-ul li {
+  width: 100%;
+}
 [name=vehicleConfig] .tag-v-ul li input[type=text], [name=vehicleConfig] .tag-v-ul li select {
-  width: 150px !important;
+  width: 300px;
+  position: absolute;
+  left: 105px;
+  top: 0;
 }
 [name=vehicleConfig] .tag-v-ul li .tag-label {
-  width: 90px;
+  width: 100px;
 }
 .block-list-container {
   overflow: scroll;
@@ -677,7 +692,6 @@ button {
 }
 .block-list-container .block-list-add-container .block-list-new-item {
   color: white;
-  border: 1px solid black;
   height: 46px;
   padding: 5px 5px 3px 5px;
 }

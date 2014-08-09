@@ -1,7 +1,6 @@
 <?php
 extract($_SERVER);
-define('API_PATH', "{$HTTP_HOST}/label-generator/api/");
-$api_url = API_PATH.'users?id=0';
+$api_url = "{$HTTP_HOST}/label-generator/api/users?id=0";
 
 $curl = curl_init();
 $options = array(
@@ -12,19 +11,29 @@ curl_setopt_array($curl, $options);
 $data = curl_exec($curl); 
 curl_close($curl);   
 
-$data = json_decode($data, true);
+echo "var rootUser = new User({$data});";
+/*
 
 $backbone_tables = array(
 	'label_images' => array(
 		'collection' => 'Imgs',
 		'url' => 'restful.url + "label_images"',
-		'options' => array(),
+		
+		'options' => array(
+			'name'=>'customLabel',
+			'pluralName'=>'customLabels',			
+			'dropzoneId'=>"#upload-label",
+		),
 		'data'	=> $data['labelgen_images']
 	),
 	'logos' => array(
-		'collection' => 'Logos',
+		'collection' => 'Imgs',
 		'url' => 'restful.url + "logos"',
-		'options' => array(),
+		'options' => array(
+			'name'=>'dealershipLogo',			
+			'pluralName'=>'dealershipLogos',			
+			'dropzoneId'=>"#upload-logo",
+		),
 		'data'	=> $data['labelgen_logos']
 	),
 	'labels' => array(
@@ -97,6 +106,8 @@ foreach ($backbone_tables as $key => $table) {
 			echo "}";
 			if ($row != end($table['data'])) {
 				echo ",\n";
+			} else {
+				break;
 			}
 		}
 	}
@@ -114,13 +125,15 @@ foreach ($backbone_tables as $key => $table) {
 			}
 			if ($value != end($table['options'])) {
 				echo ", ";
+			} else {
+				break;
 			}
 		}
 	}
 	
 	echo "});\n\n";
 }
-
+*/
 
 function to_string($vars, $id = null, $depth = 0) {
 	if (!is_null($id)) {

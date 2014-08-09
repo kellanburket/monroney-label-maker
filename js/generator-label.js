@@ -2,7 +2,7 @@ var $ = jQuery.noConflict();
 
 	Backbone.ExtendedCollection = Backbone.Collection.extend({
 		create: function(attributes, options) {						
- 			console.log("New Collection", this, attributes, options);
+ 		//console.log("New Model", this, attributes, options);
  			options = (!options) ? {} : options;
 			if (!attributes) {
 				return false;
@@ -24,7 +24,7 @@ var $ = jQuery.noConflict();
 				};
 				
 			new_options['error'] = function(xhr, response, error) {
-				console.log('Error', xhr.responseText);
+			//console.log('Error', xhr.responseText);
 			};
 				
 			new_options['data'] = {};
@@ -43,6 +43,17 @@ var $ = jQuery.noConflict();
 			return Backbone.sync('create', new_model, new_options);
 		},
 		
+		parse: function(snake, options) {
+			var camel = this.snakeToCamelCase(snake);
+			
+			var camels = [];
+			_.each(camel, function(el, i, li) {
+				camels.push(el);
+			}, this);
+			//console.log('Parse', snake, camel, camels, options);
+			return camels;
+		},
+		
 		snakeToCamelCase: function (snakes) {
     		var camels = []
 			//console.log('SNAKES', snakes);
@@ -55,7 +66,11 @@ var $ = jQuery.noConflict();
 		_recursiveSnakes: function(snakes) {
 			if (typeof snakes == 'string') {
 				//console.log('SnakeCamel:string', snakes);
-
+				
+				if (snakes.match(/.*\.[a-zA-Z0-9]{3,4}$/)) {
+					return snakes;				
+				}
+				
 				return snakes.toLowerCase().replace(/_(.)/g, function(match, horse) {
 					return horse.toUpperCase();
 				});
@@ -135,12 +150,12 @@ var $ = jQuery.noConflict();
 						allFieldsFilledIn = false;
 					} else {
 						post_data[f_data_obj[i].name] = f_data_obj[i].value;
-						console.log(f_data_obj[i].name, post_data[f_data_obj[i].name]);
+					//console.log(f_data_obj[i].name, post_data[f_data_obj[i].name]);
 					}
 				}
 	
 				if (!allFieldsFilledIn) {
-					console.log('Not all fields filled in');
+				//console.log('Not all fields filled in');
 					return false; 
 				} else {
 					//console.log(opts.callback, opts.context, post_data);
@@ -176,24 +191,15 @@ var $ = jQuery.noConflict();
 			this.$inspect.click($.proxy(this.inspect_form, this));
 			this.$reset.click($.proxy(this.reset_form, this));
 			this.$print.click($.proxy(this.print_form, this));
-			Backbone.on("labelSelected", this.replace_model, this);
-			this.listenTo(Backbone, "requestUserId", this.send_user_id);
+
+			this.listenTo(Backbone, "labelSelected", this.replace_model);
+			this.listenTo(Backbone, "showFailMessage", this.show_fail_message);
 			
 			$('.tooltip').parent().hover(function(){ 
 				$(this).children('.tooltip').css('visibility', 'visible'); 
 			}, function(){
 				$(this).children('.tooltip').css('visibility', 'none'); 
 			});
-		},
-		
-		send_user_id: function(view) {
-			console.log('send user id');
-			view.stopListening(Backbone, 'returnUserId');
-			if (this.userId > 0) {
-				Backbone.trigger('returnUserId', this.userId);
-			} else {
-				this.show_fail_message('You must be logged in to perform this action!');
-			}
 		},
 		
 		replace_model: function(model) {
@@ -203,15 +209,6 @@ var $ = jQuery.noConflict();
 			}			
 		},
 		
-		validate_user: function() {
-			if (this.model.id > 0) {
-				return true;
-			} else {
-				this.show_fail_message('You must be logged in to perform this action!');
-				return false;
-			}
-		},
-
 		/**
 		**		On Save Click
 		**/
@@ -256,7 +253,7 @@ var $ = jQuery.noConflict();
 					id: (parseInt(this.model.get('id')) > 0) ? this.model.get('id') : null,
 					name: this.model.get('name')
 				};
-			console.log('Gather Data', this.model, data);
+		//console.log('Gather Data', this.model, data);
 
 			return data;		
 		},
@@ -277,7 +274,7 @@ var $ = jQuery.noConflict();
 		},
 
 		on_save_successful: function(data) {
-			Modal.displayMessage('Form ' + data.name + ' saved.', 'success-message align-center');			
+			Modal.displayMessage('Form saved.', 'success-message align-center');			
 
 			if (data.method.match(/post/i)) {
 				Backbone.trigger('modelSavedAs', data.id);
@@ -298,6 +295,7 @@ var $ = jQuery.noConflict();
 				$select.append($newLabel);	
 			}
 			var labels = this.collection.models;
+			//console.log("get Label Select", labels);
 			
 			for (var l in labels) {
 				var name = labels[l].get('name');
@@ -307,7 +305,7 @@ var $ = jQuery.noConflict();
 					if (selected_id == label_id) {
 						$select.append('<option selected value="' + label_id + '">' + name + '</option>');
 						//$select.val(label_id);
-						console.log("Get Label Select", $select, selected_id, label_id);
+					//console.log("Get Label Select", $select, selected_id, label_id);
 					} else {
 						$select.append($('<option>', vals));
 					}
@@ -317,8 +315,12 @@ var $ = jQuery.noConflict();
 			
 		},
 		
-		
+		/**
+		**		On Load Click
+		**/		
 		load_form: function() {
+			if (!this.validate_user()) return false;
+
 			$select = this.get_label_select();
 			var dialog = new Backbone.Dialog({
 				fields: [{label: 'Please Select a Form to Load', field: $select, id: 'label-selector'}], 
@@ -336,7 +338,7 @@ var $ = jQuery.noConflict();
 			$selected = $select.children(':selected');
 			var name = $selected.text(); 
 			var id = $selected.val();
-			console.log('on_label_load', $select, $selected, id, name);
+		//console.log('on_label_load', $select, $selected, id, name);
 			Modal.close();	
 			if (id <= 0) {
 				this.model.set('id', id);
@@ -443,7 +445,7 @@ var $ = jQuery.noConflict();
 				if ($(this).attr('id') == $thing.attr('id')) {
 					return false;
 				}
-				console.log('IDS(' + $thing.attr('id') + ')', $(this).attr('id'));
+			//console.log('IDS(' + $thing.attr('id') + ')', $(this).attr('id'));
 				siblings.push($(this).attr('id'));
 			});
 			return siblings;
@@ -468,12 +470,12 @@ var $ = jQuery.noConflict();
 		},
 		
 		show_pdf: function(data) {
-			console.log('Canvas', data);
+		//console.log('Canvas', data);
 			//PDFJS.disableWorker = true;
 			PDFJS.workerSrc = pdfjs_ext.url + 'generic/build/pdf.worker.js';
 			PDFJS.getDocument(data.pdf).then(function(pdf) {
 				// Using promise to fetch the page
-				console.log('Canvas:getDocument', pdf);
+			//console.log('Canvas:getDocument', pdf);
 				
 				pdf.getPage(1).then(function(page) {
 					var scale = 1.333;
@@ -507,8 +509,8 @@ var $ = jQuery.noConflict();
 		**	Called when user clicks on log in button
 		**/
 		log_in: function() {
-			$email = $('<input>', {type: 'text', value: 'kellan.burket@gmail.com', class: 'tag-input', name: 'loginEmail'});
-			$passw = $('<input>', {type: 'password', value: 'gaiden', class: 'tag-input', name: 'loginPassword'});
+			$email = $('<input>', {type: 'text', value: "kellan.burket@gmail.com", class: 'tag-input', name: 'loginEmail'});
+			$passw = $('<input>', {type: 'password', value: "gaiden", class: 'tag-input', name: 'loginPassword'});
 			
 			var dialog = new Backbone.Dialog(
 				{	fields: 
@@ -555,21 +557,25 @@ var $ = jQuery.noConflict();
 			this.model.set('userId', data.id);
 			this.model.set('userName', data.name);		
 			this.collection.userId = data.id;
-			this.collection.userName = data.name;		
-
-			if (data.labelgen_labels) this.collection.add(this.collection.parse(data.labelgen_labels));
-			if (data.labelgen_logos) Backbone.trigger('dealershipLogosFetched', data.dealershipLogos); 
-			if (data.labelgen_images) Backbone.trigger('customLabelsFetched', data.labelgen_images); 
-			if (data.labelgen_makes) Backbone.trigger('makesFetched', data.labelgen_makes); 
-			if (data.labelgen_models) Backbone.trigger('modelsFetched', data.labelgen_models); 
-			if (data.labelgen_years) Backbone.trigger('yearsFetched', data.labelgen_years); 
-			if (data.exterior_options) Backbone.trigger('exteriorOptionsFetched', data.exterior_options); 
-			if (data.interior_options) Backbone.trigger('interiorOptionsFetched', data.interior_options); 
-
+			this.collection.userName = data.name;
+			var user = new User(data);
+			//var coll = this.collection.parse(data.labelgen_labels);		
+			this.collection = user.get('labels');
+			this.model.set('user', user);
 			this.hide_login_links();
-			Backbone.trigger('userLoggedIn');
+			Backbone.trigger('userLoggedIn', user);
 		},
 		
+		validate_user: function() {
+			console.log('Validate User', this);
+			if (this.model.get('userId') > 0) {
+				return true;
+			} else {
+				this.show_fail_message('You must be logged in to perform this action!');
+				return false;
+			}
+		},
+
 		/** 
 		**	Maniupulate the visibility of login links at the top of the form
 		**/		
@@ -581,7 +587,6 @@ var $ = jQuery.noConflict();
 		
 		show_login_links: function() {
 			$('.login-txt').removeClass('invisible');
-			
 		},
 		
 		/** 
@@ -622,7 +627,7 @@ var $ = jQuery.noConflict();
 		},
 		
 		on_successful_sign_user_up: function(data) {
-			Modal.displayMessage('Congratulations, ' + data.name + '. You have been signed up to use the Monroney Label Generator. You can login again using your password and the email you registered with. Thank you for doing business with us.', 'success-message align-center');			
+			Modal.displayMessage('Congratulations, ' + data.name + '. <p>You have been signed up to use the Monroney Label Generator. You can login again using your password and the email you registered with. Thank you for doing business with us.</p>', 'success-message align-center');			
 			this._init_user(data);			
 		},
 		
@@ -638,9 +643,9 @@ var $ = jQuery.noConflict();
 			data['action'] = ajax.action;
 			Modal.showLoader();
 			//Modal.open('img', {src: modal_ext.url + 'loader.gif', class: 'snakeskin-loader'}, {height: 'auto', width: 'auto'});
-			var contentType;
+			console.log('Method', method, data, url);
 			if (method.match(/put/i)) {
-				contentType = 'application/x-www-form-urlencoded';	
+				var contentType = 'application/x-www-form-urlencoded';	
 				var controls = this;
 				console.log('ajax.url', data);
 				return $.ajax(url, {
@@ -659,7 +664,7 @@ var $ = jQuery.noConflict();
 				})
 				.fail(function(response) {
 					controls.show_fail_message("Something went technically wrong! If the problem persists, please contact the site administartor");
-					console.log('post_form:fail', response.responseText);
+				//console.log('post_form:fail', response.responseText);
 				});
 			
 			
@@ -671,7 +676,7 @@ var $ = jQuery.noConflict();
 					data: data,
 					dataType: 'json'
 				}).done(function(response) {
-					console.log('post_form:done', response, response.message);
+					console.log('post_form:done', response); //response.message);
 					if (response.success == true) {
 						callback.call(controls, response);
 					} else {
@@ -681,132 +686,14 @@ var $ = jQuery.noConflict();
 				})
 				.fail(function(response) {
 					controls.show_fail_message("Something went technically wrong! If the problem persists, please contact the site administartor");
-					console.log('post_form:fail', response.responseText);
+				//console.log('post_form:fail', response.responseText);
 				});
 			}
 			
 			
 		}
 	});
-	
-	var LabelField = Backbone.View.extend({
-		initialize: function(attrs, opts) {
-			//console.log('LabelField', this, attrs, opts);
-			this.type = this.model.get('type');
-			this.listenTo(Backbone, 'postadd:' + this.type, this.set_field);
-			this.listenTo(Backbone, 'selection_changed:' + this.type, this.set_field);
-			this.render(attrs.el);
-		},
 
-		render: function(el) {
-			this.el = el;
-			this.$el = $(this.el);
-		},
-	
-		set_field: function(id, name) {
-			//console.log("LabelField:set_field(" + this.type + ")", id, name);
-			this.model.set({value: name});
-			this.$el.text(name);
-		}
-		
-	});
-	
-	var VIN = Backbone.Model.extend({ 
-		defaults: {
-			value: '',
-		},
-		
-		initialize: function(attrs, opts) {
-			
-		},
-		validate: function(attrs, opts) {
-			console.log('VIN:Validate', attrs, opts);
-			if (VIN.length != 16)
-				return "Please input a VIN with exactly 16 characters.";
-		}
-	
-	});
-	
-	var MSRP = Backbone.Model.extend({
-		defaults: {
-			value: '',
-		},
-		
-		initialize: function(attrs, opts) {
-			
-		},
-		validate: function(attrs, opts) {
-			//attrs.value = attrs.value.replace(/,/, '');
-			//attrs.value = attrs.value.replace(/\s/, '');
-			//attrs.value = parseFloat(attrs.value);			
-			//console.log('New Value', attrs.value);
-		}
-	});
-	
-	var MSRPView = Backbone.View.extend({
-		initialize: function(attrs, opts) {
-			//console.log('LabelField', this, attrs, opts);
-			this.type = this.model.get('type');
-			this.listenTo(this.model, 'change:value', this.set_field);
-			this.render(attrs.el);
-		},
-
-		render: function(el) {
-			this.el = el;
-			this.$el = $(this.el);
-		},
-	
-		set_field: function(model, new_value, options) {
-			//console.log('LabelStat:setField', new_value, this.$el);
-			this.$el.text("$" + parseFloat(Math.round(new_value * 100)/100).toFixed(2));
-		}
-	});
-	
-	var LabelStat = Backbone.View.extend({
-		initialize: function(attrs, opts) {
-			//console.log('LabelField', this, attrs, opts);
-			this.type = this.model.get('type');
-			this.listenTo(this.model, 'change:value', this.set_field);
-			this.render(attrs.el);
-		},
-
-		render: function(el) {
-			this.el = el;
-			this.$el = $(this.el);
-		},
-	
-		set_field: function(model, new_value, options) {
-			//console.log('LabelStat:setField', new_value, this.$el);
-			this.$el.text(new_value);
-		}
-	});
-	
-
-	var LabelFieldModel = Backbone.Model.extend({
-		
-		defaults: {
-			type: '',
-			value: '',
-		},
-		
-		initialize: function(attrs, opts) {
-			
-		},
-	});
-	
-	var LabelImageCollection = Backbone.ExtendedCollection.extend({
-		model: LabelImageModel	
-	});
-
-	var LabelImageModel = Backbone.Model.extend({
-		defaults: {
-			guid: '',
-			id: '',
-			caption: ''
-		}
-	});
-	
-	
 	var LabelOption = Backbone.View.extend({
 		tag: 'li',
 		class: 'option font-arial px-10',
@@ -824,7 +711,7 @@ var $ = jQuery.noConflict();
 			
 			$('#' + this.model.get('location') + 'Options').prepend($tag);	
 			this.el = $('#' + this.model.get('location') + 'Options').children('li')[0];
-			console.log(this.el);
+		//console.log(this.el);
 		},
 		detach_from_view: function(label_view) {
 			//console.log(this);
@@ -852,17 +739,19 @@ var $ = jQuery.noConflict();
 			this.el = $('#discounts').children('li')[0];
 		},
 		detach_from_view: function(label_view) {
-			console.log(this);
+		//console.log(this);
 			$(this.el).remove();
 		}
 	});
 	
 	var Label = Backbone.Model.extend({
 		defaults: {
+			user: null,
 			userId: 0,
 			id: null,
 			name: null,
 			labelColor: '#23498a',
+			stockNo: '',
 			
 			fontStyle: 'normal',
 			fontWeight: 'normal',
@@ -908,7 +797,26 @@ var $ = jQuery.noConflict();
 		},
 				
 		initialize: function(attrs, opts) {
-			console.log('New Label', attrs, opts);
+		//console.log('New Label', attrs, opts);
+			this.listenTo(Backbone, 'modelUpdated', this.set_model);
+			this.listenTo(Backbone, 'yearUpdated', this.set_year);
+			this.listenTo(Backbone, 'makeUpdated', this.set_make);
+
+			this.listenTo(Backbone, 'msrpUpdated', this.set_msrp);
+			this.listenTo(Backbone, 'trimUpdated', this.set_trim);
+			this.listenTo(Backbone, 'vinUpdated', this.set_vin);
+			this.listenTo(Backbone, 'stockNoUpdated', this.set_stock_no);
+			
+			
+			this.listenTo(Backbone, "selectImage", this.set_image);
+			this.listenTo(Backbone, "makeSelected", this.set_make_id);
+			this.listenTo(Backbone, "modelSelected", this.set_model_id);
+			this.listenTo(Backbone, "yearSelected", this.set_year_id);
+			this.listenTo(Backbone, "requestReset", this.reset_attributes);
+
+			this.on("change:user", function(model, name) {
+				model.previous("user").stopListening();
+			});
 		},
 
 		set_all_attributes: function() {
@@ -917,14 +825,13 @@ var $ = jQuery.noConflict();
 			}
 		},
 
-		set_featured_image: function(model) {
+		set_image: function(clz, model) {
 			var id = model.get('id');
 			var guid = model.get('guid');
 			
-			
-			//console.log('Set Featured Image', model, id);
-			this.set('customLabel', guid);
-			this.set('customLabelId', id);
+			console.log('Set Featured Image', model, id);
+			this.set(clz, guid);
+			this.set(clz + 'Id', id);
 		},
 
 		get_total: function() {
@@ -950,16 +857,51 @@ var $ = jQuery.noConflict();
 			delete this.attributes.optionPrices[id];		
 		},
 		
-		set_model: function(id) {
+		set_model_id: function(id) {
 			this.set('model_id', id);
 		},
 
-		set_make: function(id) {
+		set_make_id: function(id) {
 			this.set('make_id', id);
 		},
 
-		set_year: function(id) {
+		set_year_id: function(id) {
 			this.set('year_id', id);
+		},
+
+		set_model: function(name) {
+		//console.log('Set Model', name);
+			this.set('model', name);
+		},
+
+		set_make: function(name) {
+		//console.log('Set Make', name);
+			this.set('make', name);
+		},
+
+		set_year: function(year) {
+		//console.log('Set Year', year);
+			this.set('year', year);
+		},
+
+		set_msrp: function(msrp) {
+		//console.log('Set MSRP', msrp);
+			this.set('msrp', parseFloat(Math.round(msrp * 100)/100).toFixed(2));
+		},
+
+		set_vin: function(vin) {
+		//console.log('Set VIN', vin);
+			this.set('vin', vin);
+		},
+
+		set_stock_no: function(stock_no) {
+		//console.log('Set Stock No', stock_no);
+			this.set('stockNo', stock_no);
+		},
+
+		set_trim: function(trim) {
+		//console.log('Set Trim', trim);
+			this.set('trim', trim);
 		},
 
 		get_msrp: function() {
@@ -984,19 +926,8 @@ var $ = jQuery.noConflict();
 		
 		clone_model: function(model, value, opts) {
 			var changes = model.changedAttributes();			
-			console.log('Clone Model', changes, model, value);
+		//console.log('Clone Model', changes, model, value);
 			
-		},
-		
-		parse: function(snake, options) {
-			var camel = this.snakeToCamelCase(snake);
-			
-			var camels = [];
-			_.each(camel, function(el, i, li) {
-				camels.push(el);
-			}, this);
-			console.log('Parse', snake, camel, camels, options);
-			return camels;
 		},
 
 		url: function() {
@@ -1016,15 +947,13 @@ var $ = jQuery.noConflict();
 		initialize: function(attrs, opts) {
 
 			this.collection = attrs.collection;
-			this.fields = opts.fields;
 			this.label_options = {interior: {}, exterior: {}};
 			this.label_discounts = {};
-			this.render_dropzone_elements();
 		},
 		
 		render: function() {
-			
 			this.stopListening();
+
 			this.$total = $('#total');
 			this.$total.val("$0.00");
 			
@@ -1041,6 +970,8 @@ var $ = jQuery.noConflict();
 			this.$uploadLabel = $('#upload-label');
 
 			this.$dealershipLogo = $('#dealershipLogo');
+			this.$dealershipText = $('#dealershipText');
+
 			this.$dealershipName = $('#dealershipName');
 			this.$dealershipTagline = $('#dealershipTagline');
 			this.$customLabel = $('#customLabel');
@@ -1048,6 +979,13 @@ var $ = jQuery.noConflict();
 			this.model.on('change:labelColor', this.renderLabelColor, this);
 			this.renderLabelColor();
 			
+
+			this.listenTo(Backbone, "imageAdded", function(guid, id, clz) {
+				this.model.set(clz, guid);
+				$('#' + clz).attr('src', guid); 
+				this.model.set(clz + "Id", id);
+			});
+
 			this.listenTo(Backbone, 'userLoggedIn', this.enable_dropzones);
 
 			this.model.on('change:fontFamily change:fontWeight change:fontStyle', this.renderTextStyle, this);
@@ -1056,7 +994,10 @@ var $ = jQuery.noConflict();
 
 			/* Deal with images */
 			this.model.on('change:dealershipLogo', $.proxy(function(model, value) {
+				console.log("Dealership Logo", model, value);
 				this.$dealershipLogo.attr('src', value);
+				this.$dealershipText.addClass('invisible');
+				this.$dealershipLogo.removeClass('invisible');
 			}, this));
 
 			this.listenTo(this.model, 'change:customLabel', $.proxy(function(model, value) {
@@ -1073,11 +1014,6 @@ var $ = jQuery.noConflict();
 			this.$colorbox.on('click', null, {view: this}, this.setLabelColor);		
 			$('[type=fontStyle], [name=fontWeight]').on('change', null, $.proxy(this.setCheckboxAttr, null, this, this.model));
 			
-			Backbone.on("select_featured_image", this.model.set_featured_image, this.model);
-			Backbone.on("makeSelected", this.model.set_make, this.model);
-			Backbone.on("modelSelected", this.model.set_model, this.model);
-			Backbone.on("yearSelected", this.model.set_year, this.model);
-			Backbone.on("requestReset", this.model.reset_attributes, this.model);
 			Backbone.on("labelSelected", this.replace_model, this);
 			
 			this.model.on("change:id", this.collection.clone_model, this.collection);
@@ -1093,14 +1029,24 @@ var $ = jQuery.noConflict();
 			this.fetch_options();
 			this.fetch_image('customLabel');
 			this.fetch_image('dealershipLogo');
+			
 			this.$dealershipName.text(this.model.get('dealershipName'));
 			this.$dealershipTagline.text(this.model.get('dealershipTagline'));
+		
+			this.listenTo(this.model, 'change', this.set_field);
 
 			return this;
 		},
+		
+		set_field: function(model, options) {
+			_.each(model.changed, function(el, i, list) {
+			//console.log('LabelView:setField', el, i);
+				$('#' + i).text(el);
+			}, this);
+		},
 
 		replace_model: function(model) {
-			console.log('Replace Model', model);
+		//console.log('Replace Model', model);
 			if (model) {
 				this.model = model;			
 				this.render();
@@ -1108,6 +1054,7 @@ var $ = jQuery.noConflict();
 		},
 		
 		add_option: function(model, price) {
+		//console.log('Add Option', model, price, this.label_options);
 			var old_option = this.label_options[model.get('location')][model.get('option_name')];		
 						
 			price = (price) ? parseFloat(price).toFixed(2) : 0.00;
@@ -1235,7 +1182,7 @@ var $ = jQuery.noConflict();
 		},
 
 		toggle_visibility: function(event) {
-			console.log('Toggle Visibility');
+		//console.log('Toggle Visibility');
 			$('#dealershipLogo, #dealershipText').toggleClass('invisible');
 		},
 		
@@ -1244,12 +1191,12 @@ var $ = jQuery.noConflict();
 			var id = this.model.get(name + 'Id');
 			var name_ucfirst = name.charAt(0).toUpperCase() + name.substr(1, name.length);
 				
-			console.log('Fetch ' + name, guid, id, name_ucfirst);
+			//console.log('Fetch ' + name, guid, id, name_ucfirst);
 
 			if (!guid) {
 				if (id) {
 					this.listenToOnce(Backbone, 'return' + name_ucfirst, $.proxy(function(img) {
-						console.log(name + " Returned", img);					
+					//console.log(name + " Returned", img);					
 						this.model.set(name, img.get('guid'));
 					}, this));
 					Backbone.trigger('request' + name_ucfirst, id);
@@ -1265,7 +1212,7 @@ var $ = jQuery.noConflict();
 			/*
 			if (option_ids.length > 0) {
 				this.listenToOnce(Backbone, 'returnOptions', $.proxy(function(opts) {
-					console.log('Options Returned', opts);					
+				//console.log('Options Returned', opts);					
 					for (var o in opts) {
 						o.get('name');
 					}
@@ -1274,80 +1221,4 @@ var $ = jQuery.noConflict();
 			*/
 			Backbone.trigger('requestOptions', ids, prices);
 		},
-
-		render_dropzone_elements: function() {
-			var init = function(id, dir, view) {
-				this.on("click", function() {
-					console.log('click', arguments);
-				});
-				this.on("addedFile", function(file) {
-					console.log("addedFile", file);
-				});
-				this.on("drop", function(event) {
-					console.log("drop", event);
-				});
-				this.on("thumbnail", function(file, dataUrl) {
-					console.log("thumbnail", dataUrl);
-				});
-				this.on("error", function(file, errorMessage) {
-					console.log("error", file, errorMessage);
-				});
-				this.on("processing", function(file) {
-					console.log("processing", file);
-				});
-				this.on("uploadProgress", function(file, progress, bytesSent) {
-					console.log("uploadProgress", file, progress, bytesSent);
-				});
-				this.on("sending", function(file, xhr, form) {
-					//id = view.model.get('userId');
-					var user_id = view.model.get('userId');
-					form.append("user_id", user_id);
-					form.append("file_dir", dir); 
-					console.log("sending", dir, user_id);
-				});
-				this.on("success", function(file, data) {
-					var big_event = id + 'Added';
-					console.log("success", data, big_event);
-					data = $.parseJSON(data);
-					if (data.guid) {
-						view.model.set(id, data.guid);
-						$('#' + id).attr('src', data.guid); 
-						view.model.set(id + "Id", data.id);
-						Backbone.trigger(big_event, data.guid, data.caption || {});
-					}
-				});
-			}
-
-			var view = this;
-			this.labelDropzone = new Dropzone("#upload-label", {
-				url: restful.url + "/label_images",
-				method: "post",
-				maxFileSize: 10,
-				init: $.proxy(init, null, "customLabel", "labels", view)
-			});
-
-			this.logoDropzone = new Dropzone("#upload-logo", {
-				url: restful.url + "/logos",
-				method: "post",
-				maxFileSize: 10,
-				thumbnailWidth: 245,
-				thumbnailHeight: 42,
-				init: $.proxy(init, null, "dealershipLogo", "logos", view)
-			});
-
-			$("#upload-logo").text('< Log In to Upload Your Custom Logo >');			
-			$("#upload-label").text('< Log In to Upload Your Custom Label >');			
-			
-			this.labelDropzone.disable();
-			this.logoDropzone.disable();
-		},
-		
-		enable_dropzones: function() {
-			console.log('Enable Dropzones');
-			this.labelDropzone.enable();
-			this.logoDropzone.enable();
-			$("#upload-logo").text('< Drag or Click to Upload Your Custom Logo >');			
-			$("#upload-label").text('< Drag or Click to Upload Your Custom Label >');			
-		}
-		
 	});

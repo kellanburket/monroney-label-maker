@@ -33,12 +33,12 @@ add_action('wp_enqueue_scripts', function() {
 	wp_enqueue_script('label_generator_option_js', LABEL_MAKER_URL.'/js/generator-option.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_image_js', LABEL_MAKER_URL.'/js/generator-image.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	wp_enqueue_script('label_generator_discount_js', LABEL_MAKER_URL.'/js/generator-discount.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_user_js', LABEL_MAKER_URL.'/js/generator-user.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	
+	wp_enqueue_script('label_generator_user_js', LABEL_MAKER_URL.'/js/generator-user.js', array('label_generator_label_js', 'label_generator_vehicle_js', 'label_generator_option_js', 'label_generator_image_js', 'label_generator_discount_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+	wp_enqueue_script('label_generator_workspace_js', LABEL_MAKER_URL.'/js/generator.workspace.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
 	
 	wp_enqueue_script('backbone-data', LABEL_MAKER_URL.'/js/backbone-data.php', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'label_generator_vehicle_js', 'label_generator_discount_js', 'label_generator_option_js', 'label_generator_image_js', 'backbone_full_extend'), null, true);
 
-	wp_enqueue_script('label_generator_js', LABEL_MAKER_URL.'/js/generator.js', array('backbone-data'), null, true);
+	wp_enqueue_script('label_generator_js', LABEL_MAKER_URL.'/js/generator.js', array('backbone-data', 'label_generator_workspace_js'), null, true);
 	
 	wp_localize_script('label_generator_label_js', 'label', array(
 		'colors'=>array('blue'=>'#23498a', 'green'=>'#24a649', 'red'=>'#bf2026', 'gray'=>'#929491', 'black'=>'#000000')

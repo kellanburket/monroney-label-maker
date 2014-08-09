@@ -39,7 +39,6 @@ $default = array(
 <div id="tag-generator">
 	<div id="generator-spinner-overlay"></div>
 	<img id="generator-page-loader" src="<?php echo plugins_url('label-maker/js/modal/loader.gif'); ?>">          
-
     <form id="tag-preview">
         <h2 class="tag-h2">Label Preview</h2>
 
@@ -246,17 +245,13 @@ $default = array(
                     </div>
                 </div>
                 <div class="tag-row row-3">
-                    <div class="tag-col col-1">
-                        <h4 class="tag-h4">Label Bottom</h4>
-                        <p class="tag-headnote">Use your own image:</p>
-                        <label for="labelCaption" class="tag-label new-line">Caption (If Any)</label>
-                        <textarea name="labelCaption" class="tag-input"></textarea>
-                    </div>
-                    <div class="tag-col col-2">
-                        <div class="tag-gallery">
-                        	<?php echo $label; ?>
-
-                        </div>	
+                   <h4 class="tag-h4">Label Bottom</h4>
+                    <!--<p class="tag-headnote">Use your own image:</p>
+                     <label for="labelCaption" class="tag-label new-line">Caption (If Any)</label>
+                    <textarea name="labelCaption" class="tag-input"></textarea> -->
+                    <div class="tag-gallery">
+                        <?php echo $label; ?>
+                        <div class="image-collection"></div>
                     </div>
                 </div>
             
@@ -274,7 +269,7 @@ $default = array(
                                         <option value='select_all' selected>[Select Make]</option>
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
-                                    <input name="make" data-type="make" data-id="" type="text" class="absolute-right config-input run-in tag-input" placeholder="[make]">
+                                    <input name="make" data-type="make" data-id="" type="text" class="config-input run-in tag-input" placeholder="[make]">
                                     <button class="add-button absolute-right run-in">+</button>
                                 </li>
                                 <li id="vehicleModelConfig">
@@ -285,7 +280,7 @@ $default = array(
                                         <option value='select_all' selected>[Select Model]</option>
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
-                                    <input name="model" data-type="model" data-id="" type="text" class="absolute-right config-input run-in tag-input" placeholder="[model]">
+                                    <input name="model" data-type="model" data-id="" type="text" class="config-input run-in tag-input" placeholder="[model]">
                                     <button class="add-button absolute-right run-in">+</button>
 
                                 </li>
@@ -296,7 +291,7 @@ $default = array(
                                         <option value='select_all' selected>[Select Year]</option>
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
-                                    <input name="year" type="text" data-type="year" data-id="" class="absolute-right config-input run-in tag-input" placeholder="[year]">
+                                    <input name="year" type="text" data-type="year" data-id="" class="config-input run-in tag-input" placeholder="[year]">
                                     <button class="add-button absolute-right run-in">+</button>
 
                                 </li>

@@ -77,17 +77,17 @@
 			var model = this;
 			Backbone.trigger('add_new_make', this);
 			if (this.id) {
-				this.set_models();					
+				this.listenTo(Backbone, 'modelsCollected', this.set_models);
 			}
 		},
 		get_constraints: function() {
 			return {};
 		},
-		set_models: function() {
-			console.log("New Vehicle Make(" + this.id + "): " + this.get('make'));
+		set_models: function(models) {
+		//console.log("New Vehicle Make(" + this.id + "): " + this.get('make'));
 
 			//console.log('App.models', App.models);
-			var data = _.where(App.models, {make_id: this.id});
+			var data = _.where(models, {make_id: this.id});
 			var models = new VehicleType([], {
 				data: data, 
 				url: restful.url + 'models?make_id=' + this.id, 
@@ -100,6 +100,7 @@
 		set_id: function(id) {
 			this.id = id;
 			Backbone.trigger('postadd:' + this.id, this.id, this.get('make'));
+			//Todo set up a request here and then defer the function requesting the models
 			return this.set_models();
 		},
 		get_collection: function() {
@@ -129,15 +130,16 @@
 		},		
 		initialize: function(attributes, options) {
 			var model = this;
-			
-			if (this.id) this.set_years();
-			console.log('New Vehicle Model(' + model.get('model') + ', ' + model.id + ')', model.attributes);
+			if (this.id) {
+				this.listenTo(Backbone, 'yearsCollected', this.set_years);
+			}
+		//console.log('New Vehicle Model(' + model.get('model') + ', ' + model.id + ')', model.attributes);
 		},
 		
-		set_years: function() {
+		set_years: function(years) {
 			Backbone.trigger('add_new_model', this);	
 			Backbone.trigger('postadd:' + this.id, this.id, this.get('model'));
-			var data = _.where(App.years, {model_id: this.id, make_id: this.get('make_id')});
+			var data = _.where(years, {model_id: this.id, make_id: this.get('make_id')});
 			
 			var years = new VehicleType([], {
 				data: data, 
@@ -167,7 +169,7 @@
 		initialize: function(attributes, options) {
 			if (this.id) { 
 				Backbone.trigger('add_new_year', this);						
-				console.log('New Vehicle Year(' + this.get('year') + ', ' + this.id + ')', this);
+			//console.log('New Vehicle Year(' + this.get('year') + ', ' + this.id + ')', this);
 			}
 		},
 		set_id: function(id) {
@@ -211,7 +213,8 @@
 			if (opts.data) {
 				this.set_models(opts.data);
 			}					
-
+			
+			Backbone.trigger(this.type + 'sCollected', this.models);
 			this.listenTo(Backbone, this.type + ':queue', this.push_queue);		
 		},
 		
@@ -478,7 +481,7 @@
 		},
 			
 		render_option: function(model) {
-			console.log("Select.render_option", this, model);
+		//console.log("Select.render_option", this, model);
 			this.options[model.id] = new VehicleOption({model: model}, {type: this.type, id:model.id, parent: this}).render();
 			////console.log('Rendering Option', model, this, this.options[model.id].el);
 			this.$el.prepend(this.options[model.id].el);
@@ -492,6 +495,9 @@
 			select.trigger('selection_changed', select.selected);
 			Backbone.trigger('selection_changed:' + type, select.selected_id, select.selected_name);
 		},
+		auto_select: function(content) {
+			Backbone.trigger(this.type + 'Updated', content);
+		}
 	});
 
 	var VehicleInput = Backbone.View.extend({
@@ -507,7 +513,6 @@
 		render: function(el) {
 			this.el = el;
 			this.$el = $(this.el); 
-			this.hide();
 		},
 		show: function(type) {
 			//console.log('ShowInputs(' + this.type + ')', this.isVisible);
@@ -539,12 +544,136 @@
 		}
 	});
 	
+	var Combo = Backbone.View.extend({
+	
+		initialize: function(opts) {
+			//console.log("Initializing Combo", opts);
+			this.select = opts.select;
+			this.select.listenTo(this, 'contentEntered', this.select.auto_select);
+			this.input = opts.input;
+			
+			this.render();
+		},
+
+		render: function() {
+		
+			var change_handle = false;
+			var cursor_pos = 0;
+			var key_down = 0;
+			var last_key = 0;
+			var combo = this;
+			
+			this.input.$el.change(function(event) {
+				event.preventDefault();
+				event.stopPropagation();
+				change_handle = true;
+				var number = $(this).val();
+				var kind = new RegExp($(this).data('kind'), "i");
+				var category = $(this).data('category');
+				combo.handle_change(number, category, kind);
+			});
+				
+			this.input.$el.click(function(event) {
+				if (!change_handle) {
+					$(this).val('');
+					var kind = new RegExp($(this).data('kind'), "i");
+					var category = $(this).data('category');	
+				}
+				change_handle = false;
+			});
+				
+			this.input.$el.keyup(function(event) {
+				//console.log("Key Up: " + event.which);		
+				key_down = 0;
+			});
+			
+			this.input.$el.keydown(function(event) {
+				var kind = new RegExp($(this).data('kind'), "i");
+				var category = $(this).data('category');
+				
+				var string_from_char = String.fromCharCode(event.which);
+				var content = $(this).val();
+				
+			//console.log("keyCode(" + event.keyCode + ")", event); 
+				
+				switch (event.keyCode) {
+					case(17): //ctrl key down
+						break;	
+					case(8):
+						//allow cascade for this element
+						if (cursor_pos > 0) {
+							--cursor_pos;
+							front_content = content.substr(0, cursor_pos);
+							back_content = content.substr(cursor_pos + 1, content.toString().length);
+							content = front_content + back_content;
+							combo.handle_change(content, category, kind);
+						}
+						break;
+					case(37):
+						//console.log("KeyDown: " + key_down);
+						if (event.ctrlKey) {
+							cursor_pos = 0;
+						} else if (cursor_pos > 0) {
+							--cursor_pos;
+						}
+						break;
+					case(38):
+						content++
+						cursor_pos = (content > 0) ? content.toString().length : 1;
+						break;
+					case(39):
+						if (event.ctrlKey) {
+							cursor_pos = content.length;	
+						} else if (cursor_pos < content.length) {
+							++cursor_pos;
+						}
+						break;
+					case(40):
+						content = (content > 0) ? content - 1 : 0;	
+						cursor_pos = (content > 0) ?content.toString().length : 1;
+						break;
+					default:
+						if (string_from_char.match(/[0-9]/)) {
+							var front_content = content.substr(0, cursor_pos);
+							var end_content = content.substr(cursor_pos, content.toString().length);
+							content = front_content + string_from_char + end_content;		
+							combo.handle_change(content, category, kind);
+							++cursor_pos;
+						} else {
+							//console.log(event.which);
+						}
+				}
+		
+				//console.log("Cursor Position(" + cursor_pos + "), Content(" + content + ")");
+			});
+					
+			this.input.$el.focus( function (event) {
+				cursor_pos = $(this).val().toString().length;
+				last_key = 0;
+				key_down = 0;
+			});
+			
+			this.input.$el.blur( function (event) {
+				cursor_pos = 0;
+				last_key = 0;
+				key_down = 0;
+			});
+
+		},
+		handle_change: function(content, category, kind) {
+			this.trigger('contentEntered', content);
+			//console.log(content + ", " + category + ", " + kind);
+		}
+		
+	});
+	
 	var VehicleView = Backbone.View.extend({
 		initialize: function(attributes) {
 			this.type = attributes.type;
 			////console.log('VehicleView:add_event', this, attributes);
 			this.bigBrothers = {};
 			this.selected_id = null;
+			
 			this.select = new VehicleSelect({type: this.type, parent: this});
 			this.input = new VehicleInput({type: this.type, parent: this});			
 
@@ -560,6 +689,8 @@
 			this.select.on('show_input_fields', this.input.show, this.input);					
 
 			this.render();
+			this.combo = new Combo({input: this.input, select: this.select});
+
 		},
 		
 		render: function() {			

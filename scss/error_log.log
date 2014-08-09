@@ -9,3 +9,4 @@
 07/25/14 11:10:27: style.scss - parse error: failed at `$headline-font-size: ;` line: 7
 07/25/14 11:12:28: style.scss - parse error: failed at `$headline-font-size: ;` line: 7
 07/25/14 11:14:28: style.scss - parse error: failed at `$headline-font-size: ;` line: 7
+08/06/14 9:02:07: style.scss - parse error: failed at `$config-field-w = 300;` line: 883

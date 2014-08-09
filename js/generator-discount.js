@@ -5,7 +5,7 @@
 			amount: 0
 		},
 		initialize: function(attrs, opts) {
-			console.log('New Discount', this);
+		//console.log('New Discount', this);
 		}
 	});	
 
@@ -15,7 +15,7 @@
 		initialize: function(attrs, opts) {
 			_.each(attrs, function(element, index, list) {
 				var discount = new Discount(element);
-				console.log(discount);
+			//console.log(discount);
 				this.add(discount);		
 			}, this);
 			
@@ -24,7 +24,7 @@
 		},
 
 		create: function(attributes, options) {						
- 			console.log("New Discount", this, attributes, options);
+ 		//console.log("New Discount", this, attributes, options);
  			options = (!options) ? {} : options;
 			if (!attributes) {
 				return false;
@@ -38,15 +38,15 @@
 			new_options['success'] = function(collection, response, xhr) {
 				var json_response = $.parseJSON(xhr.responseText);
 					if (json_response.success = true) {
-						console.log('Success', json_response);
+					//console.log('Success', json_response);
 						that.add(new_model);
 					} else if(json_response.message = "Already Added") {
-						console.log("Already Added", json_response);
+					//console.log("Already Added", json_response);
 					}
 				};
 				
 			new_options['error'] = function(xhr, response, error) {
-				console.log('Error', xhr.responseText);
+			//console.log('Error', xhr.responseText);
 			};
 				
 			new_options['data'] = {};
@@ -60,7 +60,7 @@
 			for (i in options) {
 				new_options[i] = options[i];
 			}
-			console.log("OptionSync", new_model, new_options);
+		//console.log("OptionSync", new_model, new_options);
 			return Backbone.sync('create', new_model, new_options);
 		}		
 	});
@@ -84,9 +84,9 @@
 			
 			var item = this;
 			$checkbox.change(function() {
-			console.log($(this));
+		//console.log($(this));
 				var checked = $(this).prop('checked');
-				console.log('Checked', checked);
+			//console.log('Checked', checked);
 				if (checked) {
 					Backbone.trigger('add_discount', item.model);	
 				} else {
@@ -111,7 +111,7 @@
 			}, this);
 		},
 		render_new_list_item: function(model, collection, options) {
-			console.log('DiscountList:addItem', this);
+		//console.log('DiscountList:addItem', this);
 			var view = new DiscountItem({model: model});
 			this.list_items[model.get('discount')] = view;
 			this.$el.prepend(view.el);
@@ -135,7 +135,7 @@
 			$(this.add_button).click($.proxy(this.add_new, this));
 		},
 		add_new: function(event) {
-			console.log("Add New Discount(Controls)", this);
+		//console.log("Add New Discount(Controls)", this);
 			var new_item = {};	
 			for (var field in this.fields) {
 				new_item[field] = $(this.fields[field]).val();

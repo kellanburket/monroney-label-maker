@@ -98,7 +98,7 @@
 									"SELECT * FROM {$tbl} tx 
 										INNER JOIN labelgen_user_relationships ty
 										ON tx.id = ty.item_id 
-										WHERE ty.user_id = %d AND ty.table_name = %s", 
+										WHERE ty.user_id = %d OR ty.user_id = 0 AND ty.table_name = %s", 
 									intval($id), $tbl
 								)
 							);
@@ -135,8 +135,11 @@
 						} else {
 							$this->fail('Missing Vital Sign Up Information.');
 						}
-						if ($return = $this->parse_post_request($table, $request)) {
-							return array('success'=>true, 'email'=>$return['email'], 'name'=>$return['name'], 'in_password'=>$request['password'], 'out_password'=>$return['password']);
+						
+						$return = $this->parse_post_request($table, $request, true);
+						
+						if ($return) {
+							return array('success'=>true, 'email'=>$return['email'], 'name'=>$return['name']);
 						} else {
 							$this->fail('Something went wrong. We were not able to sign you up at this time.');				
 						}
