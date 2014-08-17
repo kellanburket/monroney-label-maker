@@ -11,53 +11,93 @@ require_once(LABEL_MAKER_ROOT.'/lib/fpdf/fpdf.php');
 require_once(LABEL_MAKER_ROOT.'/models/generator.php');	
 require_once(LABEL_MAKER_ROOT.'/lib/restful-api/labelgen-api.php');
 
+
+add_filter('clean_url', function($url) {
+    if ($url == LABEL_MAKER_URL.'/js/r.js?ver=3.9.2') {
+       $url ="{$url}' data-main='http://monroneyplus.com/wp-content/plugins/label-maker/js/main.js";
+	   return $url;
+    } else {
+    	return $url;
+    }	
+}, 11, 1 );
+
 add_action('wp_enqueue_scripts', function() {
+	global $post;
+	if ($post->post_name == "addendum-generator") {
+		
+		global $wp_scripts;
+		wp_deregister_script('contact-form-7');		
+		unset($wp_scripts->registered['contact-form-7']);
+		//to_string($wp_scripts);
+		//exit;
+		wp_enqueue_script('jquery');	
+		wp_deregister_script('backbone');
+		wp_deregister_script('underscore');
+		//wp_enqueue_script('backbone', LABEL_MAKER_URL.'/js/lib/backbone/backbone.js', array('underscore'));
+		wp_enqueue_script('require_js', LABEL_MAKER_URL."/js/r.js", array('jquery'));	
+		//wp_enqueue_script('generator', LABEL_MAKER_URL."/js/main.js", array('require'));	
+		
+		wp_enqueue_style('label_generator_css', LABEL_MAKER_URL.'/css/style.css');
+		wp_enqueue_style('modal_css', LABEL_MAKER_URL.'/js/lib/modal/modal.css');
 
-	wp_enqueue_script('jquery');	
-	wp_enqueue_script('underscore');	
-	wp_deregister_script('backbone');
-	wp_enqueue_script('backbone', LABEL_MAKER_URL.'/js/lib/backbone/backbone.js', array('underscore', 'jquery'));
-	wp_enqueue_script('backbone_full_extend', LABEL_MAKER_URL.'/js/backbone-fullExtend.js', array('underscore', 'jquery', 'backbone'));
-	wp_enqueue_script('handlebars', LABEL_MAKER_URL.'/js/lib/handlebars-v1.3.0.js');
-	wp_enqueue_script('pdf_js', LABEL_MAKER_URL.'/js/lib/pdf.js/build/generic/build/pdf.js');
-	wp_enqueue_script('compatability_js', LABEL_MAKER_URL.'/js/lib/pdf.js/build/generic/web/compatibility.js', 'pdf_js');
-	
-	wp_enqueue_script('dropzone', LABEL_MAKER_URL.'/js/lib/dropzone/dropzone.js');
-	
-	wp_enqueue_style('label_generator_css', LABEL_MAKER_URL.'/css/style.css');
-	wp_enqueue_style('modal_css', LABEL_MAKER_URL.'/js/modal/modal.css');
-	wp_enqueue_script('modal_js', LABEL_MAKER_URL.'/js/modal/modal.js', array('backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);	
-	
-	wp_enqueue_script('label_generator_label_js', LABEL_MAKER_URL.'/js/generator-label.js', array('backbone', 'handlebars', 'underscore', 'modal_js', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_vehicle_js', LABEL_MAKER_URL.'/js/generator-vehicle.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_option_js', LABEL_MAKER_URL.'/js/generator-option.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_image_js', LABEL_MAKER_URL.'/js/generator-image.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_discount_js', LABEL_MAKER_URL.'/js/generator-discount.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_user_js', LABEL_MAKER_URL.'/js/generator-user.js', array('label_generator_label_js', 'label_generator_vehicle_js', 'label_generator_option_js', 'label_generator_image_js', 'label_generator_discount_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	wp_enqueue_script('label_generator_workspace_js', LABEL_MAKER_URL.'/js/generator.workspace.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
-	
-	wp_enqueue_script('backbone-data', LABEL_MAKER_URL.'/js/backbone-data.php', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'label_generator_vehicle_js', 'label_generator_discount_js', 'label_generator_option_js', 'label_generator_image_js', 'backbone_full_extend'), null, true);
+		//wp_enqueue_script('backbone-data', LABEL_MAKER_URL.'/js/backbone-data.php', array('r_js'));
 
-	wp_enqueue_script('label_generator_js', LABEL_MAKER_URL.'/js/generator.js', array('backbone-data', 'label_generator_workspace_js'), null, true);
+//		wp_enqueue_script('backbone-data', LABEL_MAKER_URL.'/js/backbone-data.php', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'label_generator_vehicle_js', 'label_generator_discount_js', 'label_generator_option_js', 'label_generator_image_js', 'backbone_full_extend', 'r_js'), null, true);
+
 	
-	wp_localize_script('label_generator_label_js', 'label', array(
-		'colors'=>array('blue'=>'#23498a', 'green'=>'#24a649', 'red'=>'#bf2026', 'gray'=>'#929491', 'black'=>'#000000')
-	));
+		/*
+
+		wp_enqueue_script('backbone_full_extend', LABEL_MAKER_URL.'/js/backbone.full-extend/backbone-fullExtend.js', array('underscore', 'jquery', 'backbone'));
+		wp_enqueue_script('handlebars', LABEL_MAKER_URL.'/js/lib/handlebars-v1.3.0.js');
+		wp_enqueue_script('pdf_js', LABEL_MAKER_URL.'/js/lib/pdf.js/build/generic/build/pdf.js');
+		wp_enqueue_script('compatability_js', LABEL_MAKER_URL.'/js/lib/pdf.js/build/generic/web/compatibility.js', 'pdf_js');
+		
+		wp_enqueue_script('dropzone', LABEL_MAKER_URL.'/js/lib/dropzone/dropzone.js');
+		
+
+		wp_enqueue_script('modal_js', LABEL_MAKER_URL.'/js/modal/modal.js', array('backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);	
 	
-	wp_localize_script('label_generator_label_js', 'ajax', array(
-		'action'=>MONRONEY_LABEL_GENERATOR_ACTION, 'url'=>get_admin_url(get_current_blog_id(), 'admin-ajax.php')
-	));
+		wp_enqueue_script('backbone_dialog_js', LABEL_MAKER_URL.'/js/backbone.dialog/backbone.dialog.js', array('backbone', 'handlebars', 'underscore', 'modal_js', 'jquery', 'backbone_full_extend'), null, true);
+		
+		wp_enqueue_script('backbone_extended_collection_js', LABEL_MAKER_URL.'/js/backbone.extended-collection/backbone.extendedCollection.js', array('backbone', 'handlebars', 'underscore', 'modal_js', 'jquery', 'backbone_full_extend'), null, true);
 	
-	wp_localize_script('label_generator_label_js', 'restful', array(
-		'url'=>get_site_url(get_current_blog_id(), 'label-generator/api/')
-		//'url'=>get_admin_url(get_current_blog_id(), 'label-generator/api/')
-	));
-	wp_localize_script('label_generator_label_js', 'modal_ext', array(
-		'url'=>plugins_url().'/label-maker/js/modal/'
-	));
-	wp_localize_script('label_generator_label_js', 'pdfjs_ext', array(
-		'url'=>plugins_url().'/label-maker/js/lib/pdf.js/build/'
-	));
+		wp_enqueue_script('label_generator_controls_js', LABEL_MAKER_URL.'/js/generator.controls.js', array('backbone', 'backbone_dialog_js', 'handlebars', 'underscore', 'modal_js', 'jquery', 'backbone_full_extend'), null, true);
+		
+		wp_enqueue_script('label_generator_label_js', LABEL_MAKER_URL.'/js/generator.label.js', array('backbone', 'handlebars', 'backbone_extended_collection_js', 'label_generator_controls_js', 'underscore', 'modal_js', 'jquery', 'backbone_full_extend'), null, true);
+		wp_enqueue_script('label_generator_vehicle_js', LABEL_MAKER_URL.'/js/generator.vehicle.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+		wp_enqueue_script('label_generator_option_js', LABEL_MAKER_URL.'/js/generator.option.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+		wp_enqueue_script('label_generator_image_js', LABEL_MAKER_URL.'/js/generator.image.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+		wp_enqueue_script('label_generator_discount_js', LABEL_MAKER_URL.'/js/generator.discount.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+		wp_enqueue_script('label_generator_user_js', LABEL_MAKER_URL.'/js/generator.user.js', array('label_generator_label_js', 'label_generator_vehicle_js', 'label_generator_option_js', 'label_generator_image_js', 'label_generator_discount_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+		wp_enqueue_script('label_generator_workspace_js', LABEL_MAKER_URL.'/js/generator.workspace.js', array('label_generator_label_js', 'backbone', 'underscore', 'jquery', 'backbone_full_extend'), null, true);
+			
+		wp_enqueue_script('label_generator_js', LABEL_MAKER_URL.'/js/generator.app.js', array('backbone-data', 'label_generator_workspace_js'), null, true);
+		*/
+		
+		wp_localize_script('require_js', 'label', array(
+			'colors'=>array('blue'=>'#23498a', 'green'=>'#24a649', 'red'=>'#bf2026', 'gray'=>'#929491', 'black'=>'#000000')
+		));
+		
+		wp_localize_script('require_js', 'ajax', array(
+			'action'=>MONRONEY_LABEL_GENERATOR_ACTION, 'url'=>get_admin_url(get_current_blog_id(), 'admin-ajax.php')
+		));
+		
+		wp_localize_script('require_js', 'restful', array(
+			'url'=>get_site_url(get_current_blog_id(), 'label-generator/api/')
+			//'url'=>get_admin_url(get_current_blog_id(), 'label-generator/api/')
+		));
+		wp_localize_script('require_js', 'modal_ext', array(
+			'url'=>plugins_url().'/label-maker/js/lib/modal/'
+		));
+		wp_localize_script('require_js', 'pdfjs_ext', array(
+			'url'=>plugins_url().'/label-maker/js/lib/pdf.js/build/'
+		));
+		wp_localize_script('require_js', 'backbone_data', array(
+			'url'=>plugins_url().'/label-maker/js/backbone-data.php'
+		));
+
+	}
+
 });
 
 add_shortcode('add_label_generator', function($args) {
@@ -184,8 +224,33 @@ register_activation_hook(__FILE__, function() {
 
 });
 
+function to_string($vars, $id = null, $depth = 0) {
+	if (!is_null($id)) {
+		echo "<p><strong>{$id}:</strong>";
+	}
+	$recursive_read = function($key, $val, $depth, $callback) {
+		$indent = 10 * $depth;
+		$css = "style='text-indent: {$indent}px; line-height:10px;'";
+		if (is_string($val) || is_numeric($val)) {
+			echo "<p {$css}><strong>{$key}:</strong> {$val}</p>";
+		} else if (is_array($val) || is_object($val)) {
+			echo "<p {$css}><strong>{$key}</strong>: </p>";
+			++$depth;
+			foreach($val as $a=>$b) {
+				call_user_func_array($callback, array($a, $b, $depth, $callback));
+			}
+		}
+	};
 
-
+	if (is_array($vars) || is_object($vars)) {
+		echo "</p>";
+		foreach($vars as $k=>$v) {
+			call_user_func_array($recursive_read, array($k, $v, $depth, $recursive_read));
+		}
+	} else {
+		echo ": {$vars}</p>"; 		
+	}
+}
 
 //4 1/16" by 10 1/4"
 ?>

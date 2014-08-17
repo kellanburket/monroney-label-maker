@@ -5,7 +5,7 @@ $logo = $logo_handler->get_form_fields(
 	"tag-button red-text", 
 	array('choose-file', 'upload-logo'));
 
-$label_handler = get_user_upload_handler('customLabel'); 
+$label_handler = get_user_upload_handler('customImage'); 
 $label = $label_handler->get_form_fields(
 	"Drag or Click to Upload Your Label", 					//button text
 	"tag-button red-text", 									//classes
@@ -25,23 +25,65 @@ $default = array(
 	'trim'=>'Sport'
 );
 
+
 //'<li><input class="tag-checkbox" type="checkbox" /><span>'.$option_name.'</span><div class="option-price float-right"><span class="dollar-sign">&#36;</span><input class="tag-input" type="text"/></div></li>';
 
 ?>
-
-<script type="text/x-handlebars-template" id="dialogTemplate">
-	<form id="{{id}}" class="{{class}}">
-		{{#list fields}}{{/list}}
-		<button class="dialogButton {{submitClass}}" id="{{submitId}}">{{submitText}}</button>
-	</form>
-</script>                        
+<script>
+	jQuery(window).load(function($) {
+		console.log("Window Loaded");
+		jQuery('#generator-spinner-overlay').fadeOut();
+		jQuery('#generator-page-loader').fadeOut();	
+	});
+</script>
 
 <div id="tag-generator">
 	<div id="generator-spinner-overlay"></div>
-	<img id="generator-page-loader" src="<?php echo plugins_url('label-maker/js/modal/loader.gif'); ?>">          
-    <form id="tag-preview">
-        <h2 class="tag-h2">Label Preview</h2>
+	<img id="generator-page-loader" src="<?php echo plugins_url('label-maker/js/lib/modal/loader.gif'); ?>">          
+    <div id="control-panel">
+        <div class="tag-controls inline-block">
+            <ul class="tag-nav-buttons" id="pdfControls">
+                <li>
+                    <h4 class="tag-h4">PDF Controls</h4>
+                </li>
+                <li id="inspect-label" class="inline-block-li">
+                    <button class="icon-button black-text"><span class="icon-screen"></span></button>        
+                    <div class="tooltip">Preview</div>
+                </li>
+                <li id="save-label" class="inline-block-li">
+                    <button class="icon-button black-text"><span class="icon-upload2"></span></button>        
+                    <div class="tooltip">Save</div>
+                </li>
+                <li id="load-label" class="inline-block-li">
+                    <button class="icon-button black-text"><span class="icon-download2"></span></button>        
+                    <div class="tooltip">Load</div>
+                </li>
+                <li id="print-label" class="inline-block-li">
+                    <button class="icon-button black-text"><span class="icon-print"></span></button>        
+                    <div class="tooltip">Print</div>
+                </li>
+                <li id="reset-label" class="inline-block-li">
+                    <button class="icon-button black-text"><span class="icon-remove"></span></button>        
+                    <div class="tooltip">Reset</div>
+                </li>
+            </ul>
+        </div>
+         <div id="login-info" class="inline-block">
+            <ul class="login-links">
+				<li id="login-message">
+                	<h3 class="welcome-user-text tag-h2 invisible"></h3>
+				</li>
+               	<li id="login-label" class="">
+                    <button class="icon-button black-text"><span class="icon-key2"></span><span class="login-txt">Log In</span></button>        
+                </li>
+                <li id="signup-label" class="">
+                    <button class="icon-button black-text"><span class="icon-pencil"></span><span class="login-txt">Sign Up</span></button>        
+                </li>
 
+            </ul>
+         </div>   
+	</div>
+    <form id="tag-preview">
         <div id="tag-preview-window">
             <div id="tag-preview-header" class="tag-preview-section white-background">
                 <div id="logoWrap">
@@ -117,37 +159,24 @@ $default = array(
 
             <div id="tag-preview-footer" class="tag-preview-section white-background">
                 <input id="tag-preview-footer-border-top" class="preview-section-title white-text align-center basal-font" name="title_2" value="Consult Free Gas Mileage Guide" />
-                <img id="customLabel"> 	
-                <!--'http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/customLabel/fuel_label.jpg' : ''; ?>" /> -->
+                <img id="customImage"> 	
+                <!--'http://www.taglinemediagroup.com/monroney/wp-content/uploads/label-generator/customImage/fuel_label.jpg' : ''; ?>" /> -->
             </div>
         </div>
     </form>
 
 
-    <div id="tag-options">
-        <h2 class="tag-h2 float-left">Label Options</h2>
-                        <div id="login-info">
-                            <ul class="float-right login-links">
-                               <li id="login-label" class="float-left">
-                                    <button class="icon-button black-text"><span class="icon-key2"></span><span class="login-txt">Log In</span></button>        
-                                </li>
-                                <li id="signup-label" class="float-left">
-                                    <button class="icon-button black-text"><span class="icon-pencil"></span><span class="login-txt">Sign Up</span></button>        
-                                </li>
-                            </ul>
-                            <h3 class="welcome-user-text float-right tag-h2 invisible">
-                            </h3>
-                         </div>
+    <div id="tag-options">     
         <div class="tag-tabs clear">
-            <div class="tag-tab-holder active" id="tag-tab-holder-0">
+            <div class="tag-tab-holder active" id="tag-tab-holder-0" name="branding_options">
                 <div class="tag-tab"></div>
                 <span class="tag-tab-text">Branding Options</span>
             </div>
-            <div class="tag-tab-holder inactive" id="tag-tab-holder-1">
+            <div class="tag-tab-holder inactive" id="tag-tab-holder-1" name="vehicle_info">
                 <div class="tag-tab"></div>
                 <span class="tag-tab-text">Vehicle info</span>
             </div>
-            <div class="tag-tab-holder inactive" id="tag-tab-holder-2">
+            <div class="tag-tab-holder inactive" id="tag-tab-holder-2" name="addendum_options">
                 <div class="tag-tab"></div>
                 <span class="tag-tab-text">Addendum Options</span>
             </div>
@@ -160,40 +189,15 @@ $default = array(
             <?php wp_nonce_field('process_user_upload', '_file_upload_handler', true, true); ?>
             <div class="tag-frame visible" id="tag-frame-0" name="branding_options">
                 <div class="tag-row row-1 divider divider-bottom">
-                    <div class="tag-col divider divider-right first-col col-1">
-                        <h4 class="tag-h4">Label Color</h4>
+                    <div class="tag-col first-col col-1">
                         <ul class="tag-h-ul">
-                            <li class="colorbox-wrap"><div class="colorbox blue-background" id="#23498a"></div></li>
-                            <li class="colorbox-wrap selected"><div class="colorbox green-background" id="#24a649"></div></li>
+							<li class="inline-list-head"><h4 class="inline-h4">Label Color</h4></li>
+                            <li class="colorbox-wrap selected"><div class="colorbox blue-background" id="#23498a"></div></li>
+                            <li class="colorbox-wrap"><div class="colorbox green-background" id="#24a649"></div></li>
                             <li class="colorbox-wrap"><div class="colorbox red-background" id="#bf2026"></div></li>
                             <li class="colorbox-wrap"><div class="colorbox gray-background" id="#929491"></div></li>
                             <li class="colorbox-wrap"><div class="colorbox black-background" id="#000000"></div></li>
                         </ul>
-                    </div>
-                    <div class="tag-col col-2">
-                        <h4 class="tag-h4">PDF Controls</h4>
-				        <ul class="tag-nav-buttons" id="pdfControls">
-				            <li id="inspect-label" class="inline-block-li">
-				                <button class="icon-button black-text"><span class="icon-screen"></span></button>        
-								<div class="tooltip">Preview</div>
-				            </li>
-				            <li id="save-label" class="inline-block-li">
-				                <button class="icon-button black-text"><span class="icon-upload2"></span></button>        
-								<div class="tooltip">Save</div>
-				            </li>
-				            <li id="load-label" class="inline-block-li">
-				                <button class="icon-button black-text"><span class="icon-download2"></span></button>        
-								<div class="tooltip">Load</div>
-				            </li>
-				            <li id="print-label" class="inline-block-li">
-				                <button class="icon-button black-text"><span class="icon-print"></span></button>        
-								<div class="tooltip">Print</div>
-				            </li>
-				            <li id="reset-label" class="inline-block-li">
-				                <button class="icon-button black-text"><span class="icon-remove"></span></button>        
-								<div class="tooltip">Reset</div>
-				            </li>
-				        </ul>
                     </div>
                     <!-- <div class="tag-col col-2">
                         <h4 class="tag-h4">Font Type</h4>
@@ -227,9 +231,15 @@ $default = array(
                     </div> -->	
                 </div>
                 <div class="tag-row divider divider-bottom row-2 full-width">
-                    <div class="tag-col col-1 half-width">
-                        <h4 class="tag-h4">Custom Text Branding</h4>
-                        <ul class="tag-v-ul">
+                    <h4 class="tag-h4">Select One</h4>
+                    <div class="tag-col col-1 quarter-width">
+                        <div class="tag-col col-1 full-width">
+                            <h5 id="text-branding-option" class="branding-option tag-h4 selected-option">Add Text</h5>
+                            <h5 id="logo-branding-option" class="branding-option tag-h4">Add Logo</h5>                        
+                        </div>
+					</div>
+                    <div class="tag-col col-2 three-quarters-width">
+                        <ul class="tag-v-ul activated branding-text branding-configuration inline-block full-width top-align">
                             <li>
                                 <input type="text" class="tag-input absolute" name="dealershipName" placeholder="[Dealership Name]" />
                             </li>
@@ -237,10 +247,11 @@ $default = array(
                                 <input type="text" class="tag-input absolute" name="dealershipTagline" placeholder="[Tagline]" />
                             </li>
                         </ul>
-                    </div>
-                    <div class="tag-col col-2 half-width">
-                        <h4 class="tag-h4">Logo Branding</h4>
-                        <?php echo $logo; ?>
+                        <div class="logo-gallery deactivated branding-configuration inline-block full-width invisible top-align">
+						<?php echo $logo; ?>
+                        	<div class="logo-collection"></div>
+                        </div>
+                        
                         <!--<button class="tag-button" name="toggleVisibility" />Hide Logo</button> -->
                     </div>
                 </div>
@@ -270,7 +281,7 @@ $default = array(
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
                                     <input name="make" data-type="make" data-id="" type="text" class="config-input run-in tag-input" placeholder="[make]">
-                                    <button class="add-button absolute-right run-in">+</button>
+                                    <button class="add-button absolute-right run-in invisible">+</button>
                                 </li>
                                 <li id="vehicleModelConfig">
                                     <label class="tag-label run-in" for="vehicleModel">Model</label>
@@ -281,7 +292,7 @@ $default = array(
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
                                     <input name="model" data-type="model" data-id="" type="text" class="config-input run-in tag-input" placeholder="[model]">
-                                    <button class="add-button absolute-right run-in">+</button>
+                                    <button class="add-button absolute-right run-in invisible">+</button>
 
                                 </li>
                                 <li id="vehicleYearConfig">
@@ -292,7 +303,7 @@ $default = array(
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
                                     <input name="year" type="text" data-type="year" data-id="" class="config-input run-in tag-input" placeholder="[year]">
-                                    <button class="add-button absolute-right run-in">+</button>
+                                    <button class="add-button absolute-right run-in invisible">+</button>
 
                                 </li>
                                 <li class="vehicle-numbers">

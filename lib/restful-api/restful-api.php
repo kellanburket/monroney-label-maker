@@ -2,19 +2,19 @@
 abstract class restful_api {
 
     protected $method = '';
+	
     protected $endpoint = '';
     protected $verb = '';
     protected $args = array();
-    protected $file = NULL;
-	
+    
+	protected $file = NULL;
 	protected $file_dir;
-	
-	protected $user_table;
 	
 	protected $pathname; 
 	protected $baseurl;
 	protected $allowed_exts;
 	protected $input_name = 'file';
+	
 	protected $user_id;
 
     public function __construct($request) {
@@ -24,13 +24,13 @@ abstract class restful_api {
 		$this->debug_values = array('debug_values'=>'none');
         $this->args = explode('/', rtrim($request, '/'));
 		$this->endpoint = array_shift($this->args);
-		
+
 		$this->pathname = (isset($pathname)) ? $pathname : WP_CONTENT_DIR.'/uploads/';
 		$this->baseurl = (isset($baseurl)) ? $baseurl : content_url('uploads/');
 		$this->allowed_exts = (isset($allowed_exts)) ? $allowed_exts : '';
-		
+
 		if(array_key_exists(0, $this->args)) {
-			$this->request = $this->args[0];
+			$this->verb = array_shift($this->args);
 		}
 
         $this->method = $_SERVER['REQUEST_METHOD'];
@@ -48,22 +48,14 @@ abstract class restful_api {
 			$this->file = $_FILES;			
 			$this->request = $_POST;
 		} else if ($this->method == 'POST') {
-			$this->file = file_get_contents("php://input", "r");
 			$this->request = array();
-			parse_str($this->file, $this->request);
-			//$this->request = $_POST;
-
-			//echo json_encode($this->request);
-			//exit;
-			
+			$this->request = json_decode(file_get_contents("php://input", "r"), true);
 		} elseif ($this->method == 'GET') {
 			$this->request = $_GET;
 		} elseif ($this->method == 'PUT') {
 			$this->file = file_get_contents("php://input", "r");
 			$this->request = array();
 			parse_str($this->file, $this->request);
-			//echo json_encode($this->request);
-			//exit;
 		} elseif($this->method == 'DELETE') { 
             $this->method = 'DELETE';
 			$this->request = $_GET;		
@@ -71,26 +63,15 @@ abstract class restful_api {
 			$this->_response('Invalid Method', 405);
 		}
 
-		//echo json_encode($this->request);
+
+
+		//echo json_encode(array('server'=>$_SERVER, 'endpoint'=>$this->endpoint, 'request'=>$this->request, 'verb'=>$this->verb, 'args'=>$this->args));
 		//exit;		
-		if ((array_key_exists('user_id', $this->request) && is_numeric($this->request['user_id']))) {			
-			$this->user_id = intval($this->request['user_id']);
-		} else {
-			if ($this->endpoint == 'users') {
-				if(array_key_exists('id', $this->request) && is_numeric($this->request['id'])) {
-					$this->user_id = intval($this->request['id']);				
-				} else if ($this->method == "GET") {
-					$this->user_id = 0;
-				} else if ($this->method == "POST") {
-					$this->user_id = NULL;
-				} else {
-					$this->fail('Cannot process requests without a proper user id.');				
-				}
-			} else {
-				$this->fail('Cannot process requests without an id.');
-			}
-		}
     }
+	
+	public function verifyKey($key, $origin) {
+		
+	}
 	
 	public function processAPI() {
 		if ((int) method_exists($this, $this->endpoint) > 0) {
@@ -316,11 +297,15 @@ abstract class restful_api {
 		
 		foreach($requests as $key=>$value) {
 			$set_string .= ' '.$key.'='.$format[$key];						
-			if ($value != end($requests)) {
+			if ($value !== end($requests)) {
 				$set_string .= ',';
 			}
 		}
 		$query = 'UPDATE '.$table.$set_string.$conditional_string;
+		
+		//echo json_encode(array('query'=>$query));
+		//exit;
+		
 		$request_values = array_values($requests);
 
 		$request_values[] = $id;
@@ -375,7 +360,7 @@ abstract class restful_api {
 
 		//echo json_encode($requests);
 		//exit;
-		
+		unset($requests['id']);
 		if ($check_duplicates) {			
 			$conditional = $this->build_conditional_string($requests, $format);
 
@@ -404,12 +389,13 @@ abstract class restful_api {
 		$wpdb->insert($table, $requests, array_values($format));
 		
 		$requests['id'] = $wpdb->insert_id;
+
+		
 		if ($requests['id']) {
-			$requests['succcess'] = true;
-			$wpdb->insert($this->user_table, array('user_id'=>$this->user_id, 'table_name'=>$table, 'item_id'=>$requests['id'], 'time'=>$requests['time']));
+			$requests['success'] = true;
 			return $requests;
 		} else {
-			$this->fail(array_merge(array('message'=>'Nothing inserted'), $this->get_wpdb_values()));
+			throw new Exception('Nothing inserted');
 		}	
 
 	 }

@@ -1,16 +1,38 @@
 		<?php
-		require_once('restful-api.php');
+		require_once 'restful-api.php';
 		
 		class labelgen_api extends restful_api {
 			public function __construct($request, $origin) {
 				parent::__construct($request);
-				$this->user_table = 'labelgen_user_relationships';
 
+				if ($this->user_is_logged_in()) {			
+					$this->get_user_id_from_secret($this->request['secret'], $this->verb);
+				} else {
+					if ($this->endpoint == 'users') {
+						if(isset($this->verb) && array_key_exists('loginPassword', $this->request)) {
+							$this->method = "GET";
+							$this->get_user_id_from_password($this->request['loginPassword']);						
+						} else if (array_key_exists("signupPassword", $this->request) && array_key_exists("signupName", $this->request) && array_key_exists('signupEmail', $this->request)) {
+							$this->user_id = NULL;
+						} else {
+							throw new Exception('Sorry. We cannot process your request at this time.');				
+						}
+					} else {
+						throw new Exception("You are not authorized to perform this action!");					
+					}
+				}
+
+	
 				if ($_FILES) {
 					switch($this->request['file_dir']) {
-						case('labels'): $this->file_dir = 'labels'; break;
-						case('logos'): $this->file_dir = 'logos'; break;						
-						default: $this->fail('Are you sure you want to do that?');
+						case('customImages'): 
+							$this->file_dir = 'labels'; 
+							break;
+						case('dealershipLogos'): 
+							$this->file_dir = 'logos'; 
+							break;						
+						default: 
+							throw new Exception('Are you sure you want to do that?');
 					}
 	
 					$this->pathname = WP_CONTENT_DIR.'/uploads/label-maker/user_data/'.$this->file_dir.'/';
@@ -29,43 +51,68 @@
 						mkdir($this->pathname);
 					}
 				}
-					
-				// Abstracted out for example
-				
-				//$APIKey = new Models\APIKey();
-				//$User = new Models\User();
-				/*
-				try {
-					if (!array_key_exists('apiKey', $this->request)) {
-						throw new Exception('No API Key provided');
-					} else if (!$APIKey->verifyKey($this->request['apiKey'], $origin)) {
-						throw new Exception('Invalid API Key');
-					} else if (array_key_exists('token', $this->request) && !$User->get('token', $this->request['token'])) {
-						throw new Exception('Invalid User Token');
-					}
-				} catch(Exception $exc) {
-					echo json_encode(array('success'=>false, 'message'=>$exc->getMessage()));
-					exit;
-				}
-				*/
-				//$this->User = $User;
 			}
 			
-			protected function parse_request($table, $get_fields, $post_fields, $conditions) {
-				switch ($this->method) {
-					case ('GET'):
-						return $this->parse_get_request($table, $get_fields, $conditions);
-					case ('POST'):
-						$request = array();
-						return $this->parse_post_request($table, $request);			
-					case ('DELETE'):
-						return $this->parse_delete_request();
-				}	
+			private function user_is_logged_in() {
+				return array_key_exists('secret', $this->request) && isset($this->verb);
+			}
+
+			private function get_user_id_from_password($pw) {
+				global $wpdb;											
+				$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_users WHERE name = %s', array($this->verb)));
+				$result = $wpdb->last_result;
+				if ($result && is_array($result)) {
+					if ($this->decrypt($pw, $result[0]->password)) {
+						$this->user_id = intval($result[0]->id);
+					} else {
+						throw new Exception("Either the name or password you entered is invalid");
+					}
+				} else {
+					throw new Exception("Invalid Password.");					
+				}
+			}
+			
+			private function get_user_id_from_secret($secret) {
+				$auth_args = explode(":", $_SERVER['HTTP_AUTHENTICATION']);
+				$user = $auth_args[0];
+				$nonce = $auth_args[1];
+				$digest = base64_decode($auth_args[2]);
+				
+				$path = $_SERVER['HTTP_HOST'].$_SERVER['REDIRECT_URL'];
+				$encoded_date = urlencode($_SERVER['HTTP_DATE']);
+				
+				$msg = "GET+{$path}+{$encoded_date}+{$nonce}";
+
+				global $wpdb;
+				$wpdb->query('SELECT secret FROM labelgen_apikeys');
+				$results = $wpdb->last_result;
+				if (is_array($results)) {
+					foreach($results as $result) {
+						if ($hash == $result->secret) {
+						}					  
+					} 				
+				}
+				
+				
+				//echo json_encode(array('User'=>$user, 'Date'=>$encoded_date, 'Nonce'=>$nonce, 'Digest'=>$digest, 'Path'=>$path));
+				//exit;						
+			}
+			
+			private function user_relationships($item_table, $item_id) {
+				global $wpdb;
+				$table = 'labelgen_user_relationships';
+				$wpdb->insert($table, array( 
+					'user_id'=>$this->user_id, 
+					'table_name'=> $item_table, 
+					'item_id'=>$item_id, 
+					'time'=>current_time('mysql')
+					)
+				);
 			}
 			
 			protected function users() {
 				$table= 'labelgen_users';
-				$fields = array('email', 'password', 'name', 'id');
+				$fields = array('email', 'password', 'name', 'id', 'secret');
 				switch ($this->method) {
 					case ('GET'):
 						$conditions = array();
@@ -75,21 +122,24 @@
 							&& $this->request['loginPassword']) 
 						{
 							//$conditions['password'] = trim($this->request['loginPassword']);
-							$conditions['email'] = is_email($this->request['loginEmail']) ? $this->request['loginEmail'] : $this->fail('Not a valid email address!');
+							$conditions['email'] = is_email($this->request['loginEmail']) ? $this->request['loginEmail'] : NULL;
+							if (is_null($conditions['email']))
+								throw new Exception('Not a valid email address!');
 						} else if(@ $this->user_id == 0) {
 							$conditions['id'] = 0;
 						} else {
-							$this->fail('You do not have the authorization to perform this action!');	
+							throw new Exception('You do not have the authorization to perform this action!');	
 						}
 						
 						$results = $this->parse_get_request($table, $fields, $conditions);
 						
 						if (isset($this->request['loginPassword'])) 
 							if (!$this->decrypt($this->request['loginPassword'], $results[0]['password']))
-								$this->fail('Incorrect Password!');
+								throw new Exception('Incorrect Password!');
 
 						$id = $results[0]['id'];
-						$user = array('success'=>true, 'name'=>$results[0]['name'], 'id'=>$id);
+						$secret = $results[0]['secret'];
+						$user = array('success'=>true, 'name'=>$results[0]['name'], 'id'=>$id, 'secret'=>$secret);
 						global $wpdb;
 						$tables = array("labelgen_images", "labelgen_logos", "labelgen_makes", "labelgen_models", "labelgen_years", "labelgen_options", "labelgen_discounts", "labelgen_labels");
 						foreach($tables as $tbl) {							
@@ -117,38 +167,51 @@
 								
 							}							 
 						}
-						
+																
 						if (isset($user['labelgen_options']) && is_array($user['labelgen_options'])) {
 							foreach($user['labelgen_options'] as $option) {
-								$user["{$option['location']}_options"][] = $option;
+								$user["{$option->location}_options"][] = $option;
 							}		 
 														
 						}
-						
 						return $user;
 
 					case ('POST'):
+						//echo json_encode($this->request);
+						//exit;
 						if ($this->request['signupEmail'] && $this->request['signupPassword'] && $this->request['signupName']) {
 							$request['password'] = $this->encrypt(trim($this->request['signupPassword']));
-							$request['email'] = is_email($this->request['signupEmail']) ? $this->request['signupEmail'] : $this->fail('Not a valid email address!');
+							$request['email'] = is_email($this->request['signupEmail']) ? $this->request['signupEmail'] : NULL;
+							$request['secret'] = sha1(microtime(true).mt_rand(22222,99999));
+							
+							if (is_null($request['email']))
+								throw new Exception('Not a valid email address!');
 							$request['name'] = sanitize_text_field($this->request['signupName']);
 						} else {
-							$this->fail('Missing Vital Sign Up Information.');
+							throw new Exception('Missing Vital Sign Up Information.');
 						}
-						
+												
 						$return = $this->parse_post_request($table, $request, true);
 						
 						if ($return) {
-							return array('success'=>true, 'email'=>$return['email'], 'name'=>$return['name']);
+							$this->parse_post_request(
+								'labelgen_apikeys', 
+								array(
+									'apikey'=>$this->encrypt($return['secret']),
+									'secret'=>$return['secret']
+								)
+							);
+							
+							return array('success'=>true, 'id'=>$return['id'], 'secret'=>$return['secret'], 'email'=>$return['email'], 'name'=>$return['name']);
 						} else {
-							$this->fail('Something went wrong. We were not able to sign you up at this time.');				
+							throw new Exception('Something went wrong. We were not able to sign you up at this time.');				
 						}
 					default:
-						$this->fail('Method '. $this->method . ' not supported!');				
+						throw new Exception('Method '. $this->method . ' not supported!');				
 				}
 			}
 			
-			protected function parse_label_request() {
+			private function parse_label_request() {
 				if (array_key_exists('user_id', $this->request) && $this->request['user_id']) {
 					$request = array();
 					$request['user_id'] = $this->user_id;
@@ -162,8 +225,9 @@
 					@ $request['dealership_logo_id'] = $this->request['dealership_logo_id'] ? intval($this->request['dealership_logo_id']) : NULL;				
 					@ $request['dealership_tagline'] = $this->request['dealership_tagline'] ? sanitize_text_field($this->request['dealership_tagline']) : NULL;				
 					//$request['dealership_info'] = $this->request['dealership_info'] ? sanitize_text_field($this->request['dealership_info']) : '';				
-					@ $request['custom_label_id'] = $this->request['custom_label_id'] ? intval($this->request['custom_label_id']) : NULL;
+					@ $request['custom_image_id'] = $this->request['custom_image_id'] ? intval($this->request['custom_image_id']) : NULL;
 					@ $request['name'] = $this->request['name'] ? sanitize_text_field($this->request['name']) : NULL;
+					@ $request['display_logo'] = $this->request['display_logo'] ? true : false;
 					//$request['make_id'] = $this->request['make_id'] ? intval($this->request['make_id']) : '';
 					//$request['model_id'] = $this->request['model_id'] ? intval($this->request['model_id']) : '';
 					//$request['year_id'] = $this->request['year_id'] ? intval($this->request['year_id']) : '';
@@ -172,11 +236,11 @@
 					//$request['trim'] = $this->request['trim'] ? sanitize_text_field($this->request['trim']) : '';
 					return $request;
 				} else {
-					$this->fail('Please log in or sign up to save your form.');
+					throw new Exception('Please log in or sign up to save your form.');
 				}
 			}
 
-			protected function set_label_options(&$pkg) {
+			private function set_label_options(&$pkg) {
 				$option_ids = array();
 				$prices = array();
 				if (array_key_exists('id', $pkg) && intval($pkg['id']) > 0) {
@@ -187,8 +251,8 @@
 					$saved_prices = array();
 					
 					for ($i = 0; $i < count($temp); $i++) {
-						$saved_options[$o['option_id']] = $temp[$i]['id'];				
-						$saved_prices[$o['option_id']] = $temp[$i]['price'];
+						$saved_options[$temp[$i]->option_id] = $temp[$i]->id;				
+						$saved_prices[$temp[$i]->option_id] = $temp[$i]->price;
 					}
 					
 					if (array_key_exists('option_ids', $this->request) && is_array($this->request['option_ids'])) {
@@ -199,8 +263,6 @@
 								$option_ids[] = $option_id;
 								$prices[$option_id] = $price;
 								if (!array_key_exists($option_id, $saved_options)) {
-									
-									
 									$result = $this->parse_post_request(
 										'labelgen_option_relationships', 
 										array(
@@ -210,7 +272,7 @@
 										)
 									);
 									if (!array_key_exists('id', $result)) {
-										$this->fail('Something went terribly wrong');	
+										throw new Exception('Something went terribly wrong');	
 									}				
 								} else {
 								
@@ -236,13 +298,13 @@
 						$pkg['price_ids'] = $prices;
 					}
 				} else {
-					$this->fail('No Label ID Available to Add Options to!');
+					throw new Exception('No Label ID Available to Add Options to!');
 				}
 			}
 			
 			protected function labels() {
 				$table = 'labelgen_labels'; 
-				$fields = array('id', 'label_color', 'font_style', 'font_weight', 'font_family', 'dealership_name', 'dealership_logo_id', 'dealership_tagline', 'custom_label_id', 'user_id', 'name');
+				$fields = array('id', 'label_color', 'font_style', 'font_weight', 'font_family', 'dealership_name', 'dealership_logo_id', 'dealership_tagline', 'custom_image_id', 'user_id', 'name', 'display_logo');
 				$conditions = array();
 				
 				switch ($this->method) {
@@ -287,6 +349,9 @@
 						$this->check_user_credentials();
 						$request = $this->parse_label_request();
 						
+						//echo json_encode($request);
+						//exit;
+						
 						global $wpdb;
 						$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_labels WHERE user_id = %d AND name = %s', $request['user_id'], $request['name']));
 						$result = $wpdb->last_result;
@@ -302,8 +367,14 @@
 						
 						return $this->win($pkg);
 					case ('PUT'):
+
+						//echo json_encode($this->request);
+						//exit;
+					
 						$this->check_user_credentials();
 						$request = $this->parse_label_request();
+						
+						
 						$pkg = $this->parse_put_request($table, $request, array('id'=>$request['id']) );
 						
 						
@@ -311,7 +382,13 @@
 						$this->set_label_options($pkg);
 						return $this->win($pkg);
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						if ($id) {
+							return $this->parse_delete_request($table, $id, $this->user_id);
+						} else {
+							throw new Exception('Unable to process request!');							
+						}
 				}	
 			}
 			
@@ -336,15 +413,22 @@
 									$request['type'] = 'Value'; 
 									break;
 								default: 
-									$this->fail('Not a valid discount type!'); 
+									throw new Exception('Not a valid discount type!'); 
 							}
-							
-							return $this->parse_post_request($table, $request);			
+							$result = $this->parse_post_request($table, $request);			
+							$this->user_relationships($table, $result['id']);
+							return $result;
 						} else {
-							return $this->fail('Fields Not Set');
+							throw new Exception('Fields Not Set');
 						}
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						if ($id) {
+							return $this->parse_delete_request($table, $id, $this->user_id);
+						} else {
+							throw new Exception('Unable to process request!');							
+						}
 				}
 			}
 			
@@ -360,7 +444,7 @@
 						$this->check_user_credentials();
 						if (isset($this->request['option_name']) && isset($this->request['location'])) {
 							$request['option_name'] = sanitize_text_field($this->request['option_name']);
-								
+							$request['price'] = floatval($this->request['price']);	
 							switch ($_GET['location']) {
 								case ("interior"): 
 									$request['location'] = 'interior'; 
@@ -369,15 +453,23 @@
 									$request['location'] = 'exterior'; 
 									break;
 								default: 
-									$this->fail('Not a valid location!'); 
+									throw new Exception('Not a valid location!'); 
 							}
 							
-							return $this->parse_post_request($table, $request);			
+							$result = $this->parse_post_request($table, $request);			
+							$this->user_relationships($table, $result['id']);
+							return $result;
 						} else {
-							return $this->fail('Fields Not Set');
+							throw new Exception('Fields Not Set');
 						}
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						if ($id) {
+							return $this->parse_delete_request($table, $id, $this->user_id);
+						} else {
+							throw new Exception('Unable to process request!');							
+						}
 				}
 			}
 		
@@ -392,13 +484,21 @@
 					case ('POST'):
 						$this->check_user_credentials();
 						$request['guid'] = $this->process_user_upload();
-						return $this->parse_post_request($table, $request);						
+						$result = $this->parse_post_request($table, $request);			
+						$this->user_relationships($table, $result['id']);
+						return $result;
 					case ('PUT'):
 						break;
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						if ($id) {
+							return $this->parse_delete_request($table, $id, $this->user_id);
+						} else {
+							throw new Exception('Unable to process request!');							
+						}
 					default:
-						$this->fail('Database Update Failed!');
+						throw new Exception('Database update failed!');
 				}
 			}
 			
@@ -413,14 +513,15 @@
 					case ('POST'):
 						$this->check_user_credentials();
 						$request['guid'] = $this->process_user_upload();
-
-						//$request['caption'] = (isset($this->request['caption'])) ? sanitize_text_field($this->request['caption']) : '';
-
-						return $this->parse_post_request($table, $request);						
+						$result = $this->parse_post_request($table, $request);			
+						$this->user_relationships($table, $result['id']);
+						return $result;
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						return $this->parse_delete_request($table, $id, $this->user_id);
 					default:
-						$this->fail('Database Update Failed!');
+						throw new Exception('Database Update Failed!');
 				}
 			 }
 		
@@ -442,18 +543,22 @@
 							$result = $wpdb->last_result;
 			
 							if($result) {				
-								return $this->fail(array('message'=>'Already Added', 'id'=>$result[0]->id));
+								throw new Exception('Already Added ' . $result[0]->id);
 							} else {
 								$request['make_id'] = intval($this->request['make_id']); 	
-								return $this->parse_post_request($table, $request);			
+								$result = $this->parse_post_request($table, $request);			
+								$this->user_relationships($table, $result['id']);
+								return $result;
 							}
 						} else {
-							$this->fail('Fields Not Set');			
+							throw new Exception('Fields Not Set');			
 						}
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						return $this->parse_delete_request($table, $id, $this->user_id);
 					default:
-						$this->fail(sprintf('%s requests are not accepted at this time.', $this->method));
+						throw new Exception(sprintf('%s requests are not accepted at this time.', $this->method));
 				}		
 			 }
 			 
@@ -473,17 +578,21 @@
 							$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_makes WHERE make = %s', $request['make']));
 							$result = $wpdb->last_result;
 							if($result) {				
-								$this->fail(array('message'=>'Already Added', 'id'=>$result[0]->id));
+								throw new Exception(array('message'=>'Already Added', 'id'=>$result[0]->id));
 							} else {
-								return $this->parse_post_request($table, $request);			
+								$result = $this->parse_post_request($table, $request);			
+								$this->user_relationships($table, $result['id']);
+								return $result;
 							}
 						} else {
-							$this->fail('Fields Not Set');			
+							throw new Exception('Fields Not Set');			
 						}
 					case ('DELETE'):
-						return $this->parse_delete_request();
+						$this->check_user_credentials();
+						$id = intval($this->request['id']);					
+						return $this->parse_delete_request($table, $id, $this->user_id);
 					default:
-						$this->fail(sprintf('%s requests are not accepted at this time.', $this->method));
+						throw new Exception(sprintf('%s requests are not accepted at this time.', $this->method));
 				}
 			 }
 		
@@ -506,19 +615,21 @@
 						$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_years WHERE year = %d AND make_id = %d AND model_id = %d', $request['year'], $request['make_id'], $request['model_id']));
 						$result = $wpdb->last_result;
 						if($result) {				
-							return $this->fail(array('message'=>'Already Added', 'id'=>$result[0]->id));
+							throw new Exception('Already Added ' . $result[0]->id);
 						} else {
-							$posted = $this->parse_post_request($table, $request);			
-							return $posted;
+							$result = $this->parse_post_request($table, $request);			
+							$this->user_relationships($table, $result['id']);
+							return $result;
 						}
 					} else {
-						$this->fail('Fields Not Set');			
+						throw new Exception('Fields Not Set');			
 					}
 				} elseif($this->method == 'DELETE') {
-					echo json_encode($this->request);
-					exit;
+					$this->check_user_credentials();
+					$id = intval($this->request['id']);					
+					return $this->parse_delete_request($table, $id, $this->user_id);
 				} else {
-					$this->fail(sprintf('%s requests are not accepted at this time.', $this->method));
+					throw new Exception(sprintf('%s requests are not accepted at this time.', $this->method));
 				}		
 			 }
 			 
