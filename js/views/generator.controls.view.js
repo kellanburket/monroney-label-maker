@@ -1,4 +1,9 @@
 define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1'], function($, _, Backbone, Dialog, Modal, PDFJS, Base64, HmacSHA1) {
+
+	var INVALID_USER_NAME = 1;
+	var NAME_ALREADY_REGISTERED = 2;
+	var EMAIL_ALREADY_REGISTERED = 3;
+	
 	var PDFControls = Backbone.View.extend({
 
 		initialize: function(attrs, opts) {
@@ -494,27 +499,28 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			data['action'] = ajax.action;
 			Modal.showLoader();
 
-			var contentType = method.match(/put/i) ? 'application/x-www-form-urlencoded' : 'application/json';
+			var contentType = method.match(/put/i) ? 'application/x-www-form-urlencoded' : 'application/json; charset=utf-8';
+			//var contentType = 'application/x-www-form-urlencoded';
 			var controls = this;
 			
-			console.log("Controls", this);
+			//console.log("Controls", this);
 			
 			var user = this.model.get('user');
-			var secret = user.get('secret');
-			var user_name = user.get('name'); 
-			//var date = new Date().toUTCString();
-			//var encoded_date = encodeURIComponent(date);
-			var nonce = this.uniqid(5);
-			var msg = "GET+" + url + "+" + nonce;
+			
+			if (user.get('id') != 0) {
+				var secret = user.get('secret');
+				var user_name = user.get('name'); 
+				//var date = new Date().toUTCString();
+				//var encoded_date = encodeURIComponent(date);
+				var nonce = this.uniqid(5);
+				var msg = "GET+" + url + "+" + nonce;
+				var digest = Base64.stringify(HmacSHA1(msg, secret));							
+				var headers = {
+					Authentication: "hmac " + user_name + ":" + nonce + ":" + digest
+				};
+			}
 
-			var digest = Base64.stringify(HmacSHA1(msg, secret));//CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA1(msg, secret));
-						
-			var headers = {
-				Authentication: "hmac " + user_name + ":" + nonce + ":" + digest,
-				Date: date
-			};
-
-			console.log('ajax.url', data, headers);
+			console.log('ajax.url(data, headers)', data, headers);
 			return $.ajax(url, {
 				type: method,
 				data: data,
@@ -522,7 +528,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 				dataType: 'json',
 				contentType: contentType,
 			}).done(function(response) {
-				console.log('post_form:done', response, response.message);
+				console.log('post_form:done', response);
 				if (response.success == true) {
 					callback.call(controls, response);
 				} else {

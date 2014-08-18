@@ -2,7 +2,8 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 	return Backbone.Collection.extend({
 		set_user_id: function(user) {
 			this.userId = user.get('id');
-			//console.log("User Id", this.userId);
+			this.userName = user.get('name');
+			console.log("Current User", this.userName + "(" + this.userId + ")");
 		},
 		
 		set_listeners: function() {
@@ -13,8 +14,15 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
  			if (!attributes) return false;
 			
 			options = options || {};
-			options['url'] = this.url;
 			
+			console.log("Collection URL", this.url);
+			
+			var lastIndex = this.url.lastIndexOf('/');
+			var urlFront = this.url.substr(0, lastIndex);
+			var urlBack = this.url.substr(lastIndex + 1, this.url.length);			
+			
+			options['url'] = urlFront + this.userName + "/" + this.urlBack;
+							
 			var new_options = {};
 			attributes['userId'] = this.userId; 
 			

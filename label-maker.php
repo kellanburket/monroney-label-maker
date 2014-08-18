@@ -12,6 +12,8 @@ require_once(LABEL_MAKER_ROOT.'/models/generator.php');
 require_once(LABEL_MAKER_ROOT.'/lib/restful-api/labelgen-api.php');
 
 
+
+
 add_filter('clean_url', function($url) {
     if ($url == LABEL_MAKER_URL.'/js/r.js?ver=3.9.2') {
        $url ="{$url}' data-main='http://monroneyplus.com/wp-content/plugins/label-maker/js/main.js";

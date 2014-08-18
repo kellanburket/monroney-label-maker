@@ -1,14 +1,20 @@
 		<?php
 		require_once 'restful-api.php';
+		//Define Exceptions
+		define('INVALID_USER_NAME', 1);
+		define('NAME_ALREADY_REGISTERED', 2);
+		define('EMAIL_ALREADY_REGISTERED', 3);
 		
 		class labelgen_api extends restful_api {
 			public function __construct($request, $origin) {
 				parent::__construct($request);
 
+	
 				if ($this->user_is_logged_in()) {			
 					$this->get_user_id_from_secret($this->request['secret'], $this->verb);
 				} else {
 					if ($this->endpoint == 'users') {
+					
 						if(isset($this->verb) && array_key_exists('loginPassword', $this->request)) {
 							$this->method = "GET";
 							$this->get_user_id_from_password($this->request['loginPassword']);						
@@ -31,8 +37,7 @@
 						case('dealershipLogos'): 
 							$this->file_dir = 'logos'; 
 							break;						
-						default: 
-							throw new Exception('Are you sure you want to do that?');
+						default: throw new Exception('Are you sure you want to do that?');
 					}
 	
 					$this->pathname = WP_CONTENT_DIR.'/uploads/label-maker/user_data/'.$this->file_dir.'/';
@@ -176,39 +181,63 @@
 						}
 						return $user;
 
-					case ('POST'):
-						//echo json_encode($this->request);
-						//exit;
-						if ($this->request['signupEmail'] && $this->request['signupPassword'] && $this->request['signupName']) {
-							$request['password'] = $this->encrypt(trim($this->request['signupPassword']));
-							$request['email'] = is_email($this->request['signupEmail']) ? $this->request['signupEmail'] : NULL;
-							$request['secret'] = sha1(microtime(true).mt_rand(22222,99999));
-							
-							if (is_null($request['email']))
-								throw new Exception('Not a valid email address!');
-							$request['name'] = sanitize_text_field($this->request['signupName']);
-						} else {
-							throw new Exception('Missing Vital Sign Up Information.');
-						}
-												
-						$return = $this->parse_post_request($table, $request, true);
-						
-						if ($return) {
-							$this->parse_post_request(
-								'labelgen_apikeys', 
-								array(
-									'apikey'=>$this->encrypt($return['secret']),
-									'secret'=>$return['secret']
-								)
-							);
-							
-							return array('success'=>true, 'id'=>$return['id'], 'secret'=>$return['secret'], 'email'=>$return['email'], 'name'=>$return['name']);
-						} else {
-							throw new Exception('Something went wrong. We were not able to sign you up at this time.');				
-						}
-					default:
-						throw new Exception('Method '. $this->method . ' not supported!');				
+					case ('POST'): $this->signup_user($table, $fields);
+					default: throw new Exception('Method '. $this->method . ' not supported!');				
 				}
+			}
+			
+			private function signup_user($table, $fields) {
+				//First Check that all the appropriate fields have been filled in
+				if ($this->request['signupEmail'] && $this->request['signupPassword'] && $this->request['signupName']) {
+					
+					$request['email'] = is_email($this->request['signupEmail']) ? $this->request['signupEmail'] : NULL;
+					if (is_null($request['email']))
+						throw new Exception('Not a valid email address!');
+
+					$request['name'] = sanitize_text_field($this->request['signupName']);
+					if ($request['name']) {
+						global $wpdb;
+						$wpdb->query(
+							$wpdb->prepare(
+								"SELECT email, name FROM labelgen_users WHERE email = %s OR name = %s", 
+								array($request['email'], $request['name'])
+							)
+						);
+						$result = $wpdb->last_result[0];
+						if ($result) {
+							if ($result->email == $request['email']) {
+								throw new Exception(EMAIL_ALREADY_REGISTERED);
+							} else if ($result->name == $request['name']) {
+								throw new Exception(NAME_ALREADY_REGISTERED);
+							}
+						}
+					} else {
+						throw new Exception(INVALID_USER_NAME);
+					}
+					
+					$request['password'] = $this->encrypt(trim($this->request['signupPassword']));
+					$request['secret'] = sha1(microtime(true).mt_rand(22222,99999));
+					
+				} else {
+					throw new Exception('Missing Vital Sign Up Information.');
+				}
+										
+				$return = $this->parse_post_request($table, $request, true);
+				
+				if ($return) {
+					$this->parse_post_request(
+						'labelgen_apikeys', 
+						array(
+							'apikey'=>$this->encrypt($return['secret']),
+							'secret'=>$return['secret']
+						)
+					);
+					
+					return array('success'=>true, 'id'=>$return['id'], 'secret'=>$return['secret'], 'email'=>$return['email'], 'name'=>$return['name']);
+				} else {
+					throw new Exception('Something went wrong. We were not able to sign you up at this time.');				
+				}
+
 			}
 			
 			private function parse_label_request() {

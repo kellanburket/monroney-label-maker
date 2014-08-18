@@ -33,6 +33,9 @@ abstract class restful_api {
 			$this->verb = array_shift($this->args);
 		}
 
+		echo json_encode(array('args'=>$this->args, 'verb'=>$this->verb, 'endpoint'=>$this->endpoint, 'post'=>$_POST, 'server'=>$_SERVER, 'content'=>json_decode(file_get_contents("php://input", "r"), true), 'request'=>$_REQUEST));
+		exit;
+
         $this->method = $_SERVER['REQUEST_METHOD'];
         
 		if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
@@ -50,6 +53,13 @@ abstract class restful_api {
 		} else if ($this->method == 'POST') {
 			$this->request = array();
 			$this->request = json_decode(file_get_contents("php://input", "r"), true);
+			if (!$this->request) {
+				$this->request = $_POST;
+			}
+			
+			echo json_encode($this->request);
+			exit;
+			
 		} elseif ($this->method == 'GET') {
 			$this->request = $_GET;
 		} elseif ($this->method == 'PUT') {

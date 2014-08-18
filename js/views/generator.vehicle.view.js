@@ -3,7 +3,7 @@ define(['jquery', 'underscore', 'backbone', 'vehicle-select', 'vehicle-input', '
 	var VehicleView = Backbone.View.extend({
 		initialize: function(attributes) {
 			this.type = attributes.type;
-			////console.log('VehicleView:add_event', this, attributes);
+			//console.log('VehicleView:add_event', this, attributes);
 			this.bigBrothers = {};
 			this.selected_id = null;
 			
