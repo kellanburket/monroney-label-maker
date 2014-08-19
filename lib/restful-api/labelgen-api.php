@@ -4,6 +4,7 @@
 		define('INVALID_USER_NAME', 1);
 		define('NAME_ALREADY_REGISTERED', 2);
 		define('EMAIL_ALREADY_REGISTERED', 3);
+		define('INVALID_CHARACTERS_IN_NAME', 4);
 		
 		class labelgen_api extends restful_api {
 			public function __construct($request, $origin) {
@@ -14,12 +15,15 @@
 					$this->get_user_id_from_secret($this->request['secret'], $this->verb);
 				} else {
 					if ($this->endpoint == 'users') {
-					
+						//echo json_encode(array('verb'=>$this->verb, 'request'=>$this->request));
+						//exit;
 						if(isset($this->verb) && array_key_exists('loginPassword', $this->request)) {
 							$this->method = "GET";
 							$this->get_user_id_from_password($this->request['loginPassword']);						
 						} else if (array_key_exists("signupPassword", $this->request) && array_key_exists("signupName", $this->request) && array_key_exists('signupEmail', $this->request)) {
 							$this->user_id = NULL;
+						} else if (isset($this->args) {
+							$this->get_user_id_from_secret();
 						} else {
 							throw new Exception('Sorry. We cannot process your request at this time.');				
 						}
@@ -77,30 +81,26 @@
 				}
 			}
 			
-			private function get_user_id_from_secret($secret) {
+			private function get_user_id_from_secret() {
 				$auth_args = explode(":", $_SERVER['HTTP_AUTHENTICATION']);
 				$user = $auth_args[0];
 				$nonce = $auth_args[1];
 				$digest = base64_decode($auth_args[2]);
 				
 				$path = $_SERVER['HTTP_HOST'].$_SERVER['REDIRECT_URL'];
-				$encoded_date = urlencode($_SERVER['HTTP_DATE']);
+				//$encoded_date = urlencode($_SERVER['HTTP_DATE']);
 				
-				$msg = "GET+{$path}+{$encoded_date}+{$nonce}";
+				$msg = "{$this->method}+{$path}+{$encoded_date}+{$nonce}";
+				
+				$hash = hash_hmac('sha1', $msg, $secret);
+				$secret = base64_encode($hash);				
 
 				global $wpdb;
-				$wpdb->query('SELECT secret FROM labelgen_apikeys');
+				$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_users WHERE secret = %s', array($secret)));
 				$results = $wpdb->last_result;
-				if (is_array($results)) {
-					foreach($results as $result) {
-						if ($hash == $result->secret) {
-						}					  
-					} 				
-				}
 				
-				
-				//echo json_encode(array('User'=>$user, 'Date'=>$encoded_date, 'Nonce'=>$nonce, 'Digest'=>$digest, 'Path'=>$path));
-				//exit;						
+				echo json_encode(array('results'=>$results, 'secret'=>$secret));
+				exit;						
 			}
 			
 			private function user_relationships($item_table, $item_id) {
@@ -115,22 +115,25 @@
 				);
 			}
 			
+			private function parse_args() {
+				echo json_encode(array('args'=>$this->args, 'endpoint'=>$this->endpoint, 'verb'=>$this->verb));
+				exit;		
+			}
+			
+			
 			protected function users() {
+				if ($this->args) $this->parse_args();  
 				$table= 'labelgen_users';
 				$fields = array('email', 'password', 'name', 'id', 'secret');
 				switch ($this->method) {
 					case ('GET'):
 						$conditions = array();
-						if (array_key_exists('loginEmail', $this->request) 
-							&& $this->request['loginEmail'] 
+						if (ctype_alnum($this->verb)
 							&& array_key_exists('loginPassword', $this->request) 
 							&& $this->request['loginPassword']) 
 						{
-							//$conditions['password'] = trim($this->request['loginPassword']);
-							$conditions['email'] = is_email($this->request['loginEmail']) ? $this->request['loginEmail'] : NULL;
-							if (is_null($conditions['email']))
-								throw new Exception('Not a valid email address!');
-						} else if(@ $this->user_id == 0) {
+							$conditions['name'] = $this->verb;
+						} else if (@ $this->user_id == 0) {
 							$conditions['id'] = 0;
 						} else {
 							throw new Exception('You do not have the authorization to perform this action!');	
@@ -181,7 +184,7 @@
 						}
 						return $user;
 
-					case ('POST'): $this->signup_user($table, $fields);
+					case ('POST'): return $this->signup_user($table, $fields);
 					default: throw new Exception('Method '. $this->method . ' not supported!');				
 				}
 			}
@@ -194,8 +197,13 @@
 					if (is_null($request['email']))
 						throw new Exception('Not a valid email address!');
 
-					$request['name'] = sanitize_text_field($this->request['signupName']);
+					
+					$request['name'] = trim($this->request['signupName']);
+					
+										
 					if ($request['name']) {
+						if (!ctype_alnum($request['name'])) throw new Exception(INVALID_CHARACTERS_IN_NAME);
+						
 						global $wpdb;
 						$wpdb->query(
 							$wpdb->prepare(
@@ -531,7 +539,7 @@
 				}
 			}
 			
-			protected function label_images() {
+			protected function images() {
 				$table = 'labelgen_images';
 				$conditions = array();
 				switch ($this->method) {

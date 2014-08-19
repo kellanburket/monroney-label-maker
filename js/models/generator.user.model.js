@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
+define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'vehicle-type', 'labels'], function($, _, Backbone, Options, Discounts, Imgs, VehicleType, Labels) {
 
 	return Backbone.Model.extend({
 		
@@ -42,8 +42,10 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					el: ".logo-collection", 
 					name: "dealershipLogo", 
 					pluralName: "dealershipLogos", 
-					url: restful.url + 'logos', 
-					userId: data.id
+					url: restful.url + 'users/' + attrs.name + '/logos', 
+					userName: attrs.name,
+					userId: attrs.id,
+					userSecret: attrs.secret
 				}
 			);
 	
@@ -52,10 +54,12 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 				data.labelgen_images || {}, 
 				{
 					el: ".image-collection", 
-					userId: data.id,
 					name: "customImage", 
 					pluralName: "customImages", 
-					url: restful.url + 'label_images', userId: data.id
+					url: restful.url + 'users/' + attrs.name + '/images',
+					userName: attrs.name,
+					userId: attrs.id,
+					userSecret: attrs.secret
 				}
 			);
 			
@@ -64,7 +68,9 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					Labels, 
 					data.labelgen_labels, 
 					{
-						userId: data.id
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			}
@@ -75,9 +81,11 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					data.labelgen_makes, 
 					{
 						model: VehicleMake, 
-						url: restful.url + 'makes', 
+						url: restful.url + 'users/' + attrs.name + '/makes', 
 						type: 'make', 
-						userId: data.id
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			}
@@ -87,10 +95,12 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					VehicleType, 
 					data.labelgen_models, 
 					{
-						userId: data.id,
 						model: VehicleModel, 
-						url: restful.url + 'models', 
-						type: 'model', userId: data.id
+						url: restful.url + 'users/' + attrs.name + '/models', 
+						type: 'model'
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			}
@@ -101,9 +111,11 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					data.labelgen_years, 
 					{
 						model: VehicleYear, 
-						url: restful.url + 'years', 
+						url: restful.url + 'users/' + attrs.name + '/years', 
 						type: 'year', 
-						userId: data.id
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			} 
@@ -113,8 +125,10 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					Options, 
 					data.exterior_options, 
 					{
-						userId: data.id,
 						location: 'exterior'
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			}
@@ -124,8 +138,10 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					Options, 
 					data.interior_options, 
 					{
-						userId: data.id,
 						location: 'interior'
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			}
@@ -135,7 +151,9 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 					Discounts, 
 					data.labelgen_discounts, 
 					{
-						userId: data.id
+						userName: attrs.name,
+						userId: attrs.id,
+						userSecret: attrs.secret
 					}
 				);
 			}

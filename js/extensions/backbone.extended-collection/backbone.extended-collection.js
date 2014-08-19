@@ -12,24 +12,22 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		
 		create: function(attributes, options) {						
  			if (!attributes) return false;
-			
+				
 			options = options || {};
-			
-			console.log("Collection URL", this.url);
-			
-			var lastIndex = this.url.lastIndexOf('/');
-			var urlFront = this.url.substr(0, lastIndex);
-			var urlBack = this.url.substr(lastIndex + 1, this.url.length);			
-			
-			options['url'] = urlFront + this.userName + "/" + this.urlBack;
-							
-			var new_options = {};
-			attributes['userId'] = this.userId; 
-			
+		
+			if (!options['url']) {
+				if (typeof this.url === 'function') {
+					options['url'] = this.url();
+				} else {
+					options['url'] = this.url;
+				}
+			}
 			var new_model = new this.model(attributes, options);
-			
-			//console.log("New Model", new_model, options);
- 				
+
+			//console.log("New Model:attributes", attributes);
+			//console.log("New Model:options", options);			
+			//console.log("New Model", new_model);
+ 			var new_options = {};
 			new_options['data'] = {};
 				
 			for (i in attributes) {
@@ -38,22 +36,25 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			}
 			
 			new_options['dataType'] = 'json';
-			new_options['processData'] = true;
+			new_options['processData'] = false;
+			new_options['contentType'] = 'application/json';
 			
 			//var success = options['success'] || function(){};
 			//var error = options['error'] || function(){};
 
 			new_options['success'] = $.proxy(function(data, response, xhr) {
-				if (typeof data == "String") {
+				if (typeof data === "string") {
 					data = $.parseJSON(data);
 				}
 	
 				if (data.success == true) {
-					//console.log('Success', data);
+					console.log('Success', data);
 					this.add(new_model);
 					//console.log(this.collection);
 				} else if(data.message == "Already Added") {
-					//console.log("Already Added", json_response);
+					console.log("Already Added", json_response);
+				} else {
+					console.log("Unsuccessful", data);
 				}
 				//success(data, response, xhr);
 			}, this);
@@ -67,7 +68,14 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 				new_options[i] = options[i];
 			}		
 
-			
+			var nonce = this.uniqid(5);
+			var msg = "POST+" + url + "+" + nonce;
+			var digest = Base64.stringify(HmacSHA1(msg, this.userSecret));							
+			var auth_header = "hmac " + this.userName + ":" + nonce + ":" + digest;
+
+			new_options['headers'] || new_options['headers'] || {};
+			new_options['headers']['Authentication'] = auth_header;			
+		
 			return Backbone.sync('create', new_model, new_options);
 		},
 		
@@ -89,7 +97,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			for (var i in camels) {
 				snakes.push(this._recursiveCamels(camels[i]));
 			}
-			console.log('SnakeCamel', snakes);
+			//console.log('SnakeCamel', snakes);
 			return snakes;
 		},
 		

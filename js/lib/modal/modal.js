@@ -16,6 +16,7 @@ define(['underscore', 'jquery'], function(_, $) {
 		$close = $('<div id="modal-close" href="">x</div>');
 		
 		$modal.css({visibility: 'hidden'});
+		$modal.append($loader);
 		$overlay.hide();
 		$modal.append($content, $close);
 		
@@ -39,8 +40,7 @@ define(['underscore', 'jquery'], function(_, $) {
 			method.appendContent('button', {text: 'OK', class:'tag-button ok-button'});
 			method.show();
 		}
-		
-		
+				
 		//Append a new html tag item to the content
 		method.appendContent = function (tag, options) {
 			$new_content = $('<' + tag + '>', options);
@@ -48,6 +48,13 @@ define(['underscore', 'jquery'], function(_, $) {
 			method.adjustDimensions();
 		};
 	
+			//Append a new html tag item to the content
+		method.prependContent = function (tag, options) {
+			$new_content = $('<' + tag + '>', options);
+			$content.prepend($new_content);	
+			method.adjustDimensions();
+		};
+
 		//Empty content and replace with new html element
 		method.replaceContent = function (tag, options) {
 			$new_content = $('<' + tag + '>', options);

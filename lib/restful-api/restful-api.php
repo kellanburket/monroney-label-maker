@@ -33,11 +33,11 @@ abstract class restful_api {
 			$this->verb = array_shift($this->args);
 		}
 
-		echo json_encode(array('args'=>$this->args, 'verb'=>$this->verb, 'endpoint'=>$this->endpoint, 'post'=>$_POST, 'server'=>$_SERVER, 'content'=>json_decode(file_get_contents("php://input", "r"), true), 'request'=>$_REQUEST));
-		exit;
+		//echo json_encode(array('args'=>$this->args, 'verb'=>$this->verb, 'endpoint'=>$this->endpoint, 'post'=>$_POST, 'server'=>$_SERVER, 'content'=>json_decode(file_get_contents("php://input", "r"), true), 'request'=>$_REQUEST));
+		//exit;
 
         $this->method = $_SERVER['REQUEST_METHOD'];
-        
+
 		if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
             if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'DELETE') {
                 $this->method = 'DELETE';
@@ -55,11 +55,7 @@ abstract class restful_api {
 			$this->request = json_decode(file_get_contents("php://input", "r"), true);
 			if (!$this->request) {
 				$this->request = $_POST;
-			}
-			
-			echo json_encode($this->request);
-			exit;
-			
+			}			
 		} elseif ($this->method == 'GET') {
 			$this->request = $_GET;
 		} elseif ($this->method == 'PUT') {
@@ -111,11 +107,6 @@ abstract class restful_api {
 	 	return $this->prepare_message_array($message, true);
 	}
 	 
-	protected function fail($message) {
-		echo $this->_response($this->prepare_message_array($message, false));
-	 	exit;
-	}
-
 	protected function decrypt($input, $hash) {		
 		$hash = trim($hash);
 		$input = trim($input);
@@ -123,6 +114,8 @@ abstract class restful_api {
 		$result = crypt($input, $hash);
 		$compare = strcmp($result, $hash);
 
+		//echo json_encode(array('input'=>$result, 'hash'=>$hash, 'compare'=>$compare));
+		//exit;
 		if ($compare === 0) {
 			return true;
 		} else {
@@ -131,14 +124,19 @@ abstract class restful_api {
 	}
 		
 	protected function encrypt($passw, $cost = 10) {
-		// Create a random salt
-		$salt = strtr(base64_encode(mcrypt_create_iv(16, MCRYPT_DEV_URANDOM)), '+', '.');		
+		
+		//Create initialization vector from random source, size 16
+		$iv = mcrypt_create_iv(16, MCRYPT_DEV_URANDOM);
+
+		// Create a random salt		
+		$salt = strtr(base64_encode($iv), '+', '.');		
+		
 		// Prefix information about the hash so PHP knows how to verify it later.
 		// "$2a$" Means we're using the Blowfish algorithm. The following two digits are the cost parameter.
-		$salt = sprintf("$2a$%02d$", $cost) . $salt;
+		$prefixed_salt = sprintf("$2a$%02d$", $cost) . $salt;
 		
 		// Hash the password with the salt
-		$hash = crypt($passw, $salt);
+		$hash = crypt($passw, $prefixed_salt);
 
 		//echo json_encode(array('password'=>$passw, 'hash'=>$hash, 'salt'=>$salt));
 		//exit;
@@ -193,7 +191,7 @@ abstract class restful_api {
 					$conditions_string .= ' AND';
 				}
 			} else {
-				$this->fail('Embedded Fields Not Allowed.');
+				throw new Exception('Embedded Fields Not Allowed.');
 			}
 		}
 		return $conditions_string;
@@ -201,19 +199,19 @@ abstract class restful_api {
 
 	protected function validate_table($table) {
 		if (!is_string($table)) {
-			$this->fail('Not table id given.');
+			throw new Exception('No table id given.');
 		}
 	}
 
 	protected function validate_request_data($request) {
 		if (!is_array($request) || !$request) {
-			$this->fail('No request data sent to server!');	
+			throw new Exception('No request data sent to server!');	
 		}
 	}
 	 
 	protected function validate_conditions($conditions) {
 		if (!is_array($conditions)) {
-			$this->fail('No conditions given.');
+			throw new Exception('No conditions given.');
 		}
 	}
 	
@@ -231,13 +229,13 @@ abstract class restful_api {
 		}
 
 		if (!$cred) {
-			$this->fail('You do not have the credentials to perform this action.');
+			throw new Exception('You do not have the credentials to perform this action.');
 		}
 	}
 	
 	protected function validate_fields($fields) {
 		if (!is_array($fields)) {
-			$this->fail('No Fields Requested From Database.');
+			throw new Exception('No Fields Requested From Database.');
 		}
 	}
 
@@ -254,7 +252,7 @@ abstract class restful_api {
 					$field_string .= ',';
 				}
 			} else {
-				$this->fail('Embedded Fields Not Allowed.');
+				throw new Exception('Embedded Fields Not Allowed.');
 			}
 		}
 		
@@ -406,8 +404,7 @@ abstract class restful_api {
 			return $requests;
 		} else {
 			throw new Exception('Nothing inserted');
-		}	
-
+		}
 	 }
 	 
 	 function parse_delete_request() {	
@@ -416,7 +413,7 @@ abstract class restful_api {
 			$id = intval($this->request);
 						
 		} else {
-			$this->fail('You do not have sufficient privileges to perform this action.');			
+			throw new Exception('You do not have sufficient privileges to perform this action.');			
 		}
 	 }
 
@@ -475,7 +472,7 @@ abstract class restful_api {
 		//exit;
 		$error_code = $this->file[$this->input_name]["error"];
 		if ($error_code != UPLOAD_ERR_OK) {
-			$this->fail($this->load_error_message($error_code));			
+			throw new Exception($this->load_error_message($error_code));			
 		}
 
 		$temp_filename = $this->file[$this->input_name]['tmp_name'];
@@ -484,10 +481,10 @@ abstract class restful_api {
 			$finfo = new finfo(FILEINFO_MIME_TYPE);
 			$this->file_type = $this->approve_mime_type($finfo->file($temp_filename), $temp_filename);
 			if (!$this->file_type) {
-				$this->fail('Not an Approved Mime Type');
+				throw new Exception('Not an Approved Mime Type');
 			}
 		} else {
-			$this->fail(false, 'Not an Approved Mime Type');
+			throw new Exception('Not an Approved Mime Type');
 		}
 
 		$file_name = strtolower(preg_replace('/[^a-zA-Z0-9\.]/', '_', $this->file[$this->input_name]["name"]));
@@ -496,7 +493,7 @@ abstract class restful_api {
 			$this->file_name = $file_name;
 			$this->file_path = $this->pathname.$this->file_name;
 		} else {
-			$this->fail('Invalid filename.');		
+			throw new Exception('Invalid filename.');		
 		}
 
 		$this->file_size = intval($_FILES[$this->input_name]['size']);
@@ -507,7 +504,7 @@ abstract class restful_api {
 			$this->file_url = $this->baseurl.$this->file_name;
 			return esc_url_raw($this->file_url);	
 		} else {
-			$this->fail('There was a problem moving your file into a new directory');
+			throw new Exception('There was a problem moving your file into a new directory');
 		}
 
 	}

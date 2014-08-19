@@ -939,3 +939,8 @@ button {
   display: inline;
   padding-right: 15px;
 }
+.signupAlert {
+  color: #bf2026;
+  padding: 15px 10px 5px 10px;
+  text-align: center;
+}

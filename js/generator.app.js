@@ -60,11 +60,14 @@ define(
 		$.ajax({
 			url: backbone_data.url
 		}).done(function(data) {
-			console.log("User", data);
+			if (typeof data !== "object") {
+				console.log("User", data);
+				var json = $.parseJSON(data);
+			}
 			
-			if (data.success == true) {
-				rootUser = new User(data);
-				console.log("User", rootUser);
+			console.log("User", json);
+			if (json.success == true) {
+				rootUser = new User(json);
 			} else {
 				rootUser = new User({name: "admin", id: 0});
 			}

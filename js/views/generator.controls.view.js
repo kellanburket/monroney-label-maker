@@ -1,8 +1,9 @@
-define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1'], function($, _, Backbone, Dialog, Modal, PDFJS, Base64, HmacSHA1) {
+define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1', 'user'], function($, _, Backbone, Dialog, Modal, PDFJS, Base64, HmacSHA1, User) {
 
 	var INVALID_USER_NAME = 1;
 	var NAME_ALREADY_REGISTERED = 2;
 	var EMAIL_ALREADY_REGISTERED = 3;
+	var INVALID_CHARACTERS_IN_NAME = 4;
 	
 	var PDFControls = Backbone.View.extend({
 
@@ -143,7 +144,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 					if (selected_id == label_id) {
 						$select.append('<option selected value="' + label_id + '">' + name + '</option>');
 						//$select.val(label_id);
-					//console.log("Get Label Select", $select, selected_id, label_id);
+						//console.log("Get Label Select", $select, selected_id, label_id);
 					} else {
 						$select.append($('<option>', vals));
 					}
@@ -304,8 +305,8 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		
 		print_form: function() {
 			var data = this._gather_data();
-			data['callback'] = 'generate_pdf_label'; 
-			this._do_ajax(data, 'POST', ajax.url, this.print_pdf);			
+			data['callback'] = 'generate_pdf_label';
+			this._do_ajax(data, 'POST', ajax.url, this.print_pdf);
 		},
 		
 		inspect_form: function() {
@@ -355,13 +356,13 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		**	Called when user clicks on log in button
 		**/
 		log_in: function() {
-			$email = $('<input>', {type: 'text', value: 'kellan.burket@gmail.com', class: 'tag-input', name: 'loginEmail'});
-			$passw = $('<input>', {type: 'password', value: 'gaiden', class: 'tag-input', name: 'loginPassword'});
+			$name = $('<input>', {type: 'text', value: 'CandyDarling', class: 'tag-input', name: 'loginName'});
+			$passw = $('<input>', {type: 'password', value: 'candy', class: 'tag-input', name: 'loginPassword'});
 			
 			var dialog = new Dialog(
 				{	fields: 
 					[
-						{label: 'Email', field: $email}, 
+						{label: 'Name', field: $name}, 
 						{label: 'Enter a Password', field: $passw}, 
 					],
 					id: 'loginForm', 
@@ -371,7 +372,8 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 				
 				{
 					callback: $.proxy(function(data) {
-							this._do_ajax(data, 'GET', restful.url + '/users', this.on_successful_log_user_in);
+							console.log("Data", data);
+							this._do_ajax(data, 'POST', restful.url + '/users/' + data.loginName, this.on_successful_log_user_in);
 						}, this),
 					context: this
 				}
@@ -487,6 +489,33 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			modal = Modal.open(tag, options, modal_animation);		
 		},
 		
+		show_alert: function(name, message) {
+			$('[name="' + name +'"]').val('');					
+			$('[name="' + name + '"]').css({backgroundColor: "#bf2026"});										
+			Modal.prependContent('p', {class:"signupAlert", text: message});
+		},
+		
+		handle_error: function(message) {
+			var error_code = parseInt(message);
+			switch(error_code) {
+				case (INVALID_USER_NAME):
+					break;
+				case (NAME_ALREADY_REGISTERED):
+					this.show_alert('signupName', "Please choose a different login name.");
+					break;
+				case (EMAIL_ALREADY_REGISTERED):
+					this.show_alert('signupEmail', "This email has already been registered. Please check your records for the password");
+					break;
+				case (INVALID_CHARACTERS_IN_NAME):
+					this.show_alert('signupName', "Allowed characters for username: A-Z, a-z, 0-9");				
+					break;
+				default:
+					this.show_fail_message(message);				
+			}
+			
+
+		},
+		
 		uniqid: function(num) {
 		    var id = "";
 		    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -498,12 +527,14 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		_do_ajax: function(data, method, url, callback) {
 			data['action'] = ajax.action;
 			Modal.showLoader();
-
-			var contentType = method.match(/put/i) ? 'application/x-www-form-urlencoded' : 'application/json; charset=utf-8';
-			//var contentType = 'application/x-www-form-urlencoded';
-			var controls = this;
+			$('.signupAlert').remove();
 			
-			//console.log("Controls", this);
+			var contentType = method.match(/put/i) ? 'application/x-www-form-urlencoded' : 'application/json';
+			var processData = method.match(/put/i) ? true : false; 				
+			var json = method.match(/put/i) ? data : JSON.stringify(data);
+			var controls = this;
+
+			console.log("Controls", json, contentType, processData);
 			
 			var user = this.model.get('user');
 			
@@ -523,8 +554,9 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			console.log('ajax.url(data, headers)', data, headers);
 			return $.ajax(url, {
 				type: method,
-				data: data,
+				data: json,
 				headers: headers,
+				processData: processData,
 				dataType: 'json',
 				contentType: contentType,
 			}).done(function(response) {
@@ -532,7 +564,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 				if (response.success == true) {
 					callback.call(controls, response);
 				} else {
-					controls.show_fail_message(response.message);
+					controls.handle_error(response.message);
 				}
 				//var response = $.parseJSON(response);
 			})
@@ -541,6 +573,8 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 				console.log('post_form:fail', response.responseText);
 			});
 		}
+
+
 	});
 	
 	var initialize = function(attrs, opts) {

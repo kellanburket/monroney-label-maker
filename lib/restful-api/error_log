@@ -56,3 +56,4 @@
 [17-Aug-2014 06:29:33 UTC] PHP Notice:  Trying to get property of non-object in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 140
 [17-Aug-2014 16:13:03 UTC] PHP Warning:  array_key_exists() expects parameter 2 to be array, null given in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 57
 [18-Aug-2014 15:14:31 UTC] PHP Warning:  array_key_exists() expects parameter 2 to be array, null given in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 57
+[19-Aug-2014 04:16:12 UTC] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW) in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/restful-api.php on line 122
