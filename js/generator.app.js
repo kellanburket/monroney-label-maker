@@ -61,11 +61,11 @@ define(
 			url: backbone_data.url
 		}).done(function(data) {
 			if (typeof data !== "object") {
-				console.log("User", data);
+				//console.log("User", data);
 				var json = $.parseJSON(data);
 			}
 			
-			console.log("User", json);
+			//console.log("User", json);
 			if (json.success == true) {
 				rootUser = new User(json);
 			} else {
@@ -75,9 +75,9 @@ define(
 			$(document).ready(function() {		
 				
 				var label = new Label({user: rootUser, user_id: rootUser.get('id')});
-				var labels = new Labels([label]);
+				var labels = new Labels([label], {user: rootUser});
 				var view = LabelView.initialize({model: label, collection: labels});
-				var pdfControls = Controls.initialize({model: label, collection: labels});
+				var pdfControls = Controls.initialize({model: label, collection: labels, user: rootUser});
 	
 				view.render();
 		

@@ -4,13 +4,12 @@ define(['jquery', 'underscore', 'backbone', 'option', 'extended-collection'], fu
 		initialize: function(attrs, opts) {
 			//console.log('New Options Collection', this);		
 			this.location = opts.location;
-			this.userId = opts.userId;
-			this.userName = opts.userName;
+			this.user = opts.user;
 			this.set_listeners();
 			Backbone.trigger(this.location + 'OptionsAdded', this);
 		},
 		url: function() {
-			return restful.url + 'users/' + this.userName + '/options/' + this.location;
+			return restful.url + 'users/' + this.user.get('name') + '/options/' + this.location;
 		}
 		
 	});

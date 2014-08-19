@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1', 'user'], function($, _, Backbone, Dialog, Modal, PDFJS, Base64, HmacSHA1, User) {
+define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1', 'user', 'uniqid'], function($, _, Backbone, Dialog, Modal, PDFJS, Base64, HmacSHA1, User, uniqid) {
 
 	var INVALID_USER_NAME = 1;
 	var NAME_ALREADY_REGISTERED = 2;
@@ -9,12 +9,12 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 
 		initialize: function(attrs, opts) {
 			this.collection = attrs.collection;
+			this.user = attrs.user;
 			this.render();			
 		},
 
 		render: function() {
 			this.scale = .7;
-			this.userId = 0;
 			
 			this.$save = $('#save-label');
 			this.$load = $('#load-label');
@@ -90,7 +90,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 					option_ids: this.model.get('optionIds'),
 					option_prices: this.model.get('optionPrices'),
 					//discount_ids: this.model.get('discount_ids')
-					user_id: this.model.get('userId'),
+					user_id: this.model.get('user').get('id'),
 					id: (parseInt(this.model.get('id')) > 0) ? this.model.get('id') : null,
 					name: this.model.get('name')
 				};
@@ -401,14 +401,11 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		**	TRIGGERS--Backbone: userLoggedIn
 		**/		
 
-		_init_user: function(data) {
-			this.model.set('userId', data.id);
-			this.model.set('userName', data.name);		
-			this.collection.userId = data.id;
-			this.collection.userName = data.name;
+		_init_user: function(data) {			
 			var user = new User(data, {parse: true});
 			//var coll = this.collection.parse(data.labelgen_labels);		
 			this.collection = user.get('labels');
+			this.collection.user = user;
 
 			this.model.set('user', user);
 			this.hide_login_links();
@@ -417,7 +414,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		
 		validate_user: function() {
 			console.log('Validate User', this);
-			if (this.model.get('userId') > 0) {
+			if (this.model.get('user').get('id') > 0) {
 				return true;
 			} else {
 				this.show_fail_message('You must be logged in to perform this action!');
@@ -431,7 +428,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		
 		hide_login_links: function() {
 			$('.login-txt').addClass('invisible');
-			$('.welcome-user-text').removeClass('invisible').text('Welcome ' + this.model.get('userName') + '!');			
+			$('.welcome-user-text').removeClass('invisible').text('Welcome ' + this.model.get('user').get('name') + '!');			
 		},
 		
 		show_login_links: function() {
@@ -515,15 +512,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			
 
 		},
-		
-		uniqid: function(num) {
-		    var id = "";
-		    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		    for(var i = 0; i < num; i++)
-		        id += possible.charAt(Math.floor(Math.random() * possible.length));
-		    return id;
-		},
-				
+						
 		_do_ajax: function(data, method, url, callback) {
 			data['action'] = ajax.action;
 			Modal.showLoader();

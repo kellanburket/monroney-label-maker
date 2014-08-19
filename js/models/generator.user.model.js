@@ -43,9 +43,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					name: "dealershipLogo", 
 					pluralName: "dealershipLogos", 
 					url: restful.url + 'users/' + attrs.name + '/logos', 
-					userName: attrs.name,
-					userId: attrs.id,
-					userSecret: attrs.secret
+					user: this
 				}
 			);
 	
@@ -57,9 +55,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					name: "customImage", 
 					pluralName: "customImages", 
 					url: restful.url + 'users/' + attrs.name + '/images',
-					userName: attrs.name,
-					userId: attrs.id,
-					userSecret: attrs.secret
+					user: this
 				}
 			);
 			
@@ -68,9 +64,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					Labels, 
 					data.labelgen_labels, 
 					{
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						user: this
 					}
 				);
 			}
@@ -83,9 +77,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 						model: VehicleMake, 
 						url: restful.url + 'users/' + attrs.name + '/makes', 
 						type: 'make', 
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						user: this
 					}
 				);
 			}
@@ -97,10 +89,8 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					{
 						model: VehicleModel, 
 						url: restful.url + 'users/' + attrs.name + '/models', 
-						type: 'model'
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						type: 'model',
+						user: this
 					}
 				);
 			}
@@ -113,9 +103,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 						model: VehicleYear, 
 						url: restful.url + 'users/' + attrs.name + '/years', 
 						type: 'year', 
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						user: this
 					}
 				);
 			} 
@@ -125,10 +113,8 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					Options, 
 					data.exterior_options, 
 					{
-						location: 'exterior'
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						location: 'exterior',
+						user: this
 					}
 				);
 			}
@@ -138,10 +124,8 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					Options, 
 					data.interior_options, 
 					{
-						location: 'interior'
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						location: 'interior',
+						user: this
 					}
 				);
 			}
@@ -151,9 +135,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					Discounts, 
 					data.labelgen_discounts, 
 					{
-						userName: attrs.name,
-						userId: attrs.id,
-						userSecret: attrs.secret
+						user: this
 					}
 				);
 			}
@@ -172,10 +154,12 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 		
 		send_user_id: function() {
 			var id = this.get('id');
+			var name = this.get('name');
+			var secret = this.get('secret');
 	
 			console.log('send user id', id);
 			if (id > 0) {
-				Backbone.trigger('returnUserId', id);
+				Backbone.trigger('returnUserId', id, name, secret);
 			} else {
 				Backbone.trigger('showFailMessage', 'You must be logged in to perform this action!');
 			}

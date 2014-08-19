@@ -5,6 +5,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			//console.log('VehicleType:init', opts);
 			this.url = opts.url;
 			this.type = opts.type;
+			this.user = opts.user;
 			
 			if (opts.data) {
 				this.set_models(opts.data);

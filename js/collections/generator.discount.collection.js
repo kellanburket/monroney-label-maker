@@ -4,12 +4,10 @@ define(['jquery', 'underscore', 'backbone', 'discount', 'extended-collection'], 
 		initialize: function(attrs, opts) {
 			_.each(attrs, function(element, index, list) {
 				var discount = new Discount(element);
-			//console.log(discount);
 				this.add(discount);		
 			}, this);
-			
-			this.model = Discount;
-			this.url = restful.url + "discounts";
+			this.user = opts.user;
+			this.url = restful.url + "users/" + this.user.get('name') + "/discounts";
 		},
 	});
 });

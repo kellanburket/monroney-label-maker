@@ -2,10 +2,11 @@ define(['jquery', 'underscore', 'backbone', 'label', 'extended-collection'], fun
 
 	return ExtendedCollection.extend({
 		model: Label,
-		
+			
 		initialize: function(models, options) {
-			this.userId = null;
-			this.userName = null;
+			console.log("New Label", models, options);
+			this.user = options.user;
+			this.listenTo(Backbone, 'userLoggedIn', this.set_user_id);
 		},
 		
 		clone_model: function(model, value, opts) {
@@ -13,7 +14,7 @@ define(['jquery', 'underscore', 'backbone', 'label', 'extended-collection'], fun
 			//console.log('Clone Model', changes, model, value);
 		},
 		url: function() {
-			return restful.url + 'users/' + this.userName + '/labels';
+			return restful.url + 'users/' + this.user.get('name') + '/labels';
 		}
 	});
 });

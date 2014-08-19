@@ -2,7 +2,6 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 	return Backbone.Model.extend({
 		defaults: {
 			user: null,
-			userId: 0,
 			id: null,
 			name: null,
 			labelColor: '#23498a',
@@ -54,7 +53,6 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 				
 		initialize: function(attrs, opts) {
-			console.log('New Label', this.attributes);
 			this.listenTo(Backbone, 'modelUpdated', this.set_model);
 			this.listenTo(Backbone, 'yearUpdated', this.set_year);
 			this.listenTo(Backbone, 'makeUpdated', this.set_make);

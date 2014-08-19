@@ -46,17 +46,19 @@
 			'workspace': 'generator.workspace',			
 			'app': 'generator.app',
 			'crypto-js': 'lib/node_modules/crypto-js/',
-			'modal': 'lib/modal/modal',			
-			shim: {
-			    'backbone': {
-	            	deps: ['underscore', 'jquery'],
-					exports: 'Backbone'
-				},
-				'underscore': {
-	            	exports: '_'
-	            }
-	        }
-	    }
+			'modal': 'lib/modal/modal',
+			'uniqid': 'util/uniqid'
+	    },
+    	shim: {
+		    'backbone': {
+            	deps: ['underscore', 'jquery'],
+				exports: 'Backbone'
+			},
+			'underscore': {
+            	exports: '_'
+            }
+        }
+
 	});	
 
 

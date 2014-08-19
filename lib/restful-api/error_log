@@ -57,3 +57,13 @@
 [17-Aug-2014 16:13:03 UTC] PHP Warning:  array_key_exists() expects parameter 2 to be array, null given in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 57
 [18-Aug-2014 15:14:31 UTC] PHP Warning:  array_key_exists() expects parameter 2 to be array, null given in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 57
 [19-Aug-2014 04:16:12 UTC] PHP Parse error:  syntax error, unexpected '=>' (T_DOUBLE_ARROW) in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/restful-api.php on line 122
+[19-Aug-2014 20:33:32 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 102
+[19-Aug-2014 20:35:39 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 102
+[19-Aug-2014 20:57:14 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 104
+[19-Aug-2014 21:07:11 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 104
+[19-Aug-2014 21:08:04 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 104
+[19-Aug-2014 21:57:31 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 104
+[19-Aug-2014 21:59:42 UTC] PHP Warning:  json_encode(): Invalid UTF-8 sequence in argument in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 104
+[19-Aug-2014 22:13:32 UTC] PHP Parse error:  syntax error, unexpected ')' in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 107
+[19-Aug-2014 22:14:47 UTC] PHP Parse error:  syntax error, unexpected ')' in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 107
+[19-Aug-2014 22:16:52 UTC] PHP Parse error:  syntax error, unexpected ')' in /home1/taglinem/public_html/monroney/wp-content/plugins/label-maker/lib/restful-api/labelgen-api.php on line 105

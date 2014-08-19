@@ -4,8 +4,9 @@ define(['jquery', 'underscore', 'backbone', 'img', 'extended-collection'], funct
 		initialize: function(models, opts) {
 			//console.log("New Imgs Collection", this);
 			this.url = opts.url;
-			this.userId = opts.userId;
+			this.user = opts.user;
 			this.name = opts.name;
+
 			this.ucfirst_name = this.name.charAt(0).toUpperCase() + this.name.substr(1, this.name.length);
 			this.pluralName = opts.pluralName;
 			

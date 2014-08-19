@@ -1,9 +1,8 @@
-define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
+define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1'], function($, _, Backbone, uniqid, Base64, HmacSHA1) {
 	return Backbone.Collection.extend({
 		set_user_id: function(user) {
-			this.userId = user.get('id');
-			this.userName = user.get('name');
-			console.log("Current User", this.userName + "(" + this.userId + ")");
+			this.user = user;
+			console.log("Current User", this.user.get('name') + "(" + this.user.get('id') + ")");
 		},
 		
 		set_listeners: function() {
@@ -67,13 +66,17 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			for (i in options) {
 				new_options[i] = options[i];
 			}		
-
-			var nonce = this.uniqid(5);
-			var msg = "POST+" + url + "+" + nonce;
-			var digest = Base64.stringify(HmacSHA1(msg, this.userSecret));							
-			var auth_header = "hmac " + this.userName + ":" + nonce + ":" + digest;
-
-			new_options['headers'] || new_options['headers'] || {};
+			var nonce = uniqid(5);
+			console.log("Nonce", nonce);
+			var msg = "POST+" + new_options['url'] + "+" + nonce;
+			console.log("Message", msg);
+			var hash = HmacSHA1(msg, this.user.get('secret'));
+			console.log("Hash", hash);
+			var digest = Base64.stringify(hash);							
+			console.log("Digest", digest);
+			var auth_header = "hmac " + this.user.get('name') + ":" + nonce + ":" + digest;
+			console.log("Header", auth_header);
+			new_options['headers'] = new_options['headers'] || {};
 			new_options['headers']['Authentication'] = auth_header;			
 		
 			return Backbone.sync('create', new_model, new_options);
