@@ -5,7 +5,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			id: ''
 		},
 		initialize: function(attrs, opts) {
-			console.log("New Img", this);	
+			//console.log("New Img", this);	
 		},
 	});	
 });

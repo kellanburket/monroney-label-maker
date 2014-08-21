@@ -24,7 +24,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		}
 	});
 	
-	var initialize = function() {
+	var initialize = function(attrs, opts) {
 		return new LabelOption(attrs, opts);
 	};
 

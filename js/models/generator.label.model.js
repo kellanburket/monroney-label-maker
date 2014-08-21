@@ -9,16 +9,10 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			
 			fontStyle: 'normal',
 			fontWeight: 'normal',
-			_fontWeight: 'normal',
-			_fontStyle: 'normal',
 			fontFamily: 'sans-serif',
 			
 			dealershipName: '[Dealership Name]',
 			dealershipTagline: '[Tagline]',
-			additionalInfo: '[Additional Info]',
-			_dealershipName: '[Dealership Name]',
-			_dealershipTagline: '[Tagline]',
-			_additionalInfo: '[Additional Info]',
 			
 			dealershipLogo: null,
 			dealershipLogoId: null,
@@ -170,7 +164,34 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		reset_attributes: function() {
 			Backbone.trigger('labelReset');
 			for(var name in this.attributes) {
-				this.set(name, '');
+				if (name != 'user') {
+					switch (typeof this.attributes[name]) {
+						case ("object"):
+							if (this.attributes[name]) {
+								if( Object.prototype.toString.call( this.attributes[name] ) === '[object Array]' ) {
+									this.set(name, []);								
+								} else {
+									this.set(name, {});								
+								}
+							} else {
+								this.set(name, null);
+							}
+							break;
+						case ("undefined"):
+							this.set(name, null);
+							break;
+						case ("number"):
+							this.set(name, 0);
+							break;											
+						case ("boolean"):
+							this.set(name, false);
+							break;											
+						case ("string"):
+						default:
+							this.set(name, '');
+							break;											
+					}
+				}
 			}
 		},
 	});	

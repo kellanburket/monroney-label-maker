@@ -61,7 +61,7 @@ define(
 			url: backbone_data.url
 		}).done(function(data) {
 			if (typeof data !== "object") {
-				//console.log("User", data);
+				console.log("User", data);
 				var json = $.parseJSON(data);
 			}
 			

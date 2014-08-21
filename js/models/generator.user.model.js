@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'vehicle-type', 'labels'], function($, _, Backbone, Options, Discounts, Imgs, VehicleType, Labels) {
+define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'vehicle-type', 'vehicle-make', 'vehicle-model', 'vehicle-year', 'labels'], function($, _, Backbone, Options, Discounts, Imgs, VehicleType, VehicleMake, VehicleModel, VehicleYear, Labels) {
 
 	return Backbone.Model.extend({
 		
@@ -59,76 +59,64 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 				}
 			);
 			
-			if (data.labelgen_labels) {
-				attrs.labels = this.parse_user_collections(
-					Labels, 
-					data.labelgen_labels, 
-					{
-						user: this
-					}
-				);
-			}
+			attrs.labels = this.parse_user_collections(
+				Labels, 
+				data.labelgen_labels, 
+				{
+					user: this
+				}
+			);
 			
-			if (data.labelgen_makes) {
-				attrs.makes = this.parse_user_collections(
-					VehicleType, 
-					data.labelgen_makes, 
-					{
-						model: VehicleMake, 
-						url: restful.url + 'users/' + attrs.name + '/makes', 
-						type: 'make', 
-						user: this
-					}
-				);
-			}
+			attrs.makes = this.parse_user_collections(
+				VehicleType, 
+				data.labelgen_makes, 
+				{
+					model: VehicleMake, 
+					url: restful.url + 'users/' + attrs.name + '/makes', 
+					type: 'make', 
+					user: this
+				}
+			);
 			
-			if (data.labelgen_models) {
-				attrs.models = this.parse_user_collections(
-					VehicleType, 
-					data.labelgen_models, 
-					{
-						model: VehicleModel, 
-						url: restful.url + 'users/' + attrs.name + '/models', 
-						type: 'model',
-						user: this
-					}
-				);
-			}
+			attrs.models = this.parse_user_collections(
+				VehicleType, 
+				data.labelgen_models, 
+				{
+					model: VehicleModel, 
+					url: restful.url + 'users/' + attrs.name + '/models', 
+					type: 'model',
+					user: this
+				}
+			);
 			
-			if (data.labelgen_years) {
-				attrs.years = this.parse_user_collections(
-					VehicleType, 
-					data.labelgen_years, 
-					{
-						model: VehicleYear, 
-						url: restful.url + 'users/' + attrs.name + '/years', 
-						type: 'year', 
-						user: this
-					}
-				);
-			} 
+			attrs.years = this.parse_user_collections(
+				VehicleType, 
+				data.labelgen_years, 
+				{
+					model: VehicleYear, 
+					url: restful.url + 'users/' + attrs.name + '/years', 
+					type: 'year', 
+					user: this
+				}
+			);
 			
-			if (data.exterior_options) {
-				attrs.exteriorOptions = this.parse_user_collections(
-					Options, 
-					data.exterior_options, 
-					{
-						location: 'exterior',
-						user: this
-					}
-				);
-			}
+			attrs.exteriorOptions = this.parse_user_collections(
+				Options, 
+				data.exterior_options, 
+				{
+					location: 'exterior',
+					user: this
+				}
+			);
 			
-			if (data.interior_options) {
-				attrs.interiorOptions = this.parse_user_collections(
-					Options, 
-					data.interior_options, 
-					{
-						location: 'interior',
-						user: this
-					}
-				);
-			}
+			attrs.interiorOptions = this.parse_user_collections(
+				Options, 
+				data.interior_options, 
+				{
+					location: 'interior',
+					user: this
+				}
+			);
 	
 			if (data.labelgen_discounts) {
 				attrs.discounts = this.parse_user_collections(

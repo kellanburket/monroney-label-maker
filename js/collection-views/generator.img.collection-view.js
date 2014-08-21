@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'dropzone'], function($, _, Backbone, Dropzone) {
+define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'img-view'], function($, _, Backbone, Dropzone, authenticate, ImgView) {
 
 	var ImgsView = Backbone.View.extend({
 		initialize: function(attrs, opts) {
@@ -8,13 +8,16 @@ define(['jquery', 'underscore', 'backbone', 'dropzone'], function($, _, Backbone
 			this.pluralName = attrs.pluralName;
 			this.dropzoneId = attrs.dropzoneId;
 			this.$dropzone = $('#' + this.dropzoneId);
+			this.dropzone_form = null;
 			this.render();
 			this.listenTo(Backbone, 'userLoggedIn', this.set_new_collection);			
 		},
 		
 		set_new_collection: function(user) {
 			this.collection = user.get(this.pluralName);
-			//console.log("Set New Collection", user, this.collection);
+			console.log("Set New Collection", user, this.collection);
+			this.dropzone_form.options.url = this.collection.url;
+			this.dropzone_form.options.headers = {Authentication: authenticate(user, this.collection.url, "POST")};
 			this.render();
 		},
 		
@@ -22,7 +25,7 @@ define(['jquery', 'underscore', 'backbone', 'dropzone'], function($, _, Backbone
 			//console.log('Rendering ' + this.pluralName);			
 			if (this.collection) {
 				_.each(this.collection.models, function(el, i, list) {
-					this.children[i] = new ImgView({model: el, name: this.name});
+					this.children[i] = ImgView.initialize({model: el, name: this.name});
 					this.childrenById[el.id] = i;
 					this.$el.append(this.children[i].el);
 				}, this);
@@ -42,14 +45,12 @@ define(['jquery', 'underscore', 'backbone', 'dropzone'], function($, _, Backbone
 			var init = function(view) {
 				this.on("sending", function(file, xhr, form) {
 					//id = view.model.get('userId');
-					form.append("user_id", view.collection.userId);
-					form.append("file_dir", view.pluralName); 
-					
+					form.append("file_dir", view.pluralName); 					
 					//console.log("sending", view.pluralName, view.collection.userId, view.collection.url);
 				});
 				this.on("success", function(file, data) {
 					data = $.parseJSON(data);
-					console.log("success", data);
+					//console.log("success", data);
 					
 					if (data.guid) {
 						Backbone.trigger("imageAdded", data.guid, data.id, view.name);
@@ -58,10 +59,9 @@ define(['jquery', 'underscore', 'backbone', 'dropzone'], function($, _, Backbone
 				});
 			}
 			
-			//console.log('Imgs', this);
+			//console.log('Imgs', this.collection.url);
 			this.dropzone_form = new Dropzone('#' + this.dropzoneId, {
-				url: this.collection.url,
-				method: "post",
+				method: "POST",
 				maxFileSize: 10,
 				thumbnailHeight: this.$dropzone.height(),
 				thumbnailWidth: this.$dropzone.width(),

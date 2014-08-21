@@ -18,6 +18,7 @@ try {
     	$_SERVER['HTTP_ORIGIN']
     );	
 	echo $API->processAPI();
+	exit;
 } catch (Exception $e) {
     echo json_encode(
     	array(

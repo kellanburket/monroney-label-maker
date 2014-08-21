@@ -25,7 +25,7 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 
 			//console.log("New Model:attributes", attributes);
 			//console.log("New Model:options", options);			
-			//console.log("New Model", new_model);
+			console.log("New Model", new_model);
  			var new_options = {};
 			new_options['data'] = {};
 				
@@ -33,7 +33,7 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 				new_options['data'][i] = new_model.get(i);
 				new_options['data'] = this.camelToSnakeCase([new_options['data']])[0];	
 			}
-			
+			new_options['data'] = JSON.stringify(new_options['data']);			
 			new_options['dataType'] = 'json';
 			new_options['processData'] = false;
 			new_options['contentType'] = 'application/json';
@@ -58,27 +58,27 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 				//success(data, response, xhr);
 			}, this);
 
-			new_options['error'] = function(data, response, xhr) {
-				error(data, response, xhr);
+			new_options.error = function(data, response, xhr) {
 				console.log("Failure", data, response, xhr);
 			};
 
 			for (i in options) {
-				new_options[i] = options[i];
+				if (options[i]) {
+					new_options[i] = options[i];
+				}
 			}		
 			var nonce = uniqid(5);
-			console.log("Nonce", nonce);
 			var msg = "POST+" + new_options['url'] + "+" + nonce;
-			console.log("Message", msg);
+			//console.log("Message", msg);
+			//console.log("Secret", this.user.get('secret'));
 			var hash = HmacSHA1(msg, this.user.get('secret'));
-			console.log("Hash", hash);
-			var digest = Base64.stringify(hash);							
-			console.log("Digest", digest);
+			//console.log("Hash", hash.toString());
+			var digest = hash.toString(Base64);							
+			//console.log("Digest", digest);
 			var auth_header = "hmac " + this.user.get('name') + ":" + nonce + ":" + digest;
-			console.log("Header", auth_header);
+			//console.log("Header", auth_header);
 			new_options['headers'] = new_options['headers'] || {};
-			new_options['headers']['Authentication'] = auth_header;			
-		
+			new_options['headers']['Authentication'] = auth_header;					
 			return Backbone.sync('create', new_model, new_options);
 		},
 		

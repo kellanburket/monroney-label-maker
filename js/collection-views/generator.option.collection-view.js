@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backbone, OptionListItem) {
+define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backbone, OptionsListItem) {
 
 	var OptionsList = Backbone.View.extend({
 		initialize: function(attrs, opts) {
@@ -46,7 +46,6 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 		},
 		
 		replace_collection: function(collection) {
-			console.log("Replace " + this.collection.location + " Options Collection", this.collection.userId);
 			this.collection.stopListening();
 			this.collection = collection;
 			this.render();	
@@ -54,30 +53,24 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 		
 		render_list_item: function(model, collection, options) {
 			console.log('Rendering an Option', model.get('optionName'));
-			this.list_items[model.id] = new OptionsListItem({model: model});	
+			this.list_items[model.id] = OptionsListItem.initialize({model: model});	
 			this.list_items[model.id].render(this);
 		},
 		show_input: function() {
-			console.log("Show Input Collection", this.collection.location, this.collection.userId);
-			this.listenToOnce(Backbone, 'returnUserId', function(id) {
-				$(this.input_container).removeClass('invisible');
-				$(this.add_item).addClass('invisible');
-				$(this.input).focus();
-			});
-			Backbone.trigger('requestUserId', this);		
+			$(this.input_container).removeClass('invisible');
+			$(this.add_item).addClass('invisible');
+			$(this.input).focus();
 		},
 		add_new_option: function() {
 			var new_option_name = $(this.input).val();
 			var new_option_price = $(this.price_input).val(); 
 			var location = this.collection.location;
-			console.log("New Option For Collection", new_option_name, new_option_price, location);
+			//console.log("New Option For Collection", new_option_name, new_option_price, location);
 	
 			$(this.price_input).val('');
 			$(this.input).val('');
 			$(this.input_container).addClass('invisible');
 			$(this.add_item).removeClass('invisible');
-	
-			console.log("OptionsView:addNewOption",  this.collection.userId, new_option_name, new_option_price, location);
 	
 			this.collection.create(
 				{

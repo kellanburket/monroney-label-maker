@@ -1,5 +1,18 @@
-define(['jquery', 'underscore', 'backbone', 'hbs!extensions/backbone.dialog/templates/dialog', 'modal'], function($, _, Backbone, template, Modal) {
-	//console.log('Handlebars', Handlebars);
+define(
+	[
+		'jquery', 
+		'underscore', 
+		'backbone', 
+		null, //'hbs!extensions/backbone.dialog/templates/dialog', 
+		'modal'
+	], 
+	function(
+		$, 
+		_, 
+		Backbone, 
+		template, 
+		Modal
+	) {
 	return Backbone.View.extend({
 		template: template,
 		initialize: function(attrs, opts) {
@@ -10,13 +23,33 @@ define(['jquery', 'underscore', 'backbone', 'hbs!extensions/backbone.dialog/temp
 		},
 		
 		render: function(context, opts) {				
-			//var source = Handlebars.compile(template);
-			var html = template(context);
+			var html;
+			if (template != null) {
+				html = template(context);
+			} else {
+				$container = $('<div>');
+				$form = $('<form>', {id: context.id, class: context.class});
+				_.each(context.fields, function(el, i, li) {
+					$label = $('<label>', {class: 'tag-label', for: el.field.attr('name'), text: el.label});					
+					$div = $('<div>');
+					$div.append($label);
+					$div.append(el.field);
+					$form.append($div);
+				}, this);
+				$button = $('<button>', {class: "dialogButton " + context.submitClass, id: context.submitId, text: context.submitText});
+				$form.append($button);
+				$container.append($form);
+				html = $container.html();
+			}
+
 			Modal.setModalProperties({overflow: "hidden", margin: "auto"});
 			Modal.openDomDocument(html);
 			
 			$('#' + context.submitId).click(function(event) {
-				var f_data_obj = $('#' + context.id).serializeArray();
+				$form = $('#' + context.id);
+				console.log('Form', $form);
+				var f_data_obj = $form.serializeArray();
+				console.log("Form Submit", f_data_obj);
 				event.preventDefault();
 				event.stopPropagation();
 	
@@ -31,10 +64,13 @@ define(['jquery', 'underscore', 'backbone', 'hbs!extensions/backbone.dialog/temp
 						if ($thing.hasClass('nonmandatory')) {
 							continue;
 						}
+						
 						$thing.animate({backgroundColor: '#bf2026'}, {duration: 600});
+						
 						$thing.click(function() {
 							$(this).css('backgroundColor', '#ffffff');
 						});
+						
 						allFieldsFilledIn = false;
 					} else {
 						post_data[f_data_obj[i].name] = f_data_obj[i].value;

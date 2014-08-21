@@ -48,7 +48,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 	});
 	
 	var initialize = function(attrs, opts) {
-		return new OptionListItem(atts, opts);
+		return new OptionsListItem(attrs, opts);
 	}
 	
 	return {initialize: initialize};

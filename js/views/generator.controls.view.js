@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1', 'user', 'uniqid'], function($, _, Backbone, Dialog, Modal, PDFJS, Base64, HmacSHA1, User, uniqid) {
+define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'util/uniqid', 'util/authenticate'], function($, _, Backbone, Dialog, Modal, PDFJS, User, uniqid, authenticate) {
 
 	var INVALID_USER_NAME = 1;
 	var NAME_ALREADY_REGISTERED = 2;
@@ -11,10 +11,16 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			this.collection = attrs.collection;
 			this.user = attrs.user;
 			this.render();			
+			$('.tooltip').parent().hover(function(){ 
+				$(this).children('.tooltip').css('visibility', 'visible'); 
+			}, function(){
+				$(this).children('.tooltip').css('visibility', 'none'); 
+			});
 		},
 
 		render: function() {
 			this.scale = .7;
+			this.stopListening();
 			
 			this.$save = $('#save-label');
 			this.$load = $('#load-label');
@@ -24,26 +30,35 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			this.$login = $('#login-label');
 			this.$signup = $('#signup-label');
 			
-			this.$login.click($.proxy(this.log_in, this));
-			this.$signup.click($.proxy(this.sign_up, this));
-			this.$save.click($.proxy(this.save_form, this));
-			this.$load.click($.proxy(this.load_form, this));
-			this.$inspect.click($.proxy(this.inspect_form, this));
-			this.$reset.click($.proxy(this.reset_form, this));
-			this.$print.click($.proxy(this.print_form, this));
+			this.$login.off('click');
+			this.$login.on('click', $.proxy(this.log_in, this));
+
+			this.$signup.off('click');
+			this.$signup.on('click', $.proxy(this.sign_up, this));
+
+			this.$save.off('click');
+			this.$save.on('click', $.proxy(this.save_form, this));
+
+			this.$load.off('click');
+			this.$load.on('click', $.proxy(this.load_form, this));
+
+			this.$inspect.off('click');
+			this.$inspect.on('click', $.proxy(this.inspect_form, this));
+
+			this.$reset.off('click');
+			this.$reset.on('click', $.proxy(this.reset_form, this));
+			
+			this.$print.off('click');
+			this.$print.on('click', $.proxy(this.print_form, this));
 
 			this.listenTo(Backbone, "labelSelected", this.replace_model);
 			this.listenTo(Backbone, "showFailMessage", this.show_fail_message);
-			
-			$('.tooltip').parent().hover(function(){ 
-				$(this).children('.tooltip').css('visibility', 'visible'); 
-			}, function(){
-				$(this).children('.tooltip').css('visibility', 'none'); 
-			});
+
 		},
 		
 		replace_model: function(model) {
 			if (model) {
+				this.model.stopListening();
 				this.model = model;
 				this.render();
 			}			
@@ -56,7 +71,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			if (!this.validate_user()) return false;
 			
 			$name = $('<input>', {type: 'text', class: 'tag-input nonmandatory', name: 'labelName'});
-			$select = this.get_label_select(this.model.get('id'), false); 	
+			$select = this.get_label_select('label-save-selector', this.model.get('id'), false); 	
 
 			var dialog = new Dialog(
 				{fields: 
@@ -90,7 +105,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 					option_ids: this.model.get('optionIds'),
 					option_prices: this.model.get('optionPrices'),
 					//discount_ids: this.model.get('discount_ids')
-					user_id: this.model.get('user').get('id'),
+					user_id: this.collection.user.get('id'),
 					id: (parseInt(this.model.get('id')) > 0) ? this.model.get('id') : null,
 					name: this.model.get('name')
 				};
@@ -101,7 +116,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			var data = _.extend(this._gather_save_data(), {name: data.labelName});
 			//console.log('save_form', data);
 			var request;
-			var id = $('#label-selector option:selected').val();
+			var id = $('#label-save-selector option:selected').val();
 			
 			if (id > 0) {
 				request = 'PUT';	
@@ -109,7 +124,9 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 				request = 'POST';
 			}
 			
-			this._do_ajax(data, request, restful.url + 'labels', this.on_save_successful);			
+			//console.log("on_user_save:collection.url", this.collection);
+			
+			this._do_ajax(data, request, this.collection.url(), this.on_save_successful);			
 		},
 
 		on_save_successful: function(data) {
@@ -123,12 +140,13 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			this.model.set('name', data.name);
 		},
 		
-		get_label_select: function(selected_id, appendAddNew) {
+		get_label_select: function(selector_id, selected_id, appendAddNew) {
 			appendAddNew = appendAddNew || true;
 			selected_id = selected_id || 0;
+								
+			$select = $('<select>', {id: selector_id, class: 'tag-select', style: 'width: 250px; display: block; margin: 0 auto;'});			
+			//console.log("Loading Selector", $select);
 
-			$select = $('<select>', {id: 'label-selector', class: 'tag-select', style: 'width: 250px; display: block; margin: 0 auto;'});			
-			
 			if (appendAddNew) {
 				$newLabel = $('<option>', {text: 'New Label', id: 'new_selection', value: '0'});
 				$select.append($newLabel);	
@@ -150,6 +168,11 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 					}
 				}
 			}
+
+			$('#' + selector_id).on('change', function() {
+				console.log("Selector Changed", $(this).children(':selected'));
+			});
+
 			return $select;
 			
 		},
@@ -160,9 +183,9 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		load_form: function() {
 			if (!this.validate_user()) return false;
 
-			$select = this.get_label_select();
+			$select = this.get_label_select('label-load-selector');
 			var dialog = new Dialog({
-				fields: [{label: 'Please Select a Form to Load', field: $select, id: 'label-selector'}], 
+				fields: [{label: 'Please Select a Form to Load', field: $select}], 
 				id: 'loadForm', 
 				class: 'dialogForm',
 				submitText: 'Load',
@@ -177,15 +200,20 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			$selected = $select.children(':selected');
 			var name = $selected.text(); 
 			var id = $selected.val();
-		//console.log('on_label_load', $select, $selected, id, name);
+			
+			console.log('on_label_load', id, name);
+			
 			Modal.close();	
-			if (id <= 0) {
-				this.model.set('id', id);
-				this.model.set('name', name);
+			var model = this.collection.findWhere({id: id});
+			console.log("Loaded Label", model);
+			this.model = model;
+			Backbone.trigger('labelSelected', model); 
+			
+			if (id == 0) {
+				//this.reset_form();
 			} else {
-				var model = this.collection.findWhere({id: id});
-				//console.log('loading label:', model, this.collection);
-				Backbone.trigger('labelSelected', model); 
+				console.log('loading label:', model, this.collection);
+				
 			}		
 		},
 		
@@ -385,7 +413,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			$doc = $('<div>');
 			$head = $('<h3>', {text: 'Welcome back, ' + data.name + '. Please select a label:', class: 'success-message align-center'});			
 
-			$select = this.get_label_select(); 
+			$select = this.get_label_select('label-login-selector'); 
 
 			$ok = $('<button>', {text: 'OK', class: 'tag-button ok-button', style: 'margin-bottom: 50px'});
 			$doc.append($head, $select, $ok);
@@ -401,20 +429,23 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 		**	TRIGGERS--Backbone: userLoggedIn
 		**/		
 
-		_init_user: function(data) {			
-			var user = new User(data, {parse: true});
-			//var coll = this.collection.parse(data.labelgen_labels);		
-			this.collection = user.get('labels');
-			this.collection.user = user;
-
-			this.model.set('user', user);
-			this.hide_login_links();
-			Backbone.trigger('userLoggedIn', user);
+		_init_user: function(data) {
+			if (data.id != this.collection.user.get('id')) {
+						
+				var user = new User(data, {parse: true});
+				//var coll = this.collection.parse(data.labelgen_labels);		
+				this.collection = user.get('labels');
+				this.collection.user = user;
+	
+				this.model.set('user', user);
+				this.hide_login_links();
+				Backbone.trigger('userLoggedIn', user);
+			}
 		},
 		
 		validate_user: function() {
 			console.log('Validate User', this);
-			if (this.model.get('user').get('id') > 0) {
+			if (this.collection.user.get('id') > 0) {
 				return true;
 			} else {
 				this.show_fail_message('You must be logged in to perform this action!');
@@ -448,10 +479,10 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			var dialog = new Dialog(
 				{fields: 
 					[
-						{label: 'Full Name', field: $name}, 
+						{label: 'Username', field: $name}, 
 						{label: 'Email', field: $email}, 
 						{label: 'Enter a Password', field: $passw}, 
-						{label: 'Retype Password', field: $retype}, 
+						{label: 'Retype Password', field: $retype}
 					],
 					id: 'signupForm', 
 					submitText: 'Sign Up',
@@ -459,7 +490,6 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 				},
 				{	
 					callback: $.proxy(function(data) {
-							//console.log('on_user_signup', data);
 							if(data.signupPassword != data.signupPasswordRetype) {
 								$('[name="signupPasswordRetype"]').animate({backgroundColor: '#bf2026'}, {duration: 600});
 								$('[name="signupPasswordRetype"]').val('');
@@ -523,24 +553,17 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'crypto-js
 			var json = method.match(/put/i) ? data : JSON.stringify(data);
 			var controls = this;
 
-			console.log("Controls", json, contentType, processData);
+			//console.log("Controls", json, contentType, processData);
 			
-			var user = this.model.get('user');
+			var user = this.collection.user;
 			
-			if (user.get('id') != 0) {
-				var secret = user.get('secret');
-				var user_name = user.get('name'); 
-				//var date = new Date().toUTCString();
-				//var encoded_date = encodeURIComponent(date);
-				var nonce = this.uniqid(5);
-				var msg = "GET+" + url + "+" + nonce;
-				var digest = Base64.stringify(HmacSHA1(msg, secret));							
+			if (user.get('id') != 0) {				
 				var headers = {
-					Authentication: "hmac " + user_name + ":" + nonce + ":" + digest
+					Authentication: authenticate(user, url, method)
 				};
 			}
 
-			console.log('ajax.url(data, headers)', data, headers);
+			//console.log('ajax.url(data, headers)', data, headers);
 			return $.ajax(url, {
 				type: method,
 				data: json,

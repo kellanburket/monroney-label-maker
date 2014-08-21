@@ -71,7 +71,7 @@ abstract class restful_api {
 
 
 
-		//echo json_encode(array('server'=>$_SERVER, 'endpoint'=>$this->endpoint, 'request'=>$this->request, 'verb'=>$this->verb, 'args'=>$this->args));
+		//echo json_encode(array('endpoint'=>$this->endpoint, 'request'=>$this->request, 'verb'=>$this->verb, 'args'=>$this->args));
 		//exit;		
     }
 	
@@ -81,9 +81,9 @@ abstract class restful_api {
 	
 	public function processAPI() {
 		if ((int) method_exists($this, $this->endpoint) > 0) {
-            return $this->_response($this->{$this->endpoint}($this->args));
+            return $this->_response($this->{$this->endpoint}($this->verb, $this->args));
         } else {
-        	return $this->_response("No Endpoint: $this->endpoint", 404);
+        	return $this->_response("No Endpoint: {$this->endpoint}", 404);
 		}
     }
 
@@ -215,24 +215,6 @@ abstract class restful_api {
 		}
 	}
 	
-	protected function check_user_credentials() {
-		$cred = true;
-		
-		//$this->request['method'] = $this->method;
-		//echo json_encode($this->request);
-		//exit;
-		
-		if (!array_key_exists('user_id', $this->request)) {
-			$cred = false;								
-		} else if (!$this->request['user_id']) {
-			$cred = false;
-		}
-
-		if (!$cred) {
-			throw new Exception('You do not have the credentials to perform this action.');
-		}
-	}
-	
 	protected function validate_fields($fields) {
 		if (!is_array($fields)) {
 			throw new Exception('No Fields Requested From Database.');
@@ -344,9 +326,22 @@ abstract class restful_api {
 		});	
 	}
 	
+	protected function get_arguments() {
+		echo json_encode(array
+			(
+				'endpoint'	=>	$this->endpoint, 
+				'verb'		=>	$this->verb, 
+				'arguments'	=>	$this->args, 
+				'request'	=>	$this->request,
+				'method'	=>	$this->method
+			)
+		);
+		exit;
+	}
+	
 	protected function db_values() {
 		global $wpdb;
-		echo json_encode( array(
+		return json_encode(array(
 			'last_result'=>$wpdb->last_result, 
 			'last_error'=>$wpdb->last_error, 
 			'insert_id'=>$wpdb->insert_id, 
@@ -355,7 +350,6 @@ abstract class restful_api {
 			'num_queries'=>$wpdb->num_queries,
 			'last_query'=>$wpdb->last_query
 		)); 
-		exit;
 	}
 	
 	protected function parse_post_request($table, $requests, $check_duplicates = true) {
@@ -390,7 +384,6 @@ abstract class restful_api {
 			}
 		}
 
-
 		$requests['time'] = current_time('mysql');
 		$format['time'] = '%s'; 
 
@@ -403,7 +396,7 @@ abstract class restful_api {
 			$requests['success'] = true;
 			return $requests;
 		} else {
-			throw new Exception('Nothing inserted');
+			throw new Exception(json_encode(array('last_error'=>$wpdb->last_error, 'last_query'=>$wpdb->last_query)));
 		}
 	 }
 	 

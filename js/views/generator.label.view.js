@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
+define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount-view'], function($, _, Backbone, LabelOption, LabelDiscount) {
 	var LabelView = Backbone.View.extend({
 		el: '#tag-preview',
 			
@@ -54,13 +54,14 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 
 			this.model.on('change:fontFamily change:fontWeight change:fontStyle', this.renderTextStyle, this);
 			
-			this.model.on('change:dealershipName change:dealershipTagline change:additionalInfo', this.renderText, this);
+			this.model.on('change:dealershipName change:dealershipTagline', this.renderText, this);
 			this.renderTextByValue({key: 'dealershipTagline', value: this.model.get('dealershipTagline')});
 			this.renderTextByValue({key: 'dealershipName', value: this.model.get('dealershipName')});
 
 			/* Deal with images */
 			this.model.on('change:dealershipLogo', $.proxy(function(model, value) {
 				console.log("Dealership Logo", model, value);
+				
 				this.$dealershipLogo.attr('src', value);
 				this.$dealershipText.addClass('invisible');
 				this.$dealershipLogo.removeClass('invisible');
@@ -126,7 +127,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			if (old_option) {
 				old_option.render();
 			} else {
-				var new_option = new LabelOption({model: model});
+				var new_option = LabelOption.initialize({model: model});
 				this.label_options[model.get('location')][model.get('option_name')] = new_option;				
 			}
 			
@@ -148,7 +149,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			if (old_d) {
 				old_d.render();
 			} else {
-				var new_d = new LabelDiscount({model: model});
+				var new_d = LabelDiscount.initialize({model: model});
 				this.label_discounts[model.get('discount')] = new_d;				
 			}
 			
@@ -238,6 +239,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		renderTextByValue: function(change) {
+			console.log("renderTextByValue", change);
 			$el = $('[name="' + change.key + '"]');
 			var tag = $el.prop("tagName");
 			console.log("Render Text", change.key, change.value, tag);

@@ -4,9 +4,9 @@
 		urlArgs: "bust=" + (new Date()).getTime(),
 		paths: {
 			'dropzone': 'lib/dropzone/dropzone',
-			'hbs': 'lib/require-handlebars-plugin/hbs',
-			'pdf': 'lib/pdf.js/build/generic/build/pdf',
-			'comptability': 'lib/pdf.js/build/generic/web/compatibility',			
+			//'hbs': 'lib/require-handlebars-plugin/hbs',
+			'pdf': 'lib/pdf.js/pdf',
+			'comptability': 'lib/pdf.js/compatibility',			
 			'underscore': 'lib/underscore/underscore',
 			'backbone-original': 'lib/backbone/backbone',
 			'backbone': 'extensions/backbone.extensions',
@@ -47,7 +47,8 @@
 			'app': 'generator.app',
 			'crypto-js': 'lib/node_modules/crypto-js/',
 			'modal': 'lib/modal/modal',
-			'uniqid': 'util/uniqid'
+			'uniqid': 'util/uniqid',
+			'util': 'util/'
 	    },
     	shim: {
 		    'backbone': {

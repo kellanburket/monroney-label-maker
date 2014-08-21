@@ -1,11 +1,12 @@
 <?php
 //error_reporting (E_ALL);
-extract($_SERVER);
 $user = "admin";
 $pw = "Wh005eAfra!d0fV!rginaW0Olf?";
 
-$api_url = "{$HTTP_HOST}/label-generator/api/users/{$user}";
+//echo json_encode($_SERVER);
+//exit;
 
+$api_url = "{$_SERVER['HTTP_HOST']}/sites/monroney/label-generator/api/users/{$user}";
 
 $date = date("D, d M Y H:i:s T");
 //$encoded_date = urlencode($date);
