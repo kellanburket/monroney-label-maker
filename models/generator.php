@@ -279,6 +279,7 @@ class PDFAddendumGenerator {
 
 			$file_type = $finfo->file($file_path);
 			
+			
 			$approved_type = false;
 			foreach($this->allowed_image_exts as $key=>$mime_type) {
 				if ($file_type == $mime_type) {

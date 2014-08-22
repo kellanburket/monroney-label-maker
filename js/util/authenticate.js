@@ -3,6 +3,8 @@ define(['crypto-js/enc-base64', 'crypto-js/hmac-sha1', 'util/uniqid'], function(
 		var secret = user.get('secret');
 		var user_name = user.get('name'); 
 
+		console.log(user_name, secret, url, method);
+
 		var nonce = uniqid(5);
 		var msg = method + "+" + url + "+" + nonce;
 		var hash = HmacSHA1(msg, secret);

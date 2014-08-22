@@ -60,8 +60,7 @@ abstract class restful_api {
 			$this->request = $_GET;
 		} elseif ($this->method == 'PUT') {
 			$this->file = file_get_contents("php://input", "r");
-			$this->request = array();
-			parse_str($this->file, $this->request);
+			$this->request = json_decode($this->file, true);
 		} elseif($this->method == 'DELETE') { 
             $this->method = 'DELETE';
 			$this->request = $_GET;		
@@ -400,14 +399,10 @@ abstract class restful_api {
 		}
 	 }
 	 
-	 function parse_delete_request() {	
-		$this->check_user_credentials();
-		if (current_user_can('delete_posts')) {
-			$id = intval($this->request);
-						
-		} else {
-			throw new Exception('You do not have sufficient privileges to perform this action.');			
-		}
+	 function parse_delete_request($table, $where, $format) {	
+		 global $wpdb;
+		 $result = $wpdb->delete($table, $where, $format);
+		 return $result;
 	 }
 
 	protected function get_format($var) {
@@ -477,14 +472,16 @@ abstract class restful_api {
 				throw new Exception('Not an Approved Mime Type');
 			}
 		} else {
-			throw new Exception('Not an Approved Mime Type');
+			throw new Exception('Unable to locate file.');
 		}
 
 		$file_name = strtolower(preg_replace('/[^a-zA-Z0-9\.]/', '_', $this->file[$this->input_name]["name"]));
 		
 		if (validate_file($file_name) === 0) {
 			$this->file_name = $file_name;
-			$this->file_path = $this->pathname.$this->file_name;
+			$this->file_path = $this->pathname.'/'.$this->file_name;
+			//echo json_encode(array('filepath'=>$this->file_path));
+			//exit;
 		} else {
 			throw new Exception('Invalid filename.');		
 		}
@@ -494,7 +491,7 @@ abstract class restful_api {
 		$file_has_been_moved = move_uploaded_file($temp_filename, $this->file_path);
 		
 		if ($file_has_been_moved) {
-			$this->file_url = $this->baseurl.$this->file_name;
+			$this->file_url = $this->baseurl.'/'.$this->file_name;
 			return esc_url_raw($this->file_url);	
 		} else {
 			throw new Exception('There was a problem moving your file into a new directory');

@@ -1,3 +1,5 @@
+$font-stack: "Oswald", "Open Sans Condensed", Helvetica, sans-serif;
+
 $primary-color: #bf2026;
 $gray: #dadbdc;
 
@@ -264,13 +266,43 @@ $section-height-3: $section-height - $section-margin-top;
 	border: 2px outset buttonface;
 	box-sizing: border-box;
 	padding: 2px!important;
-	font-family: 'Oswald', sans-serif;
+	font-family: $font-stack;
 }
 
 .selected-option {
-	background: $gray;
 	color: $primary-color; 
+	border-top: 2px solid #555555;
+	border-left: 2px solid #555555;
 }
+
+.img-wrap {
+	display: inline-block;
+	position: relative;
+	.img-x {
+		position: absolute;
+		color: black;
+		opacity: .5;
+		right: 10px;
+		top: 10px;
+		padding: 1px 8px;
+		cursor: pointer;
+	}
+	.img-x:hover {
+		opacity: 1;
+		background: $primary-color;
+	}
+
+}
+
+
+.yesNoDialogForm {
+	padding: 15px;
+}
+
+.dialogButtons {
+	margin-top: 15px;
+}
+
 	
 .dz-preview {	
 	.dz-details {
@@ -775,12 +807,14 @@ px-10 {
 
 .tag-input[type="text"], .tag-input[type="password"], .tag-select, .tag-input[type="number"] {
 	height: 36px;
+	font-size: 14px;
+	font-weight: 200;
 	border: 1px solid black;
 	background: #dadbdc;
-	padding-top: 4px;
-	padding-left: 24px;
+	padding-left: 14px;
 	width: 100%;
 	border-radius: 0;
+	font-family: $font-stack;
 }
 
 .tag-input[type="number"] {
@@ -807,8 +841,13 @@ button {
 	text-align: center;
 	border: 2px outset buttonface;
 	box-sizing: border-box;
-	padding: 8px 15px;
+	padding: 9px 15px;
 	margin-top: 0;
+}
+
+.block-label {
+	padding: 0px 15px;
+	width: 100px;
 }
 
 .tag-button {
@@ -824,7 +863,7 @@ button {
 	position: relative;
 }
 
-.add-button:hover {
+.add-button:hover, .destroy-button:hover {
 	/* box-shadow: 0px 0px 5px 2px #234a8b; */
 	border-color: #91a4c5 #234a8b #91a4c5 #234a8b;
 }
@@ -833,7 +872,7 @@ button {
 	/* background: radial-gradient(ellipse closest-corner at 58% 59%, #FFFFFF, #CCCCCC); */
 }
 
-.add-button:focus {
+.add-button:focus, .destroy-butto:focus {
 	border-top: 2px solid #777777;
 	border-left: 2px solid #777777;
 	/* background: radial-gradient(ellipse closest-corner at 58% 59%, #EEEEEE, #BBBBBB); */
@@ -883,7 +922,7 @@ button {
 	position: relative;
 	overflow: auto;
 	img {
-		width: 100%;	
+		width: 125px;	
 		position: absolute;
 		top: 15px;
 		left: 0;
@@ -932,17 +971,14 @@ $custom-label-h: 255px;
 		width: 49.5%;
 	}
 	.image-collection {
-		vertical-align: top;
 		display: inline-block;
 		overflow-y: auto;
-		overflow-x: hidden;
 		height: $custom-label-h;
-		width: 48.5%;
+		width: 47.5%;
 		.customImageView {
 			display: block;
 			width: 100%;
 			border: 2px dotted #878787;
-			display: inline-block;
 			cursor: pointer;
 		}
 		
@@ -981,6 +1017,7 @@ $custom-label-h: 255px;
 		width: 100%;
 	}
 	.logo-collection {
+		display: none;
 		position: relative;
 		.dealershipLogoView {
 			position: relative;
@@ -997,7 +1034,7 @@ $custom-label-h: 255px;
 	width: 100%;
 }
 
-$config-field-w: 300px;
+$config-field-w: 375px;
 $config-label-w: 100px;
 
 [name=vehicleConfig] {
@@ -1005,6 +1042,7 @@ $config-label-w: 100px;
 	.tag-v-ul {	
 		li {
 			width: 100%;	
+			margin-bottom: 15px;
 			input[type=text], select {
 				width: $config-field-w;
 				position: absolute;
@@ -1020,28 +1058,49 @@ $config-label-w: 100px;
 }
 
 $block-list-item-height: 46px;
-$block-list-item-padding: 5px 5px 3px 5px;
-
+$block-list-item-padding: 5px 0px 3px 5px;
 .block-list-container {
 	overflow:scroll;
 	overflow-x:hidden;
 	border: 1px solid black;
-	width: 350px;
-	height: 200px;
+	width: 400px;
+	height: 275px;
+	button {
+		width: 40px;
+		margin: 0px 5px;	
+	}
 
 	.block-list {
 		width: 100%;
 		input[type=checkbox] {
 			width: 25px!important;
+			margin-top: 10px!important;
 		}
-		input[type=text], select {
-			width: 150px!important;
-		}
+
 		li {
+			position: relative;
 			overflow: hidden;
 			padding: $block-list-item-padding;
 			height: $block-list-item-height;
 			box-sizing: border-box;
+			.option-price {
+				.tag-input {
+					width: 100px;
+				}
+			}
+			span, button {
+				vertical-align: middle;
+			}
+			
+			.x-mark {
+				float: right;
+				color: black;
+				opacity: .3;
+				cursor: pointer;
+			}
+			.x-mark:hover {
+				opacity: .7;
+			}
 		}
 		li:nth-child(even) {
 			background: #ffffff;
@@ -1056,18 +1115,14 @@ $block-list-item-padding: 5px 5px 3px 5px;
 			padding: $block-list-item-padding;
 			
 			.price-input {
-				width: 75px;
+				width: 100px;
 				float: right;
-			}
-			.price-input:before {
-				content: "$";
-				color: white;
 			}
 			.price-input:focus, option-input:focus {
 				border-color: $primary-color;
 			}
 			.option-input {
-				width: 180px;
+				width: 200px;
 			}
 		}
 	}
@@ -1273,3 +1328,4 @@ $block-list-item-padding: 5px 5px 3px 5px;
 	padding: 15px 10px 5px 10px;
 	text-align: center;
 }
+

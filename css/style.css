@@ -177,11 +177,35 @@
   border: 2px outset buttonface;
   box-sizing: border-box;
   padding: 2px !important;
-  font-family: 'Oswald', sans-serif;
+  font-family: "Oswald", "Open Sans Condensed", Helvetica, sans-serif;
 }
 .selected-option {
-  background: #dadbdc;
   color: #bf2026;
+  border-top: 2px solid #555;
+  border-left: 2px solid #555;
+}
+.img-wrap {
+  display: inline-block;
+  position: relative;
+}
+.img-wrap .img-x {
+  position: absolute;
+  color: black;
+  opacity: 0.5;
+  right: 10px;
+  top: 10px;
+  padding: 1px 8px;
+  cursor: pointer;
+}
+.img-wrap .img-x:hover {
+  opacity: 1;
+  background: #bf2026;
+}
+.yesNoDialogForm {
+  padding: 15px;
+}
+.dialogButtons {
+  margin-top: 15px;
 }
 .dz-preview .dz-details img {
   display: none;
@@ -550,12 +574,14 @@ px-10 {
 }
 .tag-input[type="text"], .tag-input[type="password"], .tag-select, .tag-input[type="number"] {
   height: 36px;
+  font-size: 14px;
+  font-weight: 200;
   border: 1px solid black;
   background: #dadbdc;
-  padding-top: 4px;
-  padding-left: 24px;
+  padding-left: 14px;
   width: 100%;
   border-radius: 0;
+  font-family: "Oswald", "Open Sans Condensed", Helvetica, sans-serif;
 }
 .tag-input[type="number"] {
   width: 75px;
@@ -578,8 +604,12 @@ button {
   text-align: center;
   border: 2px outset buttonface;
   box-sizing: border-box;
-  padding: 8px 15px;
+  padding: 9px 15px;
   margin-top: 0;
+}
+.block-label {
+  padding: 0px 15px;
+  width: 100px;
 }
 .tag-button {
   font-family: 'Oswald', sans-serif;
@@ -593,10 +623,10 @@ button {
   width: 259px;
   position: relative;
 }
-.add-button:hover {
+.add-button:hover, .destroy-button:hover {
   border-color: #91a4c5 #234a8b #91a4c5 #234a8b;
 }
-.add-button:focus {
+.add-button:focus, .destroy-butto:focus {
   border-top: 2px solid #777;
   /* background: radial-gradient(ellipse closest-corner at 58% 59%, #EEEEEE, #BBBBBB); */
   border-left: 2px solid #777;
@@ -640,7 +670,7 @@ button {
   overflow: auto;
 }
 #upload-logo img, #upload-label img {
-  width: 100%;
+  width: 125px;
   position: absolute;
   top: 15px;
   left: 0;
@@ -679,18 +709,15 @@ button {
   width: 49.5%;
 }
 .tag-gallery .image-collection {
-  vertical-align: top;
   display: inline-block;
   overflow-y: auto;
-  overflow-x: hidden;
   height: 255px;
-  width: 48.5%;
+  width: 47.5%;
 }
 .tag-gallery .image-collection .customImageView {
   display: block;
   width: 100%;
   border: 2px dotted #878787;
-  display: inline-block;
   cursor: pointer;
 }
 .tag-gallery .image-collection .customImageView:hover {
@@ -718,6 +745,7 @@ button {
   width: 100%;
 }
 .logo-gallery .logo-collection {
+  display: none;
   position: relative;
 }
 .logo-gallery .logo-collection .dealershipLogoView {
@@ -735,9 +763,10 @@ button {
 }
 [name=vehicleConfig] .tag-v-ul li {
   width: 100%;
+  margin-bottom: 15px;
 }
 [name=vehicleConfig] .tag-v-ul li input[type=text], [name=vehicleConfig] .tag-v-ul li select {
-  width: 300px;
+  width: 375px;
   position: absolute;
   left: 105px;
   top: 0;
@@ -749,55 +778,69 @@ button {
   overflow: scroll;
   overflow-x: hidden;
   border: 1px solid black;
-  width: 350px;
-  height: 200px;
+  width: 400px;
+  height: 275px;
+}
+.block-list-container button {
+  width: 40px;
+  margin: 0px 5px;
 }
 .block-list-container .block-list {
   width: 100%;
 }
 .block-list-container .block-list input[type=checkbox] {
   width: 25px !important;
-}
-.block-list-container .block-list input[type=text], .block-list-container .block-list select {
-  width: 150px !important;
+  margin-top: 10px !important;
 }
 .block-list-container .block-list li {
+  position: relative;
   overflow: hidden;
-  padding: 5px 5px 3px 5px;
+  padding: 5px 0px 3px 5px;
   height: 46px;
   box-sizing: border-box;
+}
+.block-list-container .block-list li .option-price .tag-input {
+  width: 100px;
+}
+.block-list-container .block-list li span, .block-list-container .block-list li button {
+  vertical-align: middle;
+}
+.block-list-container .block-list li .x-mark {
+  float: right;
+  color: black;
+  opacity: 0.3;
+  cursor: pointer;
+}
+.block-list-container .block-list li .x-mark:hover {
+  opacity: 0.7;
 }
 .block-list-container .block-list li:nth-child(even) {
   background: #fff;
 }
 .block-list-container .block-list-add-container {
   height: 46px;
-  padding: 5px 5px 3px 5px;
+  padding: 5px 0px 3px 5px;
 }
 .block-list-container .block-list-add-container .block-list-new-item {
   color: white;
   height: 46px;
-  padding: 5px 5px 3px 5px;
+  padding: 5px 0px 3px 5px;
 }
 .block-list-container .block-list-add-container .block-list-new-item .price-input {
-  width: 75px;
+  width: 100px;
   float: right;
-}
-.block-list-container .block-list-add-container .block-list-new-item .price-input:before {
-  content: "$";
-  color: white;
 }
 .block-list-container .block-list-add-container .block-list-new-item .price-input:focus, .block-list-container .block-list-add-container .block-list-new-item option-input:focus {
   border-color: #bf2026;
 }
 .block-list-container .block-list-add-container .block-list-new-item .option-input {
-  width: 180px;
+  width: 200px;
 }
 .block-list-container .block-list-add-label {
   color: black;
   border: 1px solid black;
   height: 46px;
-  padding: 5px 5px 3px 5px;
+  padding: 5px 0px 3px 5px;
 }
 .block-list-container .block-list-add-label:hover {
   color: #bf2026;

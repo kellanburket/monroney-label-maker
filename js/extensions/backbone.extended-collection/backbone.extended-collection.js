@@ -2,7 +2,7 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 	return Backbone.Collection.extend({
 		set_user_id: function(user) {
 			this.user = user;
-			console.log("Current User", this.user.get('name') + "(" + this.user.get('id') + ")");
+			//console.log("Current User", this.user.get('name') + "(" + this.user.get('id') + ")");
 		},
 		
 		set_listeners: function() {
@@ -25,7 +25,7 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 
 			//console.log("New Model:attributes", attributes);
 			//console.log("New Model:options", options);			
-			console.log("New Model", new_model);
+			//console.log("New Model", new_model);
  			var new_options = {};
 			new_options['data'] = {};
 				
@@ -48,8 +48,9 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 	
 				if (data.success == true) {
 					console.log('Success', data);
+					new_model.set('id', data.id);
+
 					this.add(new_model);
-					//console.log(this.collection);
 				} else if(data.message == "Already Added") {
 					console.log("Already Added", json_response);
 				} else {
@@ -156,7 +157,6 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 				} else if (isValue == true) {
 					return snakes;
 				}
-				
 				return snakes.toLowerCase().replace(/_(.)/g, function(match, horse) {
 					return horse.toUpperCase();
 				});

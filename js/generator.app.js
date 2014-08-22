@@ -67,9 +67,9 @@ define(
 			
 			//console.log("User", json);
 			if (json.success == true) {
-				rootUser = new User(json);
+				rootUser = new User(json, {parse: true});
 			} else {
-				rootUser = new User({name: "admin", id: 0});
+				rootUser = new User({name: "admin", id: 0}, {parse: true});
 			}
 			
 			$(document).ready(function() {		
@@ -97,7 +97,7 @@ define(
 						dropzoneId: 'upload-logo', 
 						name: 'dealershipLogo', 
 						pluralName: 'dealershipLogos', 
-						el: ".logo-collection"
+						el: '.logo-collection'
 					}
 				);	
 	
@@ -135,25 +135,34 @@ define(
 						}
 					}
 				);
-									
+								
+			
+				var xOptions = rootUser.get('exteriorOptions');	
+				var iOptions = rootUser.get('interiorOptions');
+				console.log("Options", rootUser, xOptions, iOptions);
 				var exterior_options_view = OptionsList.initialize(
-					{collection: new Options([], {location: "exterior", url: restful.url + '/options?location=exterior'}), //rootUser.get('exterior_options') ||
+					{collection: xOptions,
 					input_container: '#exterior-input-container', 
 					input: '#exterior-input', 
 					price_input: '#exterior-price-input',
 					add_item: '#add-new-exterior-item', 
 					save_button: '#exterior-add-button', 
-					el: '#exterior-options'});
+					el: '#exterior-options'
+				});
 				
 				var interior_options_view = OptionsList.initialize({
-					collection: new Options([], {location: "interior", url: restful.url + '/options?location=exterior'}), //rootUser.get('interior_options') || 
+					collection: iOptions,
 					input_container: '#interior-input-container', 
 					input: '#interior-input', 
 					price_input: '#interior-price-input',
 					add_item: '#add-new-interior-item', 
 					save_button: '#interior-add-button', 
-					el: '#interior-options'});
+					el: '#interior-options'
+				});
 
+				$('#generator-spinner-overlay').fadeOut();
+				$('#generator-page-loader').fadeOut();	
+				
 				/*					
 				var discounts = rootUser.get('discounts');
 				if (discounts) {

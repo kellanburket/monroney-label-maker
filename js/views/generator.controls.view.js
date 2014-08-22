@@ -1,5 +1,6 @@
-define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'util/uniqid', 'util/authenticate'], function($, _, Backbone, Dialog, Modal, PDFJS, User, uniqid, authenticate) {
+define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 'user', 'util/uniqid', 'util/authenticate', 'label', 'labels'], function($, _, Backbone, Dialog, YesNoDialog, Modal, User, uniqid, authenticate, Label, Labels) {
 
+	//PDFJS.workerSrc = workerSrc;
 	var INVALID_USER_NAME = 1;
 	var NAME_ALREADY_REGISTERED = 2;
 	var EMAIL_ALREADY_REGISTERED = 3;
@@ -53,7 +54,9 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 
 			this.listenTo(Backbone, "labelSelected", this.replace_model);
 			this.listenTo(Backbone, "showFailMessage", this.show_fail_message);
-
+			this.listenTo(Backbone, "destroyImage", this.attempt_image_destruction);
+			this.listenTo(Backbone, "destroyOption", this.attempt_option_destruction);
+			this.listenTo(Backbone, "checkUserCredentials", this.check_user_credentials);
 		},
 		
 		replace_model: function(model) {
@@ -63,15 +66,84 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 				this.render();
 			}			
 		},
+		/**
+		**		Manage User Resources
+		**/
+		attempt_image_destruction: function(model, url) {
+			console.log("Attempt Image Destruction", model);
+
+			var user = this.collection.user;
+
+			//console.log('Attempt Image Destruction', url);
+			YesNoDialog.initialize(
+				"Are you sure you want to permanently remove this image?",
+				
+				function() {
+					model.destroy({
+						beforeSend: function (xhr) {
+							console.log("xhr", xhr);
+							xhr.setRequestHeader('Authentication', authenticate(user, url, 'DELETE'));
+						},
+						
+						success: function(model, response) {
+							console.log("Model Destroyted", response);	
+						},
+						error: function(model, response) {
+							console.log("Model Descruction Error", response); 
+						}
+					});		
+					Modal.close();				
+				}, 
+				
+				function() {
+					Modal.close();
+				}
+			);
+		},
+
+		attempt_option_destruction: function(model, url) {
+			console.log("Attempt Option Destruction", model);
+
+			var user = this.collection.user;
+
+			YesNoDialog.initialize(
+				"Are you sure you want to permanently remove this option?",
+				
+				function() {
+					model.destroy({
+						beforeSend: function (xhr) {
+							console.log("xhr", xhr);
+							xhr.setRequestHeader('Authentication', authenticate(user, url, 'DELETE'));
+						},
+						
+						success: function(model, response) {
+							console.log("Model Destroyted", response);	
+						},
+						error: function(model, response) {
+							console.log("Model Descruction Error", response); 
+						}
+					});		
+					Modal.close();				
+				}, 
+				
+				function() {
+					Modal.close();
+				}
+			);
+		},		
+		
 		
 		/**
 		**		On Save Click
 		**/
 		save_form: function() {
 			if (!this.validate_user()) return false;
-			
+			console.log("Model", this.model);
+
 			$name = $('<input>', {type: 'text', class: 'tag-input nonmandatory', name: 'labelName'});
-			$select = this.get_label_select('label-save-selector', this.model.get('id'), false); 	
+
+			var id = (this.model) ? this.model.get('id') : null;
+			$select = this.get_label_select('label-save-selector', id, false); 	
 
 			var dialog = new Dialog(
 				{fields: 
@@ -182,8 +254,9 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 		**/		
 		load_form: function() {
 			if (!this.validate_user()) return false;
-
-			$select = this.get_label_select('label-load-selector');
+			
+			var select_id = 'label-load-selector';
+			$select = this.get_label_select(select_id);
 			var dialog = new Dialog({
 				fields: [{label: 'Please Select a Form to Load', field: $select}], 
 				id: 'loadForm', 
@@ -192,32 +265,32 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 				submitClass: 'tag-button',
 				submitId: 'load-button'
 			},
-				{callback: $.proxy(this.on_label_load, this, $select), context: this}
+				{callback: $.proxy(this.on_label_load, this, select_id), context: this}
 			);
 		},
 		
-		on_label_load: function($select) {
+		on_label_load: function(select_id) {
+			if (typeof select_id == 'object') {
+				$select = select_id;
+			} else {
+				$select = $('#' + select_id);
+			}
+			console.log("Select", $select);			
 			$selected = $select.children(':selected');
-			var name = $selected.text(); 
-			var id = $selected.val();
+			var name = $selected.text() || ""; 
+			var id = $selected.val() || 0;
 			
-			console.log('on_label_load', id, name);
+			console.log('on_label_load', id);
 			
 			Modal.close();	
-			var model = this.collection.findWhere({id: id});
-			console.log("Loaded Label", model);
+			var model = this.collection.get(id);
+			console.log("Loaded Label", id, model.get('id'));
 			this.model = model;
-			Backbone.trigger('labelSelected', model); 
-			
-			if (id == 0) {
-				//this.reset_form();
-			} else {
-				console.log('loading label:', model, this.collection);
-				
-			}		
+			Backbone.trigger('labelSelected', this.model); 
 		},
 		
 		reset_form: function() {
+			$('input.tag-input').val('');
 			Backbone.trigger('requestReset');
 		},
 		
@@ -332,25 +405,28 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 		},
 		
 		print_form: function() {
-			var data = this._gather_data();
-			data['callback'] = 'generate_pdf_label';
-			this._do_ajax(data, 'POST', ajax.url, this.print_pdf);
+			this._get_form(this.print_pdf);
 		},
 		
 		inspect_form: function() {
-			var data = this._gather_data();
-			data['callback'] = 'generate_pdf_label'; 
-			this._do_ajax(data, 'POST', ajax.url, this.show_pdf);			
+			this._get_form(this.show_pdf);
 		},
 
+		_get_form: function(callback) {
+			var data = this._gather_data();
+			data['callback'] = 'generate_pdf_label'; 
+			data['username'] = this.collection.user.get('name');
+			data['labelname'] = this.model.get('name') || "nothing"; 
+			this._do_ajax(data, 'POST', ajax.url, callback, {contentType: 'application/x-www-form-urlencoded', processData: true});					
+		},
 		
 		show_pdf: function(data) {
-		//console.log('Canvas', data);
+			console.log('Canvas', data.pdf);
 			//PDFJS.disableWorker = true;
 			PDFJS.workerSrc = pdfjs_ext.url + 'generic/build/pdf.worker.js';
 			PDFJS.getDocument(data.pdf).then(function(pdf) {
 				// Using promise to fetch the page
-			//console.log('Canvas:getDocument', pdf);
+				console.log('Canvas:getDocument', pdf);
 				
 				pdf.getPage(1).then(function(page) {
 					var scale = 1.333;
@@ -384,8 +460,8 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 		**	Called when user clicks on log in button
 		**/
 		log_in: function() {
-			$name = $('<input>', {type: 'text', value: 'CandyDarling', class: 'tag-input', name: 'loginName'});
-			$passw = $('<input>', {type: 'password', value: 'candy', class: 'tag-input', name: 'loginPassword'});
+			$name = $('<input>', {type: 'text', class: 'tag-input', name: 'loginName'});
+			$passw = $('<input>', {type: 'password', class: 'tag-input', name: 'loginPassword'});
 			
 			var dialog = new Dialog(
 				{	fields: 
@@ -413,7 +489,8 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 			$doc = $('<div>');
 			$head = $('<h3>', {text: 'Welcome back, ' + data.name + '. Please select a label:', class: 'success-message align-center'});			
 
-			$select = this.get_label_select('label-login-selector'); 
+			var select_id = 'label-login-selector';
+			$select = this.get_label_select(select_id); 
 
 			$ok = $('<button>', {text: 'OK', class: 'tag-button ok-button', style: 'margin-bottom: 50px'});
 			$doc.append($head, $select, $ok);
@@ -434,8 +511,9 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 						
 				var user = new User(data, {parse: true});
 				//var coll = this.collection.parse(data.labelgen_labels);		
-				this.collection = user.get('labels');
-				this.collection.user = user;
+				var labels = user.get('labels');
+				console.log("New Collection", labels);
+				this.collection = labels;
 	
 				this.model.set('user', user);
 				this.hide_login_links();
@@ -542,17 +620,45 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 			
 
 		},
+		
+		check_user_credentials: function(response_code) {
+			var message = {};
+			message.message = false;							
+			var url = restful.url + "users/" + this.collection.user.get('name') + "/check_credentials";
+			$.ajax({
+				url: url,
+				dataType: 'json',
+				method: 'GET',
+				headers: {Authentication: authenticate(this.collection.user, url, 'GET')}
+			}).success(function(data) {
+				data = $.parseJSON(data);
+				console.log("success", data);
+				Backbone.trigger(response_code, data);									
+			}).error(function() {
+				console.log("error", data);	
+				Backbone.trigger(response_code, message);
+			});
+		},
 						
-		_do_ajax: function(data, method, url, callback) {
+		_do_ajax: function(data, method, url, callback, options) {
 			data['action'] = ajax.action;
 			Modal.showLoader();
 			$('.signupAlert').remove();
-			
-			var contentType = method.match(/put/i) ? 'application/x-www-form-urlencoded' : 'application/json';
-			var processData = method.match(/put/i) ? true : false; 				
-			var json = method.match(/put/i) ? data : JSON.stringify(data);
+			options = options || {};
+			var contentType = 'application/json';
+			var processData = false; 				
 			var controls = this;
 
+			contentType = options.contentType || contentType;
+			processData = options.processData || processData;
+			
+			var json;
+			
+			if (!processData || method.match(/put/i)) {
+				json = JSON.stringify(data);
+			} else {
+				json = data;
+			}
 			//console.log("Controls", json, contentType, processData);
 			
 			var user = this.collection.user;
@@ -563,7 +669,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 				};
 			}
 
-			//console.log('ajax.url(data, headers)', data, headers);
+			console.log('ajax.url(data, headers)', data, headers);
 			return $.ajax(url, {
 				type: method,
 				data: json,
@@ -572,7 +678,17 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 				dataType: 'json',
 				contentType: contentType,
 			}).done(function(response) {
+				
+				if (typeof response === "object") {
+					if (!response) {
+						response = {};
+						response.success = false;
+					}
+				} else {
+					response = $.parseJSON(response);
+				}			
 				console.log('post_form:done', response);
+				
 				if (response.success == true) {
 					callback.call(controls, response);
 				} else {
@@ -581,7 +697,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'modal', 'pdf', 'user', 'u
 				//var response = $.parseJSON(response);
 			})
 			.fail(function(response) {
-				controls.show_fail_message("Something went technically wrong! If the problem persists, please contact the site administartor");
+				controls.show_fail_message("Something went technically wrong! If the problem persists, please contact the site administrator");
 				console.log('post_form:fail', response.responseText);
 			});
 		}

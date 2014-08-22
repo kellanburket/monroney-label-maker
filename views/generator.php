@@ -1,19 +1,4 @@
 <?php 
-$logo_handler = get_user_upload_handler('dealershipLogo'); 
-$logo = $logo_handler->get_form_fields(
-	"Drag or Click to Upload Your Logo", 
-	"tag-button red-text", 
-	array('choose-file', 'upload-logo'));
-
-$label_handler = get_user_upload_handler('customImage'); 
-$label = $label_handler->get_form_fields(
-	"Drag or Click to Upload Your Label", 					//button text
-	"tag-button red-text", 									//classes
-	array('choose-label', 'upload-label'),					//indices
-	array('gallery' => 'tag-gallery')						//data
-	);
-
-
 
 $debug = false;
 $default = array(
@@ -29,13 +14,6 @@ $default = array(
 //'<li><input class="tag-checkbox" type="checkbox" /><span>'.$option_name.'</span><div class="option-price float-right"><span class="dollar-sign">&#36;</span><input class="tag-input" type="text"/></div></li>';
 
 ?>
-<script>
-	jQuery(window).load(function($) {
-		console.log("Window Loaded");
-		jQuery('#generator-spinner-overlay').fadeOut();
-		jQuery('#generator-page-loader').fadeOut();	
-	});
-</script>
 
 <div id="tag-generator">
 	<div id="generator-spinner-overlay"></div>
@@ -248,20 +226,19 @@ $default = array(
                             </li>
                         </ul>
                         <div class="logo-gallery deactivated branding-configuration inline-block full-width invisible top-align">
-						<?php echo $logo; ?>
-                        	<div class="logo-collection"></div>
+							<form id="upload-logo" class="red-text">
+								"Drag or Click to Upload Your Logo"
+							</form> 
+                        	<div class="logo-collection invisible"></div>
                         </div>
-                        
-                        <!--<button class="tag-button" name="toggleVisibility" />Hide Logo</button> -->
                     </div>
                 </div>
                 <div class="tag-row row-3">
                    <h4 class="tag-h4">Label Bottom</h4>
-                    <!--<p class="tag-headnote">Use your own image:</p>
-                     <label for="labelCaption" class="tag-label new-line">Caption (If Any)</label>
-                    <textarea name="labelCaption" class="tag-input"></textarea> -->
                     <div class="tag-gallery">
-                        <?php echo $label; ?>
+						<form id="upload-label" class="red-text">
+							"Drag or Click to Upload Your Label"
+						</form> 
                         <div class="image-collection"></div>
                     </div>
                 </div>
@@ -273,6 +250,14 @@ $default = array(
                         <h4 class="tag-h4">Vehicle Information</h4>
                         <fieldset name="vehicleConfig">
                             <ul class="tag-v-ul">
+                                <li class="vehicle-numbers">
+                                    <label class="tag-label width-short" for="stockNo">Stock Number</label>
+                                    <input class="tag-input float-right" type="text" name="stockNo" />
+                                </li>
+                                <li class="vehicle-numbers">
+                                    <label class="tag-label width-short" for="vin">VIN</label>
+                                    <input class="tag-input float-right" maxlength="16" type="text" name="vin" />
+                                </li>
                                 <li id="vehicleMakeConfig">
                                     <label class="tag-label run-in" for="vehicleMake">Make</label>
                                     <!-- <button class="destroy-button run-in">&ndash;</button> -->
@@ -307,19 +292,11 @@ $default = array(
 
                                 </li>
                                 <li class="vehicle-numbers">
-                                    <label class="tag-label width-short" for="vehicleTrime">Stock Number</label>
-                                    <input class="tag-input float-right" type="text" name="stockNo" />
-                                </li>
-                                <li class="vehicle-numbers">
-                                    <label class="tag-label width-short" for="vehicleTrime">Trim</label>
+                                    <label class="tag-label width-short" for="trim">Trim</label>
                                     <input class="tag-input float-right" type="text" name="trim" />
                                 </li>
                                 <li class="vehicle-numbers">
-                                    <label class="tag-label width-short" for="vehicleVIN">VIN</label>
-                                    <input class="tag-input float-right" maxlength="16" type="text" name="vin" />
-                                </li>
-                                <li class="vehicle-numbers">
-                                    <label class="tag-label" for="vehicle-msrp">MSRP</label>
+                                    <label class="tag-label" for="msrp">MSRP</label>
                                     <input class="tag-input float-right" type="text" name="msrp" />                                
                                 </li>
                             </ul>

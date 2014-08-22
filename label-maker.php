@@ -6,8 +6,13 @@
 $uploads = wp_upload_dir();
 define('LABEL_MAKER_ROOT', dirname(__FILE__));
 define('LABEL_MAKER_URL', plugins_url().'/label-maker'); 
-define('LABEL_MAKER_UPLOADS', $uploads['basedir'].'/label-generator/customLabel'); 
+
+define('LABEL_MAKER_UPLOADS', $uploads['basedir'].'/label-maker/user_data'); 
+define('LABEL_MAKER_UPLOADS_URL', $uploads['baseurl'].'/label-maker/user_data'); 
+
+
 define('MONRONEY_LABEL_GENERATOR_ACTION', 'do_monroney_label_generator_action');
+
 require_once(LABEL_MAKER_ROOT.'/lib/fpdf/fpdf.php');
 require_once(LABEL_MAKER_ROOT.'/models/generator.php');	
 require_once(LABEL_MAKER_ROOT.'/lib/restful-api/labelgen-api.php');
@@ -27,8 +32,6 @@ add_action('wp_enqueue_scripts', function() {
 	if ($post->post_name == "addendum-generator") {		
 		global $wp_scripts;
 		
-		to_string($_SERVER);
-		
 		if (array_key_exists('contact-form-7', $wp_scripts->registered)) {
 			wp_deregister_script('contact-form-7');		
 			unset($wp_scripts->registered['contact-form-7']);
@@ -37,10 +40,11 @@ add_action('wp_enqueue_scripts', function() {
 		wp_enqueue_script('jquery');	
 		wp_deregister_script('backbone');
 		//wp_deregister_script('underscore');
-		wp_register_script('underscore');
+		//wp_register_script('underscore');
 		//wp_enqueue_script('backbone', LABEL_MAKER_URL.'/js/lib/backbone/backbone.js', array('underscore'));
-		wp_enqueue_script('require_js', LABEL_MAKER_URL."/js/r.js", array('jquery'));	
-		//wp_enqueue_script('generator', LABEL_MAKER_URL."/js/main.js", array('require'));	
+		wp_enqueue_script('require_js', LABEL_MAKER_URL."/js/r.js", array('jquery', 'pdf_js'));	
+		wp_enqueue_script('pdf_js', LABEL_MAKER_URL."/js/lib/pdf.js/build/generic/build/pdf.js");	
+		wp_enqueue_script('compatibility_js', LABEL_MAKER_URL."/js/lib/pdf.js/build/generic/web/compatibility.js", array('pdf_js'));	
 		
 		wp_enqueue_style('label_generator_css', LABEL_MAKER_URL.'/css/style.css');
 		wp_enqueue_style('modal_css', LABEL_MAKER_URL.'/js/lib/modal/modal.css');
@@ -54,7 +58,7 @@ add_action('wp_enqueue_scripts', function() {
 		));
 		
 		wp_localize_script('require_js', 'restful', array(
-			'url'=>get_site_url(get_current_blog_id(), 'label-generator/api/')
+			'url'=>get_site_url(get_current_blog_id(), 'addendum-generator/api/')
 			//'url'=>get_admin_url(get_current_blog_id(), 'label-generator/api/')
 		));
 		wp_localize_script('require_js', 'modal_ext', array(
@@ -66,13 +70,12 @@ add_action('wp_enqueue_scripts', function() {
 		wp_localize_script('require_js', 'backbone_data', array(
 			'url'=>plugins_url().'/label-maker/js/backbone-data.php'
 		));
-
 	}
 
 });
 
 
-add_shortcode('add_label_generator', function($args) {
+add_shortcode('add_addendum_generator', function($args) {
 	ob_start();
 
 	require_once(LABEL_MAKER_ROOT.'/views/generator.php');
@@ -80,7 +83,7 @@ add_shortcode('add_label_generator', function($args) {
 	$content = ob_get_contents();
 	ob_end_clean();
 
-	return $content; 
+	echo $content; 
 }, 1);
 
 add_action('wp_ajax_nopriv_'.MONRONEY_LABEL_GENERATOR_ACTION, MONRONEY_LABEL_GENERATOR_ACTION);
@@ -88,7 +91,6 @@ add_action('wp_ajax_'.MONRONEY_LABEL_GENERATOR_ACTION, MONRONEY_LABEL_GENERATOR_
 
 function do_monroney_label_generator_action() {
 	//show_request_variables();
-
 	call_user_func($_POST['callback']);
 }
 
@@ -96,58 +98,59 @@ function generate_pdf_label() {
 	$elements = json_decode(stripslashes($_POST['elements']), true);
 	$root_element = json_decode(stripslashes($_POST['root_element']), true);
 	$scale = floatval($_POST['scale']);
+	$username = sanitize_text_field($_POST['username']);
+	$labelname = sanitize_text_field($_POST['labelname']);
 	
-	$filepath = LABEL_MAKER_ROOT . '/pdfs/test.pdf';
-	$fileurl = LABEL_MAKER_URL . '/pdfs/test.pdf';
-
-	$gen = new PDFAddendumGenerator($root_element, $elements, $filepath, $fileurl, $scale, 18, 18);
-	echo json_encode(array('pdf'=>$gen->get_url(), 'success'=>true, 'width'=>$gen->get_output_width(), 'height'=>$gen->get_output_height()));
-	exit;
-}
-
-function show_request_variables() {
-	echo "\nFILES: ";
-	print_r($_FILES);
-	echo "\nGET: ";
-	print_r($_GET);	
-	echo "\nPOST: ";
-	print_r($_POST);
-}
-
-function handle_dealershipLogo_upload() {
-	$u_handler = get_user_upload_handler($_POST['name']);
-	echo $u_handler->process_user_upload();	
-	exit;
-}
-
-function handle_customLabel_upload() {
-	$u_handler = get_user_upload_handler($_POST['name']);
-	//show_request_variables();
-	$caption = $_POST['labelCaption'];
-
-	$function = function($file_url) use ($caption) {
-		return json_encode(array( 'guid'=> esc_url_raw($file_url), 'caption' => $caption));
-	};
+	global $wpdb;
+	$wpdb->query($wpdb->prepare('SELECT id FROM labelgen_users WHERE name = %s', $username));
 	
-	$u_handler->add_filter('handle_customLabel_upload', $function);
+	if ($wpdb->last_result) {
+		$filename = sanitize_file_name($labelname);
+
+		if (!$filename) $filename = "default";
+		
+		register_addendum_generator_directories($username);
+
+		$filepath = LABEL_MAKER_UPLOADS . "/labels/{$username}/{$filename}.pdf";
+		$fileurl = LABEL_MAKER_UPLOADS_URL . "/labels/{$username}/{$filename}.pdf";
 	
-	echo $u_handler->process_user_upload();	
-	exit;
+		$gen = new PDFAddendumGenerator($root_element, $elements, $filepath, $fileurl, $scale, 18, 18);
+		echo json_encode(array('pdf'=>$gen->get_url(), 'success'=>true, 'width'=>$gen->get_output_width(), 'height'=>$gen->get_output_height()));
+		exit;
+	} else {
+		echo json_encode(array('success'=>false, 'message'=>'Invalid Username.'));	
+	}
+	
 }
 
-function get_user_upload_handler($name) {
-	require_once(LABEL_MAKER_ROOT.'/lib/file-upload-handler.php'); 
 
-	$pathname = WP_CONTENT_DIR.'/uploads/label-generator/'.$name.'/';
-	$baseurl = content_url('uploads/label-generator/'.$name.'/');
-	$allowed_exts = array("image"=>array("gif", "jpeg", "jpg", "pjpeg", "x-png", "bmp", "tiff", "png"));	
-	
-	$u_handler = new File_Upload_Handler($name, $pathname, $baseurl, $allowed_exts);			
-	return $u_handler;
+function register_uploads_directory($path) {
+	if (!file_exists($path)) {
+		mkdir($path);	
+	}
 }
+
+function register_addendum_generator_directories($username = NULL) {
+	$uploads = wp_upload_dir();
+	$path = "{$uploads['basedir']}/label-maker";
+	register_uploads_directory($path);
+	$path .= "/user_data";
+	register_uploads_directory($path);
+	$path .= "/labels";
+	register_uploads_directory($path);
+
+	
+	if (!is_null($username)) {
+		$path .= "/{$username}";
+
+		register_uploads_directory($path);
+	}
+}
+
 
 register_activation_hook(__FILE__, function() {
 	global $wpdb;
+	register_addendum_generator_directories();
 	
 	require_once(ABSPATH.'wp-admin/includes/upgrade.php' );
 	require_once(LABEL_MAKER_ROOT.'/lib/xml-parser/xml-parser.php');
@@ -171,7 +174,7 @@ register_activation_hook(__FILE__, function() {
 		}
 	}
 
-	$rules = "\n# BEGIN LABELGEN API\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule label-generator/api/(.*)$ ".plugins_url()."/label-maker/lib/restful-api/request.php?request=$1 [QSA,NC,L]\n</IfModule>\n# END LABELGEN API";
+	$rules = "\n# BEGIN LABELGEN API\n<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule addendum-generator/api/(.*)$ ".plugins_url()."/label-maker/lib/restful-api/request.php?request=$1 [QSA,NC,L]\n</IfModule>\n# END LABELGEN API";
 
 	$htaccess = fopen('.htaccess', 'c+'); 
 	//$bytes = fwrite($htaccess, $rules);

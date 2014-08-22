@@ -2,8 +2,10 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 	
 	var VehicleStat = Backbone.View.extend({
 		initialize: function(attrs, opts) {
+			this.listenTo(Backbone, 'requestReset', this.reset);
 			this.render(attrs.el);
 		},
+
 		render: function(el) {
 			
 			this.el = el;
@@ -11,6 +13,11 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			//console.log('el', this, this.$el);
 			this.$el.change($.proxy(this.update_field, null, this));
 		},
+
+		reset: function() {
+			this.$el.val('');
+		},
+
 		update_field: function(view) {
 			var new_value = $(this).val();
 			view.model.set({value: new_value}, {validate: true});

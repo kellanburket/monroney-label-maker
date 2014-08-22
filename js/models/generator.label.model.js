@@ -47,22 +47,6 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 				
 		initialize: function(attrs, opts) {
-			this.listenTo(Backbone, 'modelUpdated', this.set_model);
-			this.listenTo(Backbone, 'yearUpdated', this.set_year);
-			this.listenTo(Backbone, 'makeUpdated', this.set_make);
-
-			this.listenTo(Backbone, 'msrpUpdated', this.set_msrp);
-			this.listenTo(Backbone, 'trimUpdated', this.set_trim);
-			this.listenTo(Backbone, 'vinUpdated', this.set_vin);
-			this.listenTo(Backbone, 'stockNoUpdated', this.set_stock_no);
-			
-			
-			this.listenTo(Backbone, "selectImage", this.set_image);
-			this.listenTo(Backbone, "makeSelected", this.set_make_id);
-			this.listenTo(Backbone, "modelSelected", this.set_model_id);
-			this.listenTo(Backbone, "yearSelected", this.set_year_id);
-			this.listenTo(Backbone, "requestReset", this.reset_attributes);
-
 			this.on("change:user", function(model, name) {
 				var old_user = model.previous("user");
 				if (old_user != null) {
@@ -78,12 +62,16 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		set_image: function(clz, model) {
-			var id = model.get('id');
-			var guid = model.get('guid');
-			
-			console.log('Set Featured Image', model, id);
-			this.set(clz, guid);
-			this.set(clz + 'Id', id);
+			if (model) {
+				var id = model.get('id');
+				var guid = model.get('guid');
+				
+				console.log('Set Featured Image', clz, guid, this.get('id'));
+				this.set(clz, guid);
+				this.set(clz + 'Id', id);
+			} else {
+				this.set(clz, null);
+			}
 		},
 
 		get_total: function() {

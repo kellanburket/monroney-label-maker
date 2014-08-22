@@ -46,13 +46,12 @@ define(
 			Modal.openDomDocument(html);
 			
 			$('#' + context.submitId).click(function(event) {
+				event.preventDefault();
+				//event.stopPropagation();
 				$form = $('#' + context.id);
 				console.log('Form', $form);
 				var f_data_obj = $form.serializeArray();
-				console.log("Form Submit", f_data_obj);
-				event.preventDefault();
-				event.stopPropagation();
-	
+				
 				var post_data = {};
 				
 				var allFieldsFilledIn = true;

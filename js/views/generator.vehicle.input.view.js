@@ -4,9 +4,14 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			this.type = attrs.type;
 			this.parent = attrs.parent;		
 			this.listenTo(this.parent, 'id_change', this.update_id);
+			this.listenTo(Backbone, 'requestReset', this.reset);
 			this.isVisible = false;
 
 			this.inputsCleared = true;
+		},
+		
+		reset: function() {
+			this.$el.val('');
 		},
 
 		render: function(el) {

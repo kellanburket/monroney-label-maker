@@ -4,13 +4,17 @@
 		urlArgs: "bust=" + (new Date()).getTime(),
 		paths: {
 			'dropzone': 'lib/dropzone/dropzone',
-			//'hbs': 'lib/require-handlebars-plugin/hbs',
-			'pdf': 'lib/pdf.js/pdf',
-			'comptability': 'lib/pdf.js/compatibility',			
+			'hbs': 'lib/require-handlebars-plugin/hbs',
+			
+			//'pdf': 'lib/pdfjs/pdf',
+			//'pdf-worker': 'lib/pdfjs/pdf.worker',
+			//'comptability': 'lib/pdfjs/compatibility',			
+			
 			'underscore': 'lib/underscore/underscore',
 			'backbone-original': 'lib/backbone/backbone',
 			'backbone': 'extensions/backbone.extensions',
 			'dialog': 'extensions/backbone.dialog/backbone.dialog',
+			'yes-no-dialog': 'extensions/backbone.dialog/backbone.yes-no-dialog',
 			'combo': 'extensions/backbone.combo/backbone.combo',
 			'extended-collection': 'extensions/backbone.extended-collection/backbone.extended-collection',
 			'controls': 'views/generator.controls.view',

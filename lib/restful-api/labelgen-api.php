@@ -6,6 +6,9 @@ define('NAME_ALREADY_REGISTERED', 2);
 define('EMAIL_ALREADY_REGISTERED', 3);
 define('INVALID_CHARACTERS_IN_NAME', 4);
 class labelgen_api extends restful_api {
+	
+	private $username;
+	
 	public function __construct($request, $origin) {
 		parent::__construct($request);
 
@@ -13,9 +16,7 @@ class labelgen_api extends restful_api {
 		if ($this->user_is_logged_in()) {			
 			$this->get_user_id_from_secret($this->request['secret'], $this->verb);
 		} else {
-			
-			//$this->get_arguments();
-							
+										
 			if ($this->endpoint == 'users') {
 				if(isset($this->verb) && array_key_exists('loginPassword', $this->request)) {
 					$this->method = "GET";
@@ -24,7 +25,7 @@ class labelgen_api extends restful_api {
 					$this->user_id = NULL;
 				} else if (isset($this->args)) {
 					$this->get_user_id_from_secret();
-					
+					$this->username = $this->verb;
 					$this->endpoint = array_shift($this->args);
 					if ($this->args) {
 						$this->verb = array_shift($this->args);
@@ -38,9 +39,17 @@ class labelgen_api extends restful_api {
 				throw new Exception("You are not authorized to perform this action!");					
 			}
 		}
-
+		
+		if ($this->method != "GET" && $this->user_id === 0) {
+			if (current_user_can('manage_options')) {
+				
+			} else {
+				throw new Exception("You do not have sufficient privilege to perform this action.");
+			}
+		} 
 
 		if ($_FILES) {
+		
 			switch($this->endpoint) {
 				case('images'): 
 					$this->file_dir = 'images'; 
@@ -63,10 +72,17 @@ class labelgen_api extends restful_api {
 			if (!is_dir(WP_CONTENT_DIR.'/uploads/label-maker/user_data')) {
 				mkdir(WP_CONTENT_DIR.'/uploads/label-maker/user_data');
 			}
-			
+						
 			if (!is_dir($this->pathname)) {
 				mkdir($this->pathname);
 			}
+
+			if (!is_dir("{$this->pathname}{$this->username}")) {
+				mkdir("{$this->pathname}{$this->username}");
+			}
+			
+			$this->baseurl = "{$this->baseurl}{$this->username}";
+			$this->pathname = "{$this->pathname}{$this->username}";
 		}
 	}
 	
@@ -92,6 +108,7 @@ class labelgen_api extends restful_api {
 	private function get_user_id_from_secret() {
 		$auth_args = explode(":", $_SERVER['HTTP_AUTHENTICATION']);
 		$user = substr($auth_args[0], 5, strlen($auth_args[0]));
+		$this->username = $user;
 		$nonce = $auth_args[1];
 		$input_digest = $auth_args[2];
 		
@@ -109,7 +126,7 @@ class labelgen_api extends restful_api {
 			$hash = hash_hmac('sha1', $msg, $results[0]->secret, true);
 			$saved_digest = base64_encode($hash);
 
-			//echo json_encode(array('message'=>$msg, 'saved_digest'=>$saved_digest, 'input_digest'=>$input_digest));
+			//echo json_encode(array('message'=>$msg, 'server_authentication'=>$_SERVER['HTTP_AUTHENTICATION'], 'saved_digest'=>$saved_digest, 'input_digest'=>$input_digest));
 			//exit;
 
 			if ($saved_digest == $input_digest) {
@@ -144,6 +161,9 @@ class labelgen_api extends restful_api {
 		//exit;		
 	}
 	
+	protected function check_credentials() {
+		return json_encode(array('success'=>true, 'message'=>current_user_can('manage_options')));
+	}
 	
 	protected function users($verb, $args) {
 		$table= 'labelgen_users';
@@ -209,8 +229,19 @@ class labelgen_api extends restful_api {
 												
 				}
 				
-				$wpdb->query($wpdb->prepare("SELECT * FROM labelgen_labels WHERE user_id = %d", intval($id)));						
+				$wpdb->query($wpdb->prepare("SELECT * FROM labelgen_labels WHERE user_id = %d", $this->user_id));						
 				$user['labelgen_labels'] = $wpdb->last_result; 
+				/*
+				if (is_array($user['labelgen_labels'])) {
+					foreach($user['labelgen_labels'] as &$label) {
+						$wpdb->query($wpdb->prepare("SELECT * FROM labelgen_option_relationships WHERE label_id = %d", $label->id));						
+						$options = $wpdb->last_result;
+						if ($options) {
+							$label->options = $options;
+						}						
+					}
+				}
+				*/
 					
 				return $user;
 
@@ -279,7 +310,7 @@ class labelgen_api extends restful_api {
 	}
 	
 	private function parse_label_request() {
-		if (array_key_exists('user_id', $this->request) && $this->user_id) {
+		if ($this->user_id) {
 			$request = array();
 			$request['user_id'] = $this->user_id;
 			$request['id'] = $this->request['id'] ? intval($this->request['id']) : NULL;
@@ -310,7 +341,7 @@ class labelgen_api extends restful_api {
 	private function set_label_options(&$pkg) {
 		$option_ids = array();
 		$prices = array();
-		if (array_key_exists('id', $pkg) && intval($pkg['id']) > 0) {
+		if ($this->user_id === 0 || $this->user_id) {
 			global $wpdb;
 			$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_option_relationships WHERE label_id = %d',$pkg['id']));					
 			$temp = $wpdb->last_result;
@@ -328,7 +359,9 @@ class labelgen_api extends restful_api {
 					$price = floatval($this->request['option_prices'][$option_id]);			
 					if ($option_id) {
 						$option_ids[] = $option_id;
+						
 						$prices[$option_id] = $price;
+						
 						if (!array_key_exists($option_id, $saved_options)) {
 							$result = $this->parse_post_request(
 								'labelgen_option_relationships', 
@@ -344,7 +377,8 @@ class labelgen_api extends restful_api {
 						} else {
 						
 							if (array_key_exists('option_prices', $this->request) && array_key_exists($option_id, $this->request['option_prices'])) {
-								$prices[] = $this->request['option_prices'][$option_id];
+								//$prices[$option_id] = $this->request['option_prices'][$option_id];
+								//$option_ids[] = $option_id;
 								if ($this->request['option_prices'][$option_id] != $saved_prices[$option_id]) {
 									$this->parse_put_request(
 										'labelgen_option_relationships', 
@@ -384,17 +418,17 @@ class labelgen_api extends restful_api {
 					}						
 
 					$results = $this->parse_get_request($table, $fields, $conditions);
-					
 					if ($results) {
-
+							
 						foreach ($results as &$result) {
 							if (array_key_exists('id', $result)) {
 								
 								global $wpdb;								
 								$wpdb->query($wpdb->prepare('SELECT option_id, price FROM labelgen_option_relationships where label_id = %d', $result['id']));
 								$options = $wpdb->last_result;
-								echo json_encode($options);
-								exit;
+								//echo json_encode($options);
+								//exit;
+
 								if ($options) {
 									$result['option_ids'] = array();
 									$result['option_prices'] = array();
@@ -543,22 +577,26 @@ class labelgen_api extends restful_api {
 					throw new Exception('Fields Not Set');
 				}
 			case ('DELETE'):
-				
-				$id = intval($this->request['id']);					
+				$id = intval($args[0]);
 				if ($id) {
-					return $this->parse_delete_request($table, $id, $this->user_id);
+					$this->parse_delete_request($table, array('id'=>$id));
+					$this->parse_delete_request('labelgen_user_relationships', array('item_id'=>$id, 'user_id'=>$this->user_id, 'table_name'=>$table));
+					$this->parse_delete_request('labelgen_option_relationships', array('option_id'=>$id));
+					
+					return json_encode(array('success'=>true));
 				} else {
 					throw new Exception('Unable to process request!');							
-				}
-		}
+				}		
+			}
 	}
 
-	protected function logos() {
+	protected function logos($id) {
 		$table = 'labelgen_logos';
 		$conditions = array();
 		switch ($this->method) {
 			case ('GET'):
-				if (array_key_exists('id', $this->request)) $condition['id'] = intval($this->request['id']);
+				if (isset($id)) 
+					$condition['id'] = intval($id);
 				$fields = array('id', 'guid');
 				return $this->parse_get_request($table, $fields, $conditions);
 			case ('POST'):
@@ -570,8 +608,8 @@ class labelgen_api extends restful_api {
 			case ('PUT'):
 				break;
 			case ('DELETE'):
-				
-				$id = intval($this->request['id']);					
+				$id = intval($id);
+
 				if ($id) {
 					return $this->parse_delete_request($table, $id, $this->user_id);
 				} else {
@@ -582,12 +620,13 @@ class labelgen_api extends restful_api {
 		}
 	}
 	
-	protected function images() {
+	protected function images($id) {
 		$table = 'labelgen_images';
 		$conditions = array();
 		switch ($this->method) {
 			case ('GET'):
-				if (array_key_exists('id', $this->request)) $condition['id'] = intval($this->request['id']);
+				if (isset($id)) 
+					$condition['id'] = intval($id);
 				$fields = array('id', 'guid', 'caption');
 				return $this->parse_get_request($table, $fields, $conditions);
 			case ('POST'):
@@ -597,9 +636,40 @@ class labelgen_api extends restful_api {
 				$this->user_relationships($table, $result['id']);
 				return $result;
 			case ('DELETE'):
-				
-				$id = intval($this->request['id']);					
-				return $this->parse_delete_request($table, $id, $this->user_id);
+				$id = intval($id);
+				if ($id) {
+					global $wpdb;
+					$wpdb->query($wpdb->prepare("SELECT guid FROM {$table} WHERE id = %d", $id));
+					$result = $wpdb->last_result;
+					$guid = $result[0]->guid;
+					
+					preg_match('/(wp\-content\/.*$)/', $guid, $matches);
+					$filepath = $_SERVER['DOCUMENT_ROOT']."/".$matches[0];
+					
+					//echo json_encode(array("filepath"=>$filepath));
+					//exit;					
+										
+					if (!$filepath) {
+						throw new Exception('No record of image on file.');
+					} else {
+						if (file_exists($filepath)) {
+							if (!unlink($filepath)) {
+								throw new Exception('There was a problem removing your file. If the problem persists please contact the system administrator');
+							}
+						} else {
+							//throw new Exception('Image Does Not Exist.');
+						}
+					}
+					
+					$this->parse_delete_request($table, array('id'=>$id));
+					$this->parse_delete_request('labelgen_user_relationships', array('item_id'=>$id, 'user_id'=>$this->user_id, 'table_name'=>$table));
+					$wpdb->query($wpdb->prepare('UPDATE labelgen_labels SET custom_image_id = NULL WHERE custom_image_id = %d', $id));
+					
+					return json_encode(array('success'=>true));
+				} else {
+					throw new Exception('Unable to process request!');							
+				}
+			
 			default:
 				throw new Exception('Database Update Failed!');
 		}

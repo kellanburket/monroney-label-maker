@@ -10,18 +10,29 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 		
 		render: function() {
-			this.$el = $('<' + this.tagName + '>', {src: this.model.get('guid'), class: this.name + "View"}); 
+			this.$el = $('<div>', {class: 'img-wrap'});
+			this.$x = $('<span>', {class: 'img-x', text: 'x'});
+			this.$img = $('<' + this.tagName + '>', {src: this.model.get('guid'), class: this.name + "View"}); 
 			this.el = this.$el[0];			
+
+			this.$el.append(this.$x, this.$img);
 			//console.log("Rendering " + this.name, this.$el);
 
 			this.$el.click($.proxy(this.select_image, this));
+			this.$x.click($.proxy(this.destroy_image, this));
+
 			return this;
 		},
 			
 		select_image: function() {
-			//console.log("Select Image", this.name, this.model);
+			console.log("Select Image", this.name, this.model);
 			Backbone.trigger("selectImage", this.name, this.model);
-		}
+		},
+		
+		destroy_image: function() {
+			Backbone.trigger("destroyImage", this.model, this.model.url());
+		},
+		
 	
 	});
 	

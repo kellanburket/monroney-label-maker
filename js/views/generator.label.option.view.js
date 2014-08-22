@@ -9,18 +9,22 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		
 		render: function() {
 			var option_name = this.model.get('optionName');
-			$tag = $('<' + this.tag + '>', {class: this.class, id: 'option_' + option_name.replace(/\s/, '_')});
-			$name = $('<span>', {text: option_name, class: 'basal-font', id: 'option_' + option_name.replace(/\s/, '_') + '_name'});
-			$value = $('<span>', {class: 'float-right basal-font', text: '+ $' + parseFloat(this.model.get('price')).toFixed(2), id: 'option_' + option_name.replace(/\s/, '_') + '_value'});
+			var displayName = option_name.split(' ').join('').replace(new RegExp(/[^a-zA-Z0-9]/g), '');
+			console.log("Rendering Option " + displayName );
+			
+			$tag = $('<' + this.tag + '>', {class: this.class, id: 'option' + displayName});
+			$name = $('<span>', {text: option_name, class: 'basal-font', id: 'option' + displayName + 'Name'});
+			$value = $('<span>', {class: 'float-right basal-font', text: '+ $' + parseFloat(this.model.get('price')).toFixed(2), id: 'option' + displayName + 'Value'});
 			$tag.append($name, $value);
 			
 			$('#' + this.model.get('location') + 'Options').prepend($tag);	
-			this.el = $('#' + this.model.get('location') + 'Options').children('li')[0];
-		//console.log(this.el);
+			this.$el = $('#option' + displayName); //$(this.el); 
+			this.el = this.$el[0]; //$('#' + this.model.get('location') + 'Options').children('li')[0];
+
 		},
 		detach_from_view: function(label_view) {
-			//console.log(this);
-			$(this.el).remove();
+			console.log('Removing El From View', this.$el);
+			this.$el.remove();
 		}
 	});
 	

@@ -8,6 +8,23 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 		
 		render: function() {
 			this.stopListening();
+			
+			this.listenTo(Backbone, 'modelUpdated', $.proxy(this.model.set_model, this.model));
+			this.listenTo(Backbone, 'yearUpdated', $.proxy(this.model.set_year, this.model));
+			this.listenTo(Backbone, 'makeUpdated', $.proxy(this.model.set_make, this.model));
+
+			this.listenTo(Backbone, 'msrpUpdated', $.proxy(this.model.set_msrp, this.model));
+			this.listenTo(Backbone, 'trimUpdated', $.proxy(this.model.set_trim, this.model));
+			this.listenTo(Backbone, 'vinUpdated', $.proxy(this.model.set_vin, this.model));
+			this.listenTo(Backbone, 'stockNoUpdated', $.proxy(this.model.set_stock_no, this.model));
+						
+			this.listenTo(Backbone, "selectImage", $.proxy(this.model.set_image, this.model));
+			this.listenTo(Backbone, "makeSelected", $.proxy(this.model.set_make_id, this.model));
+			this.listenTo(Backbone, "modelSelected", $.proxy(this.model.set_model_id, this.model));
+			this.listenTo(Backbone, "yearSelected", $.proxy(this.model.set_year_id, this.model));
+			this.listenTo(Backbone, "requestReset", $.proxy(this.model.reset_attributes, this.model));
+
+			console.log("Rendering Model", this.model.get('id'));
 
 			this.label_options = {interior: {}, exterior: {}};
 			this.label_discounts = {};
@@ -68,6 +85,7 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			}, this));
 
 			this.listenTo(this.model, 'change:customImage', $.proxy(function(model, value) {
+				console.log('change:customImage', this.$customImage, model, value);
 				this.$customImage.attr('src', value);				
 			}, this));
 			
@@ -91,6 +109,8 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			this.listenTo(Backbone, "add_discount", this.add_discount);
 			this.listenTo(Backbone, "remove_discount", this.remove_discount);
 			
+			this.listenTo(Backbone, 'requestReset', this.reset_options);
+
 			/* load stuff */
 			
 			this.fetch_options();
@@ -110,13 +130,25 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 		},
 
 		replace_model: function(model) {
-			//console.log('Replace Model', model);
-			if (model) {
+			console.log('Replace Model', model.get('id'));
+			if (this.model.get('id') != model.get('id')) {
+				this.model.stopListening();
 				this.model = model;			
 				this.render();
 			}
 		},
-		
+
+		reset_options: function() {
+			console.log("Label Options", this.label_options);
+			for(var i in this.label_options) {
+				for (var j in this.label_options[i]) {
+					console.log("Resetting Options", this.label_options[i][j]); 
+					this.label_options[i][j].detach_from_view();					
+				}
+			}
+			
+		},
+			
 		add_option: function(model, price) {
 			console.log('Add Option', model, price, this.label_options);
 			var old_option = this.label_options[model.get('location')][model.get('optionName')];		
@@ -128,7 +160,7 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 				old_option.render();
 			} else {
 				var new_option = LabelOption.initialize({model: model});
-				this.label_options[model.get('location')][model.get('option_name')] = new_option;				
+				this.label_options[model.get('location')][model.get('optionName')] = new_option;				
 			}
 			
 			this.model.add_option(model.get('id'), price);			
@@ -139,7 +171,7 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			price = (price) ? parseFloat(price).toFixed(2) : 0.00;
 			console.log("Remove Option", model, price);
 			
-			this.label_options[model.get('location')][model.get('option_name')].detach_from_view(this);	
+			this.label_options[model.get('location')][model.get('optionName')].detach_from_view(this);	
 			this.model.remove_option(model.get('id'), price);
 			this.update_total(price, "Value", false);
 		},

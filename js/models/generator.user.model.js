@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'vehicle-type', 'vehicle-make', 'vehicle-model', 'vehicle-year', 'labels'], function($, _, Backbone, Options, Discounts, Imgs, VehicleType, VehicleMake, VehicleModel, VehicleYear, Labels) {
+define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'vehicle-type', 'vehicle-make', 'vehicle-model', 'vehicle-year', 'labels', 'label'], function($, _, Backbone, Options, Discounts, Imgs, VehicleType, VehicleMake, VehicleModel, VehicleYear, Labels, Label) {
 
 	return Backbone.Model.extend({
 		
@@ -66,6 +66,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 					user: this
 				}
 			);
+			attrs.labels.push(new Label({id: 0}));
 			
 			attrs.makes = this.parse_user_collections(
 				VehicleType, 
