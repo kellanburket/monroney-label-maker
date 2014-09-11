@@ -47,6 +47,9 @@ $section-height-1: $section-height - $section-padding-bottom - $section-padding-
 $section-height-2: $section-height - $vitals-padding-bottom - $section-padding-top + $difference;
 $section-height-3: $section-height - $section-margin-top;
 
+.no-left-padding {
+	padding-left: 0px!important;
+}
 
 .success-message {
 	padding: 15px;
@@ -973,8 +976,8 @@ $custom-label-h: 255px;
 	.image-collection {
 		display: inline-block;
 		overflow-y: auto;
-		height: $custom-label-h;
-		width: 47.5%;
+		height: $custom-label-h - 2;
+		width: 49.5%;
 		.customImageView {
 			display: block;
 			width: 100%;
@@ -1064,7 +1067,7 @@ $block-list-item-padding: 5px 0px 3px 5px;
 	overflow-x:hidden;
 	border: 1px solid black;
 	width: 400px;
-	height: 275px;
+	height: 250px;
 	button {
 		width: 40px;
 		margin: 0px 5px;	
@@ -1072,6 +1075,7 @@ $block-list-item-padding: 5px 0px 3px 5px;
 
 	.block-list {
 		width: 100%;
+		padding-left: 0px!important;
 		input[type=checkbox] {
 			width: 25px!important;
 			margin-top: 10px!important;

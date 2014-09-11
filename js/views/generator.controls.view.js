@@ -54,8 +54,8 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 
 			this.listenTo(Backbone, "labelSelected", this.replace_model);
 			this.listenTo(Backbone, "showFailMessage", this.show_fail_message);
-			this.listenTo(Backbone, "destroyImage", this.attempt_image_destruction);
-			this.listenTo(Backbone, "destroyOption", this.attempt_option_destruction);
+			this.listenTo(Backbone, "destroyImage", this.destroy_item_model);
+			this.listenTo(Backbone, "destroyOption", this.destroy_item_model);
 			this.listenTo(Backbone, "checkUserCredentials", this.check_user_credentials);
 		},
 		
@@ -69,27 +69,33 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 		/**
 		**		Manage User Resources
 		**/
-		attempt_image_destruction: function(model, url) {
-			console.log("Attempt Image Destruction", model);
-
+		destroy_item_model: function(model, url, msg) {
+			//console.log("Attempt Image Destruction", model);
 			var user = this.collection.user;
-
-			//console.log('Attempt Image Destruction', url);
+			var self = this;
 			YesNoDialog.initialize(
-				"Are you sure you want to permanently remove this image?",
-				
+				msg,				
 				function() {
 					model.destroy({
 						beforeSend: function (xhr) {
-							console.log("xhr", xhr);
+							//console.log("xhr", xhr);
 							xhr.setRequestHeader('Authentication', authenticate(user, url, 'DELETE'));
 						},
 						
 						success: function(model, response) {
-							console.log("Model Destroyted", response);	
+							//console.log(response);
+							//response = $.parseJSON(response);
+							
+							if (response.success) {
+								
+							} else {
+								self.show_fail_message(response.message);
+							}							
 						},
 						error: function(model, response) {
-							console.log("Model Descruction Error", response); 
+							//response = $.parseJSON(response);
+							self.show_fail_message('We were not able to complete your request');	
+							//console.log("Model Destruction Error", response); 
 						}
 					});		
 					Modal.close();				
@@ -102,7 +108,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 		},
 
 		attempt_option_destruction: function(model, url) {
-			console.log("Attempt Option Destruction", model);
+			//console.log("Attempt Option Destruction", model);
 
 			var user = this.collection.user;
 
@@ -112,15 +118,15 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 				function() {
 					model.destroy({
 						beforeSend: function (xhr) {
-							console.log("xhr", xhr);
+							//console.log("xhr", xhr);
 							xhr.setRequestHeader('Authentication', authenticate(user, url, 'DELETE'));
 						},
 						
 						success: function(model, response) {
-							console.log("Model Destroyted", response);	
+							//console.log("Model Destroyted", response);	
 						},
 						error: function(model, response) {
-							console.log("Model Descruction Error", response); 
+							//console.log("Model Descruction Error", response); 
 						}
 					});		
 					Modal.close();				
@@ -138,7 +144,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 		**/
 		save_form: function() {
 			if (!this.validate_user()) return false;
-			console.log("Model", this.model);
+			//console.log("Model", this.model);
 
 			$name = $('<input>', {type: 'text', class: 'tag-input nonmandatory', name: 'labelName'});
 
@@ -242,7 +248,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 			}
 
 			$('#' + selector_id).on('change', function() {
-				console.log("Selector Changed", $(this).children(':selected'));
+				//console.log("Selector Changed", $(this).children(':selected'));
 			});
 
 			return $select;
@@ -275,16 +281,16 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 			} else {
 				$select = $('#' + select_id);
 			}
-			console.log("Select", $select);			
+			//console.log("Select", $select);			
 			$selected = $select.children(':selected');
 			var name = $selected.text() || ""; 
 			var id = $selected.val() || 0;
 			
-			console.log('on_label_load', id);
+			//console.log('on_label_load', id);
 			
 			Modal.close();	
 			var model = this.collection.get(id);
-			console.log("Loaded Label", id, model.get('id'));
+			//console.log("Loaded Label", id, model.get('id'));
 			this.model = model;
 			Backbone.trigger('labelSelected', this.model); 
 		},
@@ -395,38 +401,42 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 		** Show PDF
 		**/
 		
+		print_form: function() {
+			this._get_form(this.print_pdf);
+		},
+		
+		inspect_form: function() {
+			this._get_form(this.show_pdf, {preview: true});
+		},
+
+		_get_form: function(callback, options) {
+			options = options || {};			
+			var data = _.extend(this._gather_data(), _.extend({
+				callback: 'generate_pdf_label',
+				username: this.collection.user.get('name'),
+				labelname: this.model.get('name') || "nothing" 				
+			}, options));
+			
+			this._do_ajax(data, 'POST', ajax.url, callback, {contentType: 'application/x-www-form-urlencoded', processData: true});					
+		},
+		
 		print_pdf: function(data) {
 			var win = window.open(data.pdf, '_blank');
+			Modal.close();
 			if (!win) {
 				this.show_fail_message("Please Disable Popup Blocking to Use this Feature");
 			}
 			//var pdf = window.open(data.pdf);
 			//pdf.print();
 		},
-		
-		print_form: function() {
-			this._get_form(this.print_pdf);
-		},
-		
-		inspect_form: function() {
-			this._get_form(this.show_pdf);
-		},
 
-		_get_form: function(callback) {
-			var data = this._gather_data();
-			data['callback'] = 'generate_pdf_label'; 
-			data['username'] = this.collection.user.get('name');
-			data['labelname'] = this.model.get('name') || "nothing"; 
-			this._do_ajax(data, 'POST', ajax.url, callback, {contentType: 'application/x-www-form-urlencoded', processData: true});					
-		},
-		
 		show_pdf: function(data) {
-			console.log('Canvas', data.pdf);
+			//console.log('Canvas', data.pdf);
 			//PDFJS.disableWorker = true;
 			PDFJS.workerSrc = pdfjs_ext.url + 'generic/build/pdf.worker.js';
 			PDFJS.getDocument(data.pdf).then(function(pdf) {
 				// Using promise to fetch the page
-				console.log('Canvas:getDocument', pdf);
+				//console.log('Canvas:getDocument', pdf);
 				
 				pdf.getPage(1).then(function(page) {
 					var scale = 1.333;
@@ -476,7 +486,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 				
 				{
 					callback: $.proxy(function(data) {
-							console.log("Data", data);
+							//console.log("Data", data);
 							this._do_ajax(data, 'POST', restful.url + '/users/' + data.loginName, this.on_successful_log_user_in);
 						}, this),
 					context: this
@@ -512,7 +522,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 				var user = new User(data, {parse: true});
 				//var coll = this.collection.parse(data.labelgen_labels);		
 				var labels = user.get('labels');
-				console.log("New Collection", labels);
+				//console.log("New Collection", labels);
 				this.collection = labels;
 	
 				this.model.set('user', user);
@@ -522,7 +532,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 		},
 		
 		validate_user: function() {
-			console.log('Validate User', this);
+			//console.log('Validate User', this);
 			if (this.collection.user.get('id') > 0) {
 				return true;
 			} else {
@@ -582,7 +592,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 		
 		on_successful_sign_user_up: function(data) {
 			Modal.displayMessage('Congratulations, ' + data.name + '. You have been signed up to use the Monroney Label Generator. You can login again using your password and the email you registered with. Thank you for doing business with us.', 'success-message align-center');			
-			console.log("Successful User Sign Up", data);
+			//console.log("Successful User Sign Up", data);
 			this._init_user(data);			
 		},
 		
@@ -632,10 +642,10 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 				headers: {Authentication: authenticate(this.collection.user, url, 'GET')}
 			}).success(function(data) {
 				data = $.parseJSON(data);
-				console.log("success", data);
+				//console.log("success", data);
 				Backbone.trigger(response_code, data);									
 			}).error(function() {
-				console.log("error", data);	
+				//console.log("error", data);	
 				Backbone.trigger(response_code, message);
 			});
 		},
@@ -669,7 +679,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 				};
 			}
 
-			console.log('ajax.url(data, headers)', data, headers);
+			//console.log('ajax.url(data, headers)', data, url);
 			return $.ajax(url, {
 				type: method,
 				data: json,
@@ -687,7 +697,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 				} else {
 					response = $.parseJSON(response);
 				}			
-				console.log('post_form:done', response);
+				//console.log('post_form:done', response);
 				
 				if (response.success == true) {
 					callback.call(controls, response);
@@ -698,7 +708,7 @@ define(['jquery', 'underscore', 'backbone', 'dialog', 'yes-no-dialog', 'modal', 
 			})
 			.fail(function(response) {
 				controls.show_fail_message("Something went technically wrong! If the problem persists, please contact the site administrator");
-				console.log('post_form:fail', response.responseText);
+				//console.log('post_form:fail', response.responseText);
 			});
 		}
 

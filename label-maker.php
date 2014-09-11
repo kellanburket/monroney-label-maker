@@ -100,7 +100,8 @@ function generate_pdf_label() {
 	$scale = floatval($_POST['scale']);
 	$username = sanitize_text_field($_POST['username']);
 	$labelname = sanitize_text_field($_POST['labelname']);
-	
+	$center = !$_POST['preview'];
+
 	global $wpdb;
 	$wpdb->query($wpdb->prepare('SELECT id FROM labelgen_users WHERE name = %s', $username));
 	
@@ -111,11 +112,11 @@ function generate_pdf_label() {
 		
 		register_addendum_generator_directories($username);
 
-		$filepath = LABEL_MAKER_UPLOADS . "/labels/{$username}/{$filename}.pdf";
-		$fileurl = LABEL_MAKER_UPLOADS_URL . "/labels/{$username}/{$filename}.pdf";
+		$filepath = LABEL_MAKER_UPLOADS;
+		$fileurl = LABEL_MAKER_UPLOADS_URL;
 	
-		$gen = new PDFAddendumGenerator($root_element, $elements, $filepath, $fileurl, $scale, 18, 18);
-		echo json_encode(array('pdf'=>$gen->get_url(), 'success'=>true, 'width'=>$gen->get_output_width(), 'height'=>$gen->get_output_height()));
+		$gen = new PDFAddendumGenerator($root_element, $elements, $filepath, $fileurl, $labelname, $username, $scale, $center);
+		echo json_encode(array('pdf'=>$gen->get_url(), 'success'=>true, 'message'=>'Please Wait While We Load Your Printable PDF..', 'width'=>$gen->get_output_width(), 'height'=>$gen->get_output_height()));
 		exit;
 	} else {
 		echo json_encode(array('success'=>false, 'message'=>'Invalid Username.'));	

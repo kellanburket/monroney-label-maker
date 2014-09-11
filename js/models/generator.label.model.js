@@ -12,7 +12,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 			fontFamily: 'sans-serif',
 			
 			dealershipName: '[Dealership Name]',
-			dealershipTagline: '[Tagline]',
+			dealershipTagline: '',
 			
 			dealershipLogo: null,
 			dealershipLogoId: null,
@@ -111,23 +111,23 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		set_model: function(name) {
-		//console.log('Set Model', name);
+			//console.log('Set Model', name);
 			this.set('model', name);
 		},
 
 		set_make: function(name) {
-		//console.log('Set Make', name);
+			//console.log('Set Make', name);
 			this.set('make', name);
 		},
 
 		set_year: function(year) {
-		//console.log('Set Year', year);
+			//console.log('Set Year', year);
 			this.set('year', year);
 		},
 
 		set_msrp: function(msrp) {
-		//console.log('Set MSRP', msrp);
-			this.set('msrp', parseFloat(Math.round(msrp * 100)/100).toFixed(2));
+			msrp = parseFloat(msrp.replace(/[^0-9\.]/g, ''));
+			this.set('msrp', (Math.round(msrp * 100)/100).toFixed(2));
 		},
 
 		set_vin: function(vin) {
@@ -146,7 +146,8 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		get_msrp: function() {
-			return parseFloat(Math.round(this.get('msrp') * 100) / 100);
+			var msrp = Math.round(parseFloat((this.get('msrp') || "0").replace(/[^0-9\.]/g, '')) * 100) / 100;
+			return msrp;
 		},
 		
 		reset_attributes: function() {

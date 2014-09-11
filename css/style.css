@@ -1,3 +1,6 @@
+.no-left-padding {
+  padding-left: 0px !important;
+}
 .success-message {
   padding: 15px;
   font-size: 16px;
@@ -711,8 +714,8 @@ button {
 .tag-gallery .image-collection {
   display: inline-block;
   overflow-y: auto;
-  height: 255px;
-  width: 47.5%;
+  height: 253px;
+  width: 49.5%;
 }
 .tag-gallery .image-collection .customImageView {
   display: block;
@@ -779,7 +782,7 @@ button {
   overflow-x: hidden;
   border: 1px solid black;
   width: 400px;
-  height: 275px;
+  height: 250px;
 }
 .block-list-container button {
   width: 40px;
@@ -787,6 +790,7 @@ button {
 }
 .block-list-container .block-list {
   width: 100%;
+  padding-left: 0px !important;
 }
 .block-list-container .block-list input[type=checkbox] {
   width: 25px !important;

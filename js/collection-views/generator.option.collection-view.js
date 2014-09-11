@@ -47,7 +47,7 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 		
 		reset_list_items: function(user) {
 			for (var i in this.list_items) {
-				console.log("Resetting List Items", i);
+				//console.log("Resetting List Items", i);
 				this.list_items[i].$checkbox.prop('checked', false);
 			}
 		},
@@ -72,7 +72,7 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 		},
 		
 		replace_collection: function(collection) {
-			console.log("Replace Collection", collection);
+			//console.log("Replace Collection", collection);
 			this.collection.stopListening();
 			this.unrender_all_items();
 
@@ -81,7 +81,7 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 		},
 		
 		render_list_item: function(model, collection, options) {
-			console.log('Rendering an Option', model.get('optionName'));
+			//console.log('Rendering an Option', model.get('optionName'));
 			this.list_items[model.id] = OptionsListItem.initialize({model: model});	
 			this.list_items[model.id].render(this, options);
 		},
@@ -90,7 +90,7 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 			var response_msg = 'acceptUserCredentials';
 			Backbone.trigger('checkUserCredentials', response_msg);
 			this.listenToOnce(Backbone, response_msg, function(response) {
-				console.log("Response Message", response_msg);
+				//console.log("Response Message", response_msg);
 				if (response) {
 					$(this.input_container).removeClass('invisible');
 					$(this.add_item).addClass('invisible');

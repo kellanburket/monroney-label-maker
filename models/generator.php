@@ -25,22 +25,41 @@ class PDFAddendumGenerator {
 	private $root_id;
 	private $pdf_frame;
 	private $allowed_image_exts = array('PNG'=>'image/png', 'JPEG'=>'image/jpeg', 'GIF'=>'image/gif');
+	private $filename;
+	private $username;
 	
-	public function __construct($root_element, $elements, $filepath, $fileurl, $scale, $left_margin, $top_margin) {
-		$this->left_margin = $left_margin;
-		$this->top_margin = $top_margin;
-		
-		$this->scale = $scale;
-		$this->pdf = new FPDF('P', 'pt', 'A4');
-		$this->pdf->AddPage();
-
+	private $full_width;
+	private $page_width;	//8.5 INCHES
+	private $page_height = 792; //11 INCHES
+	private $top_margin = 9;
+	private $left_margin = 0;//9;
+	
+	public function __construct($root_element, $elements, $filepath, $fileurl, $filename, $username, $scale = 1, $center = false) {
+		$this->username = $username;
 		$this->filepath = $filepath; 
 		$this->fileurl = $fileurl; 
+		$this->filename = $filename;
+		$this->page_width = 8.267 * 72;
 
-		$this->root_id = $root_element["id"];
+		$this->scale = $scale;
+		$this->pdf = new FPDF('P', 'pt', 'A4');
 
-		$this->sort_elements($root_element, $elements);
+		$this->pdf->setLeftMargin(0);
+		$this->pdf->setTopMargin(0);
+		$this->pdf->AddPage();
+
+		$this->full_width = $this->parse_pixels($root_element['width']);
+		$padding = $this->parse_position($root_element["padding"]);
 		
+		if ($center) {		
+			$this->left_margin = $this->page_width/2 - ($this->full_width + $padding['left'] + $padding['right'])/2;	
+			//echo json_encode(array('left_margin'=>$this->left_margin, 'full_width'=>$this->full_width));
+			//echo json_encode(array('full_width'=>$this->full_width, 'root_el_w'=>$root_element['width']));
+			//exit;
+		}
+							
+		$this->root_id = $root_element["id"];
+		$this->sort_elements($root_element, $elements);		
 		$this->pdf->SetXY($this->left_margin, $this->top_margin);
 		
 		foreach($this->views as &$view) {
@@ -51,7 +70,7 @@ class PDFAddendumGenerator {
 		
 		$this->recursive_set($this->tree, $this->root_id);
 		
-		$this->pdf->Output($this->filepath, 'F');
+		$this->pdf->Output("{$this->filepath}/labels/{$this->username}/{$this->filename}.pdf", 'F');
 
 		$this->return_val = array();
 		foreach($this->views as $id=>$view) {
@@ -84,7 +103,7 @@ class PDFAddendumGenerator {
 	}
 	
 	public function get_url() {
-		return $this->fileurl;	
+		return "{$this->fileurl}/labels/{$this->username}/{$this->filename}.pdf";	
 	}
 
 	private function sort_elements($root, $els) {
@@ -188,9 +207,9 @@ class PDFAddendumGenerator {
 		}
 		
 		if (array_key_exists('parent', $cell) && $cell['parent'] == $this->root_id) {
-			$cell['width'] -= 1;		
+			//$cell['width'] -= 1;		
 		} else {
-			$cell['width'] -= 3;		
+			//$cell['width'] -= 3;		
 		}
 
 
@@ -273,26 +292,30 @@ class PDFAddendumGenerator {
 	private function parse_image_file($cell) {
 		if (array_key_exists('image', $cell) && $cell['image']) {
 			$finfo = new finfo(FILEINFO_MIME_TYPE);
-			
-			$file_name = preg_match("/.*\/(.*?\.*$)/", $cell['image'], $matches);
-			$file_path = LABEL_MAKER_UPLOADS.'/'.$matches[1];
 
-			$file_type = $finfo->file($file_path);
+			preg_match("/.*\/(.*?\.*)?\/(.*?\.*)?\/(.*?\.*)$/", $cell['image'], $matches);
+			$filename = $matches[3];
+			$username = $matches[2];
+			$filecat = $matches[1];
+			$filepath = "{$this->filepath}/{$filecat}/{$username}/{$filename}";
+			$filetype = $finfo->file($filepath);
 			
+			//echo json_encode(array('user'=>$username, 'cat'=>$filecat, 'name'=>$filename, 'path'=>$filepath, 'type'=>$filetype));
+			//exit;			
 			
 			$approved_type = false;
 			foreach($this->allowed_image_exts as $key=>$mime_type) {
-				if ($file_type == $mime_type) {
+				if ($filetype == $mime_type) {
 					$approved_type = $key;
 				}			
 			}
 			if ($approved_type) {		
 				return array(
-					'file' => $file_path,
+					'file' => $filepath,
 					'mime' => $approved_type
 				);
 			} else {
-				echo json_encode(array('file_path'=> $file_path, 'message'=> $file_type . ' is not an approved image type. Please upload a .GIF, .JPG, or, .PNG.'));
+				echo json_encode(array('file_path'=> $filepath, 'message'=> $filetype . ' is not an approved image type. Please upload a .GIF, .JPG, or, .PNG.'));
 				exit;
 			}
 		} else {
@@ -571,10 +594,21 @@ class PDFAddendumGenerator {
 	}
 	
 	private function parse_pixels($dim) {
-		preg_match('/(-|)\d+/', $dim, $matches);
+		preg_match('/(-|)[0-9\.]+/', $dim, $matches);
 		return $this->pixels_to_points($matches[0]) / $this->scale;
 	}
 	
+	private function pixels_to_points($px) {
+		$result = floatval($px) * 72.0/96.0;	
+		//echo json_encode(array('result'=>$result, 'scale'=>$this->scale));
+		return $result;
+	}
+
+	private function points_to_pixels($pt) {
+		return floatval($pt) / (72.0/96.0);	
+	}
+	
+
 	private function parse_rgb_color($color) {
 		preg_match_all('/\d{1,3}/i', $color, $matches);
 		if (count($matches[0]) == 4) {
@@ -615,14 +649,6 @@ class PDFAddendumGenerator {
 		}	
 	}
 	
-	private function pixels_to_points($px) {
-		return floatval($px) * 72.0/96.0;	
-	}
-
-	private function points_to_pixels($pt) {
-		return floatval($pt) / (72.0/96.0);	
-	}
-	
 	public function set_cell($attrs) {
 		
 		if (!is_null($attrs)) {
@@ -641,7 +667,9 @@ class PDFAddendumGenerator {
 			extract($var);
 	
 			if ($image) {
-				$this->pdf->Image($image['file'], $x + $this->left_margin, $y + $this->top_margin, $width, $height, $image['mime']);	
+				$x = ($this->full_width - $width)/2 + $this->left_margin + $x; 
+			
+				$this->pdf->Image($image['file'], $x, $y + $this->top_margin, $width, $height, $image['mime']);	
 			} else {
 				$this->pdf->SetXY($x + $this->left_margin, $y + $this->top_margin);
 	

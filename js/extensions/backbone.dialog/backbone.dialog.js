@@ -49,7 +49,7 @@ define(
 				event.preventDefault();
 				//event.stopPropagation();
 				$form = $('#' + context.id);
-				console.log('Form', $form);
+				//console.log('Form', $form);
 				var f_data_obj = $form.serializeArray();
 				
 				var post_data = {};

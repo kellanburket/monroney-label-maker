@@ -10,7 +10,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		render: function() {
 			var option_name = this.model.get('optionName');
 			var displayName = option_name.split(' ').join('').replace(new RegExp(/[^a-zA-Z0-9]/g), '');
-			console.log("Rendering Option " + displayName );
+			//console.log("Rendering Option " + displayName );
 			
 			$tag = $('<' + this.tag + '>', {class: this.class, id: 'option' + displayName});
 			$name = $('<span>', {text: option_name, class: 'basal-font', id: 'option' + displayName + 'Name'});
@@ -23,7 +23,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 
 		},
 		detach_from_view: function(label_view) {
-			console.log('Removing El From View', this.$el);
+			//console.log('Removing El From View', this.$el);
 			this.$el.remove();
 		}
 	});

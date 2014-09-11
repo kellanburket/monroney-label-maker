@@ -25,12 +25,14 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 			
 		select_image: function() {
-			console.log("Select Image", this.name, this.model);
+			//console.log("Select Image", this.name, this.model);
 			Backbone.trigger("selectImage", this.name, this.model);
 		},
 		
-		destroy_image: function() {
-			Backbone.trigger("destroyImage", this.model, this.model.url());
+		destroy_image: function(event) {
+			event.stopPropagation();
+			event.preventDefault();
+			Backbone.trigger("destroyImage", this.model, this.model.url(), "Are you sure you want to permanently remove this image?");
 		},
 		
 	

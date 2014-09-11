@@ -61,7 +61,7 @@ define(
 			url: backbone_data.url
 		}).done(function(data) {
 			if (typeof data !== "object") {
-				console.log("User", data);
+				//console.log("User", data);
 				var json = $.parseJSON(data);
 			}
 			
@@ -139,7 +139,7 @@ define(
 			
 				var xOptions = rootUser.get('exteriorOptions');	
 				var iOptions = rootUser.get('interiorOptions');
-				console.log("Options", rootUser, xOptions, iOptions);
+				//console.log("Options", rootUser, xOptions, iOptions);
 				var exterior_options_view = OptionsList.initialize(
 					{collection: xOptions,
 					input_container: '#exterior-input-container', 
@@ -183,7 +183,7 @@ define(
 	
 			});
 		}).fail(function(response) {
-			console.log("Fail", response);
+			//console.log("Fail", response);
 		});
 	};
 		

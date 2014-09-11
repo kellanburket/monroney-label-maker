@@ -72,7 +72,7 @@ $default = array(
                      </div>
                 </div>
 
-                <ul id="vitalStats" class="white-background">
+                <ul id="vitalStats" class="no-left-padding">
                     <li id="stockNoLabel" class="preview-label basal-font">Stock No.:<span class="float-right preview-span" id="stockNo"><?php echo ($debug) ? $default['stock'] : ''; ?></span></li>
                     <li id="vinLabel" class="preview-label basal-font">VIN:<span class="float-right preview-span basal-font" id="vin"><?php echo ($debug) ? $default['vin'] : ''; ?></span></li>
                     <li id="makeLabel" class="preview-label basal-font">Make:<span class="float-right preview-span basal-font" id="make"><?php echo ($debug) ? $default['make'] : ''; ?></span></li>
@@ -89,7 +89,7 @@ $default = array(
             <!-- </div> -->
             <!-- <div id="tag-preview-info" class="tag-preview-section white-background"> -->
                 
-                <ul id="addendumOptions" class="white-background">
+                <ul id="addendumOptions" class="no-left-padding">
                     <li id="addendumOptionsExteriorList">
                         <input id="addendumOptionsExteriorHead" class="list-head basal-font" value="Exterior Options">
                         <ul id="exteriorOptions" class="indent-1">
@@ -227,7 +227,7 @@ $default = array(
                         </ul>
                         <div class="logo-gallery deactivated branding-configuration inline-block full-width invisible top-align">
 							<form id="upload-logo" class="red-text">
-								"Drag or Click to Upload Your Logo"
+								Drag or Click to Upload a .png, .jpg, or .gif
 							</form> 
                         	<div class="logo-collection invisible"></div>
                         </div>
@@ -237,7 +237,7 @@ $default = array(
                    <h4 class="tag-h4">Label Bottom</h4>
                     <div class="tag-gallery">
 						<form id="upload-label" class="red-text">
-							"Drag or Click to Upload Your Label"
+							Drag or Click to Upload a .png, .jpg, or .gif
 						</form> 
                         <div class="image-collection"></div>
                     </div>
@@ -261,33 +261,33 @@ $default = array(
                                 <li id="vehicleMakeConfig">
                                     <label class="tag-label run-in" for="vehicleMake">Make</label>
                                     <!-- <button class="destroy-button run-in">&ndash;</button> -->
-                                    <select class="tag-select" name="make">
+                                    <select class="tag-select invisible" name="make">
                                         <option value='select_all' selected>[Select Make]</option>
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
-                                    <input name="make" data-type="make" data-id="" type="text" class="config-input run-in tag-input" placeholder="[make]">
+                                    <input name="make" data-type="make" data-id="" type="text" class="config-input run-in tag-input">
                                     <button class="add-button absolute-right run-in invisible">+</button>
                                 </li>
                                 <li id="vehicleModelConfig">
                                     <label class="tag-label run-in" for="vehicleModel">Model</label>
                                     <!-- <button class="destroy-button run-in">&ndash;</button> -->
 
-                                    <select class="tag-select" name="model">
+                                    <select class="tag-select invisible" name="model">
                                         <option value='select_all' selected>[Select Model]</option>
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
-                                    <input name="model" data-type="model" data-id="" type="text" class="config-input run-in tag-input" placeholder="[model]">
+                                    <input name="model" data-type="model" data-id="" type="text" class="config-input run-in tag-input">
                                     <button class="add-button absolute-right run-in invisible">+</button>
 
                                 </li>
                                 <li id="vehicleYearConfig">
                                     <label class="tag-label run-in" for="vehicleYear">Year</label>
                                     <!-- <button class="destroy-button run-in">&ndash;</button> -->
-                                    <select class="tag-select" name="year">
+                                    <select class="tag-select invisible" name="year">
                                         <option value='select_all' selected>[Select Year]</option>
                                         <option class="green-text" value='add_new'>[Add New]</option>
                                     </select>
-                                    <input name="year" type="text" data-type="year" data-id="" class="config-input run-in tag-input" placeholder="[year]">
+                                    <input name="year" type="text" data-type="year" data-id="" class="config-input run-in tag-input">
                                     <button class="add-button absolute-right run-in invisible">+</button>
 
                                 </li>
@@ -305,6 +305,10 @@ $default = array(
                 </div>
             </div>
             <div class="tag-frame invisible" id="tag-frame-2" name="addendum_options">
+                <div class="tag-row row-0">
+					<span class="tag-headnote">Please check the box to add option to addendum.<span>
+                </div>
+
                 <div class="tag-row row-1">
                     <div class="tag-col col-1">
                         <h4 class="tag-h4 block-label">Exterior Options</h4>

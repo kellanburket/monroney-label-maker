@@ -19,9 +19,8 @@ define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'im
 				this.unrender_child(child);
 			}
 
-			this.collection = user.get(this.pluralName);
-			
-			console.log("Set New Collection", user, this.collection);
+			this.collection = user.get(this.pluralName);			
+			//console.log("Set New Collection", user, this.collection);
 			this.dropzone_form.options.url = this.collection.url;
 			this.dropzone_form.options.headers = {Authentication: authenticate(user, this.collection.url, "POST")};
 			this.render();
@@ -39,12 +38,12 @@ define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'im
 				}, this);
 
 				this.listenTo(this.collection, 'add', this.render_child);
-
-				console.log("ImgsView Collection", this.collection);
-				this.listenTo(this.collection, 'destroy', $.proxy(function(model) {
-					console.log("Destroy Model", model.get('id'), this.childrebById);
-					//this.unrender_child();
+	
+				this.listenTo(this.collection, 'destroy', $.proxy(function(model, collection) {
+					//console.log("Destroy Model", model.get('id'), this.childrebById);
+					this.unrender_child(this.children[this.childrenById[model.get('id')]]);
 				}, this));
+
 
 			} else {
 				//console.log("Render ImgsView", this);
@@ -66,7 +65,7 @@ define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'im
 		
 		unrender_child: function(child) {
 			
-			console.log("Unrender Child", child);
+			//console.log("Unrender Child", child);
 			if (child) {
 				var id = child.model.get('id');
 				child.$el.remove();
@@ -85,7 +84,7 @@ define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'im
 				});
 				this.on("success", function(file, data) {
 					data = $.parseJSON(data);
-					console.log("success", data);
+					//console.log("success", data);
 					
 					if (data.guid) {
 						Backbone.trigger("imageAdded", data.guid, data.id, view.name);
@@ -109,9 +108,9 @@ define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'im
 			var response_code = 'returnUserCredentials';
 			Backbone.trigger('checkUserCredentials', response_code);
 			this.listenToOnce(Backbone, response_code, $.proxy(function(response) {
-				console.log("Listening to " + response_code);
+				//console.log("Listening to " + response_code);
 				if (!response.message) {
-					this.$dropzone.text('< Log In to Upload Your Custom Image >');			
+					this.$dropzone.text('< Log In to Upload a .png, .jpg, or .gif >');			
 					this.dropzone_form.disable();		
 				} else {
 					this.$dropzone.text('< Click to Add Images for Super User >');			
@@ -123,7 +122,7 @@ define(['jquery', 'underscore', 'backbone', 'dropzone', 'util/authenticate', 'im
 		enable_dropzone: function() {
 			//console.log("Enabling Dropzone");
 			this.dropzone_form.enable();
-			this.$dropzone.text('< Drag or Click to Upload Your Custom Image >');			
+			this.$dropzone.text('< Drag or Click to Upload a .png, .jpg, or .gif >');			
 		}		
 	});
 	

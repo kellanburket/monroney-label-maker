@@ -2,7 +2,7 @@ define(
 	['jquery', 'underscore', 'backbone', 'vehicle-make', 'vehicle-year', 'vehicle-type'], 
 	function($, _, Backbone, VehicleMake, VehicleYear, VehicleType) 
 	{
-		console.log("Vehicle Model", VehicleMake);
+		//console.log("Vehicle Model", VehicleMake);
 		return Backbone.Model.fullExtend({
 		defaults: {
 			type: 'model',

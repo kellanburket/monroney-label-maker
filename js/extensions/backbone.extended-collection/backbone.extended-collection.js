@@ -47,20 +47,20 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 				}
 	
 				if (data.success == true) {
-					console.log('Success', data);
+					//console.log('Success', data);
 					new_model.set('id', data.id);
 
 					this.add(new_model);
 				} else if(data.message == "Already Added") {
-					console.log("Already Added", json_response);
+					//console.log("Already Added", json_response);
 				} else {
-					console.log("Unsuccessful", data);
+					//console.log("Unsuccessful", data);
 				}
 				//success(data, response, xhr);
 			}, this);
 
 			new_options.error = function(data, response, xhr) {
-				console.log("Failure", data, response, xhr);
+				//console.log("Failure", data, response, xhr);
 			};
 
 			for (i in options) {

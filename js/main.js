@@ -74,7 +74,7 @@
 	}
 
 	define(['jquery', 'underscore', 'backbone', 'workspace'], function($, _, Backbone, Workspace) {
-		console.log("Workspace", Workspace);
+		//console.log("Workspace", Workspace);
 		return Workspace.initialize();  	
   	});
   		

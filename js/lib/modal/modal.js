@@ -22,7 +22,7 @@ define(['underscore', 'jquery'], function(_, $) {
 		
 		$('body').append($overlay, $modal);
 		
-		console.log("In Modal", $overlay, $modal);
+		//console.log("In Modal", $overlay, $modal);
 		
 		method.handle = function() {
 			$overlay.click(method.close);
@@ -122,22 +122,26 @@ define(['underscore', 'jquery'], function(_, $) {
 			method.show(modal_animation);
 		};
 	
-		method.show = function(animation, properties) {
-			method.hideLoader();
+		method.show = function(animation, properties, hideLoader) {
+			hideLoader = hideLoader || true;
+			if (hideLoader) {
+				method.hideLoader();
+				$modal.append($content);
+			}			
 			
-			$modal.append($content);
 			animation = animation || {};
 			properties = properties || {};
 	
 			$overlay.show();				
 			$modal.css({visibility: 'visible'});
 			$overlay.css({background: 'black'}, {opacity: 0});
+	
 			var overlay_animation = {opacity: .7};
 			$overlay.animate(overlay_animation, {duration: 400});	
 			
 			
 			if (animation.length > 0) {
-				console.log('animate', animation);
+				//console.log('animate', animation);
 				animation['opacity'] = animation['opacity'] || 1;
 				animation['height'] = animation['height'] || $content.height() + 50;
 				animation['width'] = animation['width'] || $content.width();
@@ -161,20 +165,23 @@ define(['underscore', 'jquery'], function(_, $) {
 		};
 		
 		method.showLoader = function(settings) {
-			$loader.show();
-			$loader.css('visibility', 'visible');
+			console.log($loader);
 			$modal.append($loader);
-			$content.css({opacity: .1});	
-			method.show();
+			
+			$loader.show();
+			$loader.css({visibility: 'visible', opacity: 1});
+			//$content.css({opacity: .1});	
+			method.show({}, {}, false);
 		};
 		
 		method.close = function() {
-			console.log('Method Close');
+			//console.log('Method Close');
 			$modal.css({visibility: 'hidden'});
 			$modal.removeClass('modalIsOpen');
 			$overlay.css({opacity: 1, background: "none"});
 			$content.empty();
 			$overlay.hide();
+			
 			$close.unbind('click');
 			$overlay.unbind('click');		
 		};

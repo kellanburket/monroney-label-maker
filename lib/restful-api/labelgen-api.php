@@ -11,8 +11,7 @@ class labelgen_api extends restful_api {
 	
 	public function __construct($request, $origin) {
 		parent::__construct($request);
-
-
+		
 		if ($this->user_is_logged_in()) {			
 			$this->get_user_id_from_secret($this->request['secret'], $this->verb);
 		} else {
@@ -23,6 +22,7 @@ class labelgen_api extends restful_api {
 					$this->get_user_id_from_password($this->request['loginPassword']);						
 				} else if (array_key_exists("signupPassword", $this->request) && array_key_exists("signupName", $this->request) && array_key_exists('signupEmail', $this->request)) {
 					$this->user_id = NULL;
+
 				} else if (isset($this->args)) {
 					$this->get_user_id_from_secret();
 					$this->username = $this->verb;
@@ -40,16 +40,13 @@ class labelgen_api extends restful_api {
 			}
 		}
 		
-		if ($this->method != "GET" && $this->user_id === 0) {
-			if (current_user_can('manage_options')) {
-				
-			} else {
+		if (!preg_match('/GET/i', $this->method) && $this->user_id === 0) {
+			if (!current_user_can('manage_options')) {
 				throw new Exception("You do not have sufficient privilege to perform this action.");
 			}
 		} 
 
 		if ($_FILES) {
-		
 			switch($this->endpoint) {
 				case('images'): 
 					$this->file_dir = 'images'; 
@@ -478,7 +475,7 @@ class labelgen_api extends restful_api {
 				$this->set_label_options($pkg);
 				return $this->win($pkg);
 			case ('DELETE'):
-				
+				throw new Exception('Unable to process request!');											
 				$id = intval($this->request['id']);					
 				if ($id) {
 					return $this->parse_delete_request($table, $id, $this->user_id);
@@ -518,6 +515,7 @@ class labelgen_api extends restful_api {
 					throw new Exception('Fields Not Set');
 				}
 			case ('DELETE'):
+				throw new Exception('Unable to process request!');							
 				
 				$id = intval($this->request['id']);					
 				if ($id) {
@@ -546,7 +544,7 @@ class labelgen_api extends restful_api {
 		switch ($this->method) {
 			case ('GET'):
 				if ($this->verb) $conditions = array('location'=>$this->location($this->verb));
-				$fields = array('id', 'option_name', 'price', 'location');
+				$fields = array('id', 'option_name', 'owner', 'price', 'location');
 				if ($this->user_id) {
 					global $wpdb;
 					$wpdb->query(
@@ -570,6 +568,8 @@ class labelgen_api extends restful_api {
 					$request['option_name'] = sanitize_text_field($this->request['option_name']);
 					$request['price'] = floatval($this->request['price']);	
 					$request['location'] = $this->get_location($location);										
+					$request['owner'] = $this->user_id;
+
 					$result = $this->parse_post_request($table, $request);			
 					$this->user_relationships($table, $result['id']);
 					return $result;
@@ -577,13 +577,24 @@ class labelgen_api extends restful_api {
 					throw new Exception('Fields Not Set');
 				}
 			case ('DELETE'):
+				global $wpdb;
 				$id = intval($args[0]);
+				
+				if ($this->user_id == 0 && !current_user_can('manage_options'))
+					throw new Exception("Permission Denied");
+				
 				if ($id) {
+					$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_options WHERE owner = %d AND id = %d', array($this->user_id, $id)));
+
+					if (!$wpdb->last_result) {
+						throw new Exception('You do not have permission to delete this option.');
+					}
+				
 					$this->parse_delete_request($table, array('id'=>$id));
 					$this->parse_delete_request('labelgen_user_relationships', array('item_id'=>$id, 'user_id'=>$this->user_id, 'table_name'=>$table));
 					$this->parse_delete_request('labelgen_option_relationships', array('option_id'=>$id));
 					
-					return json_encode(array('success'=>true));
+					return array('success'=>true);
 				} else {
 					throw new Exception('Unable to process request!');							
 				}		
@@ -597,10 +608,10 @@ class labelgen_api extends restful_api {
 			case ('GET'):
 				if (isset($id)) 
 					$condition['id'] = intval($id);
-				$fields = array('id', 'guid');
+				$fields = array('id', 'guid', 'owner');
 				return $this->parse_get_request($table, $fields, $conditions);
 			case ('POST'):
-				
+				$request['owner'] = $this->user_id;				
 				$request['guid'] = $this->process_user_upload();
 				$result = $this->parse_post_request($table, $request);			
 				$this->user_relationships($table, $result['id']);
@@ -609,9 +620,15 @@ class labelgen_api extends restful_api {
 				break;
 			case ('DELETE'):
 				$id = intval($id);
-
 				if ($id) {
-					return $this->parse_delete_request($table, $id, $this->user_id);
+					global $wpdb;					
+					$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_logos WHERE owner = %d AND id = %d', array($this->user_id, $id)));
+
+					if (!$wpdb->last_result) {
+						throw new Exception('You do not have permission to delete this logo.');
+					}
+
+					//return $this->parse_delete_request($table, $id, $this->user_id);
 				} else {
 					throw new Exception('Unable to process request!');							
 				}
@@ -627,18 +644,31 @@ class labelgen_api extends restful_api {
 			case ('GET'):
 				if (isset($id)) 
 					$condition['id'] = intval($id);
-				$fields = array('id', 'guid', 'caption');
+				$fields = array('id', 'guid', 'caption', 'owner');
 				return $this->parse_get_request($table, $fields, $conditions);
 			case ('POST'):
 				
+				$request['owner'] = $this->user_id;
 				$request['guid'] = $this->process_user_upload();
 				$result = $this->parse_post_request($table, $request);			
 				$this->user_relationships($table, $result['id']);
 				return $result;
 			case ('DELETE'):
 				$id = intval($id);
+				
+				if ($this->user_id == 0 && !current_user_can('manage_options'))
+					throw new Exception("Permission Denied");
+
 				if ($id) {
 					global $wpdb;
+					
+					$wpdb->query($wpdb->prepare('SELECT * FROM labelgen_images WHERE owner = %d AND id = %d', array($this->user_id, $id)));
+
+					if (!$wpdb->last_result) {
+						throw new Exception('You do not have permission to delete this image.');
+					}
+
+					
 					$wpdb->query($wpdb->prepare("SELECT guid FROM {$table} WHERE id = %d", $id));
 					$result = $wpdb->last_result;
 					$guid = $result[0]->guid;
@@ -665,7 +695,7 @@ class labelgen_api extends restful_api {
 					$this->parse_delete_request('labelgen_user_relationships', array('item_id'=>$id, 'user_id'=>$this->user_id, 'table_name'=>$table));
 					$wpdb->query($wpdb->prepare('UPDATE labelgen_labels SET custom_image_id = NULL WHERE custom_image_id = %d', $id));
 					
-					return json_encode(array('success'=>true));
+					return array('success'=>true);
 				} else {
 					throw new Exception('Unable to process request!');							
 				}

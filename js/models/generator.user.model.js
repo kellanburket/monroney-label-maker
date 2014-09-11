@@ -129,14 +129,14 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 				);
 			}
 			
-			console.log("Parsing New User", attrs);
+			//console.log("Parsing New User", attrs);
 			return attrs;
 		},
 		
 		parse_user_collections: function(Collection, data, options) {
 			options = options || {};
 			var collection = new Collection([], options);
-			console.log(collection.model);
+			//console.log(collection.model);
 			collection.add(data, {parse: true});
 			return collection;
 		},
@@ -146,7 +146,7 @@ define(['jquery', 'underscore', 'backbone', 'options', 'discounts', 'imgs', 'veh
 			var name = this.get('name');
 			var secret = this.get('secret');
 	
-			console.log('send user id', id);
+			//console.log('send user id', id);
 			if (id > 0) {
 				Backbone.trigger('returnUserId', id, name, secret);
 			} else {

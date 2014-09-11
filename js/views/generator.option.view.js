@@ -27,9 +27,9 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 	
 			//Backbone.trigger('add_option', this.model, this.$price_input.val());
 
-			console.log('Is It Activated', this.activated, this.model);
+			//console.log('Is It Activated', this.activated, this.model);
 			if (this.activated === true) {
-				console.log("Activate Checkbox");
+				//console.log("Activate Checkbox");
 				this.$checkbox.prop('checked', true);
 				this.set_checked();
 			}
@@ -47,14 +47,14 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 		
 		reset: function() {
-			console.log('Request Reset');
+			//console.log('Request Reset');
 			Backbone.trigger('remove_option', this.model, this.$price_input.val());	
 			this.$checkbox.prop('checked', false);
 		},
 		
 		set_checked: function() {
 			var checked = this.$checkbox.prop('checked');
-			console.log("Setting Checked", checked);
+			//console.log("Setting Checked", checked);
 	
 			if (checked) {
 				Backbone.trigger('add_option', this.model, this.$price_input.val());	

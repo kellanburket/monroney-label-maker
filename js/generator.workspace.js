@@ -1,6 +1,6 @@
 define(['jquery', 'underscore', 'backbone', 'app'], function($, _, Backbone, App) {
 
-	console.log("In the Router");
+	//console.log("In the Router");
 
 	var Workspace =	Backbone.Router.extend({
 		routes: {
@@ -40,7 +40,7 @@ define(['jquery', 'underscore', 'backbone', 'app'], function($, _, Backbone, App
 		},
 		
 		toggle: function(index) {
-			console.log(index);
+			//console.log(index);
 			$('.tag-tab-holder').addClass('inactive');	
 			$('.tag-frame').addClass('invisible');
 			

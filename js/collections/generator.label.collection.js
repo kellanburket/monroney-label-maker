@@ -4,7 +4,7 @@ define(['jquery', 'underscore', 'backbone', 'label', 'extended-collection'], fun
 		model: Label,
 			
 		initialize: function(models, options) {
-			console.log("New Label", models, options);
+			//console.log("New Label", models, options);
 			this.user = options.user;
 			this.listenTo(Backbone, 'userLoggedIn', this.set_user_id);
 		},
