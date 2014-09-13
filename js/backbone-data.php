@@ -2,13 +2,7 @@
 //error_reporting (E_ALL);
 $user = "admin";
 $pw = "Wh005eAfra!d0fV!rginaW0Olf?";
-
-//echo json_encode($_SERVER);
-//exit;
-
-$api_url = "{$_SERVER['HTTP_HOST']}/addendum-generator/api/users/{$user}";
-
-$date = date("D, d M Y H:i:s T");
+$api_url = "/api/users/{$user}";
 //$encoded_date = urlencode($date);
 //$nonce = uniqid();
 //$msg = "GET+{$api_url}+{$encoded_date}+{$nonce}";
@@ -17,7 +11,6 @@ $date = date("D, d M Y H:i:s T");
 
 $headers = array(
 	//"Authentication: hmac {$user}:{$nonce}:{$digest}",
-	"Date: {$date}",
 	"Content Type: application/json; charset=utf-8",
 	"Accept: application/json",
 );
@@ -41,7 +34,4 @@ $data = curl_exec($curl);
 curl_close($curl);   
 
 echo $data;
-
-//"var rootUser = new User({$data}, {parse: 'true'});";
-
 ?>

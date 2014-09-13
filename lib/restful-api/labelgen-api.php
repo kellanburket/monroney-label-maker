@@ -5,6 +5,7 @@ define('INVALID_USER_NAME', 1);
 define('NAME_ALREADY_REGISTERED', 2);
 define('EMAIL_ALREADY_REGISTERED', 3);
 define('INVALID_CHARACTERS_IN_NAME', 4);
+
 class labelgen_api extends restful_api {
 	
 	private $username;
@@ -159,7 +160,8 @@ class labelgen_api extends restful_api {
 	}
 	
 	protected function check_credentials() {
-		return json_encode(array('success'=>true, 'message'=>current_user_can('manage_options')));
+		$msg = ($this->user_id == 0) ? current_user_can('manage_options') : true;	
+		return json_encode(array('success'=>true, 'message' => $msg));
 	}
 	
 	protected function users($verb, $args) {
@@ -181,10 +183,12 @@ class labelgen_api extends restful_api {
 				
 				$results = $this->parse_get_request($table, $fields, $conditions);
 				
-				if (isset($this->request['loginPassword'])) 
-					if (!$this->decrypt($this->request['loginPassword'], $results[0]['password']))
+				if (isset($this->request['loginPassword'])) {
+					if (!$this->decrypt($this->request['loginPassword'], $results[0]['password'])) {
 						throw new Exception('Incorrect Password!');
-
+					}
+				}
+				
 				$id = $results[0]['id'];
 				$secret = $results[0]['secret'];
 				$user = array('success'=>true, 'name'=>$results[0]['name'], 'id'=>$id, 'secret'=>$secret);
@@ -291,13 +295,6 @@ class labelgen_api extends restful_api {
 		$return = $this->parse_post_request($table, $request, true);
 		
 		if ($return) {
-			$this->parse_post_request(
-				'labelgen_apikeys', 
-				array(
-					'apikey'=>$this->encrypt($return['secret']),
-					'secret'=>$return['secret']
-				)
-			);
 			
 			return array('success'=>true, 'id'=>$return['id'], 'secret'=>$return['secret'], 'email'=>$return['email'], 'name'=>$return['name']);
 		} else {
@@ -478,7 +475,7 @@ class labelgen_api extends restful_api {
 				throw new Exception('Unable to process request!');											
 				$id = intval($this->request['id']);					
 				if ($id) {
-					return $this->parse_delete_request($table, $id, $this->user_id);
+					return $this->parse_delete_request($table, ["id"=>$id]);
 				} else {
 					throw new Exception('Unable to process request!');							
 				}
@@ -519,7 +516,7 @@ class labelgen_api extends restful_api {
 				
 				$id = intval($this->request['id']);					
 				if ($id) {
-					return $this->parse_delete_request($table, $id, $this->user_id);
+					return $this->parse_delete_request($table, ["id"=>$id]);
 				} else {
 					throw new Exception('Unable to process request!');							
 				}
@@ -589,8 +586,8 @@ class labelgen_api extends restful_api {
 					if (!$wpdb->last_result) {
 						throw new Exception('You do not have permission to delete this option.');
 					}
-				
-					$this->parse_delete_request($table, array('id'=>$id));
+					json_encode("");
+					$this->parse_delete_request($table, ["id"=>$id, "owner"=>$this->user_id]);
 					$this->parse_delete_request('labelgen_user_relationships', array('item_id'=>$id, 'user_id'=>$this->user_id, 'table_name'=>$table));
 					$this->parse_delete_request('labelgen_option_relationships', array('option_id'=>$id));
 					
@@ -736,7 +733,7 @@ class labelgen_api extends restful_api {
 			case ('DELETE'):
 				
 				$id = intval($this->request['id']);					
-				return $this->parse_delete_request($table, $id, $this->user_id);
+				return $this->parse_delete_request($table, ["id"=>$id]);
 			default:
 				throw new Exception(sprintf('%s requests are not accepted at this time.', $this->method));
 		}		
@@ -769,7 +766,7 @@ class labelgen_api extends restful_api {
 			case ('DELETE'):
 				
 				$id = intval($this->request['id']);					
-				return $this->parse_delete_request($table, $id, $this->user_id);
+				return $this->parse_delete_request($table, ["id"=>$id]);
 			default:
 				throw new Exception(sprintf('%s requests are not accepted at this time.', $this->method));
 		}
@@ -806,7 +803,7 @@ class labelgen_api extends restful_api {
 		} elseif($this->method == 'DELETE') {
 			
 			$id = intval($this->request['id']);					
-			return $this->parse_delete_request($table, $id, $this->user_id);
+			return $this->parse_delete_request($table, ["id"=>$id]);
 		} else {
 			throw new Exception(sprintf('%s requests are not accepted at this time.', $this->method));
 		}		

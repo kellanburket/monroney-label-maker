@@ -76,7 +76,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 
 		get_total: function() {
 			var total = this.get('total');
-			return parseFloat(Math.round(total * 100) / 100);
+			return total;			
 		},
 
 		get_change: function() {
@@ -87,15 +87,54 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		add_option: function(id, price) {
-			console.log("LABEL:Add Option", this.attributes);
+			//console.log("label.model:Add Option", id, price);
 			this.attributes.optionIds.push(id);
-			this.attributes.optionPrices[id] = price;
+			this.attributes.optionPrices[id] = this.parse_value(price);
+			this.update_total();
+		},
+
+		update_option: function(model, price) {
+			price = this.parse_value(price);
+			model.set("price", price);
+			var id = model.get("id");
+
+			if (this.attributes.optionPrices[id]) {
+				console.log("update_option", id, price, this.attributes.optionIds[id]);
+				this.attributes.optionPrices[id] = this.parse_value(price);		
+				this.update_total();
+			}
 		},
 
 		remove_option: function(id, price) {
 			var index = this.attributes.optionIds.indexOf(id);		
 			this.attributes.optionIds.splice(index, 1);
 			delete this.attributes.optionPrices[id];		
+			this.update_total();
+		},
+		
+		update_total: function() {
+			var msrp = this.get_msrp();
+			var total = msrp;
+			for (var id in this.attributes.optionPrices) {
+				var price = this.get_option_price(id);
+				total += price;
+				/*
+				if (price.match(/%/)) {
+					price = price.replace(/%/, '');
+					var x =  msrp - (msrp * (1 + (price/100)));  
+					total += x;							
+				} else {
+					total += price;				
+				}
+				*/
+			}
+								
+			console.log("total + msrp", total, msrp);
+			this.set('total', total);			
+		},
+		
+		get_option_price: function(id) {
+			return this.attributes.optionPrices[id];
 		},
 		
 		set_model_id: function(id) {
@@ -126,9 +165,15 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		set_msrp: function(msrp) {
-			msrp = parseFloat(msrp.replace(/[^0-9\.]/g, ''));
-			this.set('msrp', (Math.round(msrp * 100)/100).toFixed(2));
+			this.set('msrp', this.parse_value(msrp));
+			this.update_total();
 		},
+
+		parse_value: function(val) {
+			val = parseFloat(val.toString().replace(/[^0-9\.]/g, ''));
+			return parseFloat((Math.round(val * 100)/100).toFixed(2));
+		},
+
 
 		set_vin: function(vin) {
 		//console.log('Set VIN', vin);
@@ -146,12 +191,12 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 
 		get_msrp: function() {
-			var msrp = Math.round(parseFloat((this.get('msrp') || "0").replace(/[^0-9\.]/g, '')) * 100) / 100;
-			return msrp;
+			return this.get("msrp") || 0;
 		},
 		
 		reset_attributes: function() {
 			Backbone.trigger('labelReset');
+			this.set_msrp(0);
 			for(var name in this.attributes) {
 				if (name != 'user') {
 					switch (typeof this.attributes[name]) {

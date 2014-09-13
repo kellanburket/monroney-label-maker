@@ -33,6 +33,14 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 				this.$checkbox.prop('checked', true);
 				this.set_checked();
 			}
+			
+
+			var model = this.model;
+			
+			this.$price_input.on("change", function(event) {
+				var val = event.target.value;
+				Backbone.trigger("optionUpdated", model, val);
+			});
 
 			this.$x.click($.proxy(this.destroy_self, this));
 			
@@ -43,7 +51,7 @@ define(['jquery', 'underscore', 'backbone'], function($, _, Backbone) {
 		},
 		
 		destroy_self: function() {
-			Backbone.trigger("destroyOption", this.model, this.model.url());		
+			Backbone.trigger("destroyOption", this.model, this.model.url(), "Are you sure you want to permanently remove this option?");		
 		},
 		
 		reset: function() {

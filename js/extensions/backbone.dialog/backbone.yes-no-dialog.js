@@ -3,7 +3,7 @@ define(
 		'jquery', 
 		'underscore', 
 		'backbone', 
-		'hbs!extensions/backbone.dialog/templates/yes-no-dialog', 
+		'hbs!extensions/backbone.dialog/templates/yes-no-dialog',
 		'modal'
 	], 
 	function(
@@ -15,15 +15,14 @@ define(
 	) {
 	
 	var Dialog = Backbone.View.extend({
-		template: template,
 		initialize: function(attrs, opts) {
 			this.render(attrs, opts.yesCallback, opts.noCallback);			
 		},
 		
-		render: function(attrs, yesCallback, noCallback) {				
+		render: function(message, yesCallback, noCallback) {				
 			var html;
-			html = template(attrs);
-
+			html = template(message);
+			console.log("Yes No Dialog", message);
 			Modal.setModalProperties({overflow: "hidden", margin: "auto"});
 			Modal.openDomDocument(html);
 			

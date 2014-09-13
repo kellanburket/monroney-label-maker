@@ -90,8 +90,8 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 			var response_msg = 'acceptUserCredentials';
 			Backbone.trigger('checkUserCredentials', response_msg);
 			this.listenToOnce(Backbone, response_msg, function(response) {
-				//console.log("Response Message", response_msg);
-				if (response) {
+				console.log("Response Message", response);
+				if (response.message) {
 					$(this.input_container).removeClass('invisible');
 					$(this.add_item).addClass('invisible');
 					$(this.input).focus();
@@ -100,26 +100,33 @@ define(['jquery', 'underscore', 'backbone', 'option-view'], function($, _, Backb
 				}
 			});
 		},
+		
 		add_new_option: function() {
 
 			var new_option_name = $(this.input).val();
-			var new_option_price = $(this.price_input).val(); 
-			var location = this.collection.location;
-			//console.log("New Option For Collection", new_option_name, new_option_price, location);
+			
+			if (new_option_name) {
+				var new_option_price = $(this.price_input).val(); 
+				var location = this.collection.location;
+		
+				$(this.price_input).val('');
+				$(this.input).val('');
+				$(this.input_container).addClass('invisible');
+				$(this.add_item).removeClass('invisible');
 	
-			$(this.price_input).val('');
-			$(this.input).val('');
-			$(this.input_container).addClass('invisible');
-			$(this.add_item).removeClass('invisible');
-	
-			this.collection.create(
-				{
-					optionName: new_option_name, 
-					price: new_option_price,
-					location: location,
-					activated: true
-				}
-			);
+				//console.log("New Option For Collection", new_option_name, new_option_price, location);
+		
+				this.collection.create(
+					{
+						optionName: new_option_name,
+						price: new_option_price,
+						location: location,
+						activated: true
+					}
+				);
+			} else {
+				Backbone.trigger("showFailMessage", "Please Enter an Option Name!");
+			}
 		}
 		
 	});	

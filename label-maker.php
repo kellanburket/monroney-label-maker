@@ -10,6 +10,10 @@ define('LABEL_MAKER_URL', plugins_url().'/label-maker');
 define('LABEL_MAKER_UPLOADS', $uploads['basedir'].'/label-maker/user_data'); 
 define('LABEL_MAKER_UPLOADS_URL', $uploads['baseurl'].'/label-maker/user_data'); 
 
+define('DEVELOPMENT', 1);
+define('LIVE', 2);
+define('LIFECYCLE', DEVELOPMENT);
+
 
 define('MONRONEY_LABEL_GENERATOR_ACTION', 'do_monroney_label_generator_action');
 
@@ -43,8 +47,8 @@ add_action('wp_enqueue_scripts', function() {
 		//wp_register_script('underscore');
 		//wp_enqueue_script('backbone', LABEL_MAKER_URL.'/js/lib/backbone/backbone.js', array('underscore'));
 		wp_enqueue_script('require_js', LABEL_MAKER_URL."/js/r.js", array('jquery', 'pdf_js'));	
-		wp_enqueue_script('pdf_js', LABEL_MAKER_URL."/js/lib/pdf.js/build/generic/build/pdf.js");	
-		wp_enqueue_script('compatibility_js', LABEL_MAKER_URL."/js/lib/pdf.js/build/generic/web/compatibility.js", array('pdf_js'));	
+		wp_enqueue_script('pdf_js', LABEL_MAKER_URL."/js/lib/pdf.js/pdf.js");	
+		wp_enqueue_script('compatibility_js', LABEL_MAKER_URL."/js/lib/pdf.js/compatibility.js", array('pdf_js'));	
 		
 		wp_enqueue_style('label_generator_css', LABEL_MAKER_URL.'/css/style.css');
 		wp_enqueue_style('modal_css', LABEL_MAKER_URL.'/js/lib/modal/modal.css');
@@ -64,8 +68,12 @@ add_action('wp_enqueue_scripts', function() {
 		wp_localize_script('require_js', 'modal_ext', array(
 			'url'=>plugins_url().'/label-maker/js/lib/modal/'
 		));
+
+		wp_localize_script('require_js', 'DEBUG', array('MODE'=>(LIFECYCLE == LIVE) ? false : true));
+
 		wp_localize_script('require_js', 'pdfjs_ext', array(
-			'url'=>plugins_url().'/label-maker/js/lib/pdf.js/build/'
+			'url'			=>	(LIFECYCLE == LIVE) ? plugins_url().'/label-maker/js/lib/pdf.js/build/' : plugins_url().'/label-maker/js/lib/pdf.js/',
+			'worker_url' 	=> 	(LIFECYCLE == LIVE) ? plugins_url().'/label-maker/js/lib/pdf.js/build/generic/build/pdf.worker.js' : plugins_url().'/label-maker/js/lib/pdf.js/pdf.worker.js'
 		));
 		wp_localize_script('require_js', 'backbone_data', array(
 			'url'=>plugins_url().'/label-maker/js/backbone-data.php'

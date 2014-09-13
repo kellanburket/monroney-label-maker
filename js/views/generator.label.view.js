@@ -8,6 +8,14 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 		
 		render: function() {
 			this.stopListening();
+			$('[name=toggleVisibility]').off("change");
+			$('.colorbox').off('click');
+			$('[name=fontFamily]').off('change');
+			$('[name=msrp]').off('blur');
+			$('.branding-option').off("click");
+			$('[type=fontStyle], [name=fontWeight]').off('change');
+			$('[name="model"], [name="make"], [name="stockNo"], [name="year"], [name="vin"], [name="trim"]').off('blur');
+
 			
 			this.listenTo(Backbone, 'modelUpdated', $.proxy(this.model.set_model, this.model));
 			this.listenTo(Backbone, 'yearUpdated', $.proxy(this.model.set_year, this.model));
@@ -17,17 +25,32 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			this.listenTo(Backbone, 'trimUpdated', $.proxy(this.model.set_trim, this.model));
 			this.listenTo(Backbone, 'vinUpdated', $.proxy(this.model.set_vin, this.model));
 			this.listenTo(Backbone, 'stockNoUpdated', $.proxy(this.model.set_stock_no, this.model));
-						
+			this.listenTo(Backbone, "optionDestroyed", this.remove_option);
+			
 			this.listenTo(Backbone, "selectImage", $.proxy(this.model.set_image, this.model));
 			this.listenTo(Backbone, "makeSelected", $.proxy(this.model.set_make_id, this.model));
 			this.listenTo(Backbone, "modelSelected", $.proxy(this.model.set_model_id, this.model));
 			this.listenTo(Backbone, "yearSelected", $.proxy(this.model.set_year_id, this.model));
+			this.listenTo(this.model, 'change:total', this.update_total);
+			this.listenTo(this.model, 'change:msrp', this.update_msrp);
+			this.listenTo(this.model, 'change', this.set_field);
+
 			this.listenTo(Backbone, "requestReset", $.proxy(this.model.reset_attributes, this.model));
+			
 
 			//console.log("Rendering Model", this.model.get('id'));
 
 			this.label_options = {interior: {}, exterior: {}};
 			this.label_discounts = {};
+
+			this.$msrp = $("[name='msrp']");
+			this.$msrp.val("$0.00");
+			var model = this.model;
+
+			this.$msrp.on('blur', function(event) {
+				var val = event.target.value;
+				model.set_msrp(val);
+			});
 
 			this.$total = $('#total');
 			this.$total.val("$0.00");
@@ -52,8 +75,8 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			this.$customImage = $('#customImage');
 			
 			var labelView = this;
-			
-			$('.branding-option').click(function() {
+
+			$('.branding-option').on("click", function() {
 				if (!$(this).hasClass('selected-option')) {
 					labelView.toggle_visibility();
 				}
@@ -91,10 +114,10 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			
 			this.listenTo(Backbone, 'dealershipLogoAdded', this.toggle_visibility);
 
-			this.listenTo(this.model, 'change:msrp', $.proxy(this.update_total, this, 0, "Value", true));
+			$('[name="model"], [name="make"], [name="stockNo"], [name="year"], [name="vin"], [name="trim"]').on('blur', null, $.proxy(this.setText, null, this, this.model));
 
-			$('.tag-input[type=text]').on('blur', null, $.proxy(this.setText, null, this, this.model));
 			this.$fontFamily.on('change', null, $.proxy(this.setAttr, null, this, this.model));
+
 			this.$toggleVisibility.on('change', null, {view: this}, this.toggle_visibility);
 			this.$colorbox.on('click', null, {view: this}, this.setLabelColor);		
 			$('[type=fontStyle], [name=fontWeight]').on('change', null, $.proxy(this.setCheckboxAttr, null, this, this.model));
@@ -105,6 +128,7 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			
 			this.listenTo(Backbone, "add_option", this.add_option);
 			this.listenTo(Backbone, "remove_option", this.remove_option);
+			this.listenTo(Backbone, "optionUpdated", $.proxy(this.model.update_option, this.model));
 						
 			this.listenTo(Backbone, "add_discount", this.add_discount);
 			this.listenTo(Backbone, "remove_discount", this.remove_discount);
@@ -117,7 +141,6 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			this.fetch_image('customImage');
 			this.fetch_image('dealershipLogo');
 		
-			this.listenTo(this.model, 'change', this.set_field);
 
 			return this;
 		},
@@ -125,7 +148,8 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 		set_field: function(model, options) {
 			_.each(model.changed, function(el, i, list) {
 				//console.log('LabelView:setField', el, i);
-				$('#' + i).text(el);
+				if (i != "msrp") 
+					$('#' + i).text(el);
 			}, this);
 		},
 
@@ -148,7 +172,7 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			}
 			
 		},
-			
+		
 		add_option: function(model, price) {
 			//console.log('Add Option', model, price, this.label_options);
 			var old_option = this.label_options[model.get('location')][model.get('optionName')];		
@@ -164,7 +188,6 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			}
 			
 			this.model.add_option(model.get('id'), price);			
-			this.update_total(price, "Value", true);
 		},
 		
 		remove_option: function(model, price) {
@@ -173,7 +196,6 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 			
 			this.label_options[model.get('location')][model.get('optionName')].detach_from_view(this);	
 			this.model.remove_option(model.get('id'), price);
-			this.update_total(price, "Value", false);
 		},
 		
 		add_discount: function(model) {
@@ -184,49 +206,28 @@ define(['jquery', 'underscore', 'backbone', 'label-option-view', 'label-discount
 				var new_d = LabelDiscount.initialize({model: model});
 				this.label_discounts[model.get('discount')] = new_d;				
 			}
-			
-			var type = model.get('type');
-			var amount = model.get('amount');
-			this.update_total(amount, type, false);
 		},
 		
 		remove_discount: function(model) {
 			this.label_discounts[model.get('discount')].detach_from_view(this);	
-			
-			var type = model.get('type');
-			var amount = model.get('amount');
-			this.update_total(amount, type, true);
 		},
 
-		update_total: function(amount, type, addValue) {
-			console.log("update total", amount, type, addValue);
-			amount = parseFloat(Math.round(amount * 100) / 100);
-			total = this.model.get_total();
-			msrp = this.model.get_msrp();
-			
+		update_total: function() {
+			var total = this.model.get("total").toFixed(2);
+			//console.log("Update Total", total);
+			total = total.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,')
+			//console.log("Update Total", "$" + total);					
+			this.$total.val("$" + total);			
+		},
 
-			msrp = (msrp) ? msrp : 0.00;
+		update_msrp: function(model, value, options) {
+			value = parseFloat(value).toFixed(2);
+			value = value.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,')
+			//console.log("Update MSRP", value);
 
-			if (addValue) {
-				if (type == "Value") {
-					total += amount;			
-				} else if (type == "Percentage") {
-					var x = msrp * (amount/100);  
-					total += x;							
-				}
+			$("#msrp").text("$" + value);		
+			this.$msrp.val("$" + value);		
 
-			} else {
-				if (type == "Value") {
-					total -= amount;			
-				} else if (type == "Percentage") {
-					var x = msrp - (msrp * (1 + (amount/100)));  
-					total += x;							
-				}			
-			}
-			console.log("total + msrp", total, msrp);
-			this.model.set('total', total);			
-			
-			this.$total.val("$" + (total + msrp).toFixed(2));			
 		},
 				
 		setLabelColor: function(event) {

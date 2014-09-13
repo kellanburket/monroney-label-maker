@@ -5,7 +5,6 @@
 		paths: {
 			'dropzone': 'lib/dropzone/dropzone',
 			'hbs': 'lib/require-handlebars-plugin/hbs',
-			
 			//'pdf': 'lib/pdfjs/pdf',
 			//'pdf-worker': 'lib/pdfjs/pdf.worker',
 			//'comptability': 'lib/pdfjs/compatibility',			

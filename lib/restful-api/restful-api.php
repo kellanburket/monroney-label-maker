@@ -113,8 +113,6 @@ abstract class restful_api {
 		$result = crypt($input, $hash);
 		$compare = strcmp($result, $hash);
 
-		//echo json_encode(array('input'=>$result, 'hash'=>$hash, 'compare'=>$compare));
-		//exit;
 		if ($compare === 0) {
 			return true;
 		} else {
@@ -399,16 +397,16 @@ abstract class restful_api {
 		}
 	 }
 	 
-	 function parse_delete_request($table, $where, $format) {	
-		 global $wpdb;
-		 $result = $wpdb->delete($table, $where, $format);
+	 function parse_delete_request($table, $where) {	
+		 global $wpdb;		 
+		 $result = $wpdb->delete($table, $where, $this->get_format($where, true));
 		 return $result;
 	 }
 
-	protected function get_format($var) {
-		$format = array();
-		foreach($var as $key=>$value) {
-			if (is_int($value) || is_bool($value) || is_long($value)) {
+	protected function get_format($var, $just_values = false) {
+		$format = [];
+		foreach($var as $key=>$value) {		
+			if ( is_int($value) || is_bool($value) || is_long($value))  {
 				$format[$key] = '%d';
 			} elseif (is_float($value) || is_double($value)) {
 				$format[$key] = '%f';
@@ -416,7 +414,12 @@ abstract class restful_api {
 				$format[$key] = '%s';
 			}
 		}
-		return $format;
+
+		if ($just_values) { 
+			return array_values($format);
+		} else {
+			return $format;
+		}
 	}
 	
 	function approve_mime_type($file_type, $file_name) {

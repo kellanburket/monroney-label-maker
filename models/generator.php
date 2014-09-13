@@ -297,7 +297,7 @@ class PDFAddendumGenerator {
 			$filename = $matches[3];
 			$username = $matches[2];
 			$filecat = $matches[1];
-			$filepath = "{$this->filepath}/{$filecat}/{$username}/{$filename}";
+			$filepath = "{$this->filepath}/{$username}/{$filename}";
 			$filetype = $finfo->file($filepath);
 			
 			//echo json_encode(array('user'=>$username, 'cat'=>$filecat, 'name'=>$filename, 'path'=>$filepath, 'type'=>$filetype));

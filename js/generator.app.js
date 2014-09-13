@@ -1,58 +1,8 @@
 define(
-	['jquery', 'underscore', 'backbone', 'label', 'labels', 'label-view', 'controls', 'imgs-view', 'vehicle-view', 'options-view', 'options', 'discounts-view', 'generic-controls', 'vehicle-make', 'vehicle-model', 'vehicle-year', 'user'], 
-	function($, _, Backbone, Label, Labels, LabelView, Controls, ImgsView, VehicleView, OptionsList, Options, DiscountList, DiscountControls, VehicleMake, VehicleModel, VehicleYear, User) {
+	['jquery', 'underscore', 'backbone', 'label', 'labels', 'label-view', 'controls', 'imgs-view', 'vehicle-view', 'options-view', 'options', 'discounts-view', 'generic-controls', 'vehicle-make', 'vehicle-model', 'vehicle-year', 'user', 'util/queue'], 
+	function($, _, Backbone, Label, Labels, LabelView, Controls, ImgsView, VehicleView, OptionsList, Options, DiscountList, DiscountControls, VehicleMake, VehicleModel, VehicleYear, User, Queue) {
 	
 	var thread_space = '';
-	var Queue = function() {
-		this._queue = Array();
-		
-		this.push = function(collection, attributes) {
-			//console.log('add_to_queue:', collection, attributes);
-			this._queue.push({collection: collection, attributes: attributes});			
-		};
-		
-		this.shift = function(id, collection) {
-
-			var object = this._queue.shift();
-			var attributes = object.attributes;
-
-			for(i in id) {
-			 attributes[i] = id[i];
-			}
-			////console.log('queue.shift', object, collection, attributes);
-			collection = (!collection) ? object.collection : collection;
-			
-			//console.log('queue.shift', collection, attributes);
-			
-			collection.create(attributes);
-		}
-		this.length = function() {
-			return this._queue.length;
-		}
-		this.add_all = function() {
-			////console.log('queue', this._queue);
-			this._recursive_add(this._queue.shift()).fail(function() {
-				//console.log('Recursive Function Failed');
-			});
-		};
-		
-		this._recursive_add = function(obj) {
-			////console.log('Queue Length', this._queue.length);
-			if (obj) {				
-				var attr = obj.attributes;
-				var coll = obj.collection;
-				//console.log('_recursive_add', attr, coll); 
-				return $.Deferred($.proxy(function(attr, collection) {
-					//console.log('Deffered Return', attr);	
-					return collection.create(attr);
-				}, null, attr, coll))
-				.promise()
-				.then(this._recursive_add(this._queue.shift()));
-			} else {
-				return $.Deferred().promise();
-			}
-		};
-	};
 	
 	var initialize = function(){
 		var rootUser;
@@ -61,7 +11,7 @@ define(
 			url: backbone_data.url
 		}).done(function(data) {
 			if (typeof data !== "object") {
-				//console.log("User", data);
+				console.log("User", data);
 				var json = $.parseJSON(data);
 			}
 			

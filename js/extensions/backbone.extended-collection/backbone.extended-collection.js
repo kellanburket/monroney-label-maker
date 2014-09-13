@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'crypto-js/hmac-sha1'], function($, _, Backbone, uniqid, Base64, HmacSHA1) {
+define(['jquery', 'underscore', 'backbone', 'util/authenticate'], function($, _, Backbone, authenticate) {
 	return Backbone.Collection.extend({
 		set_user_id: function(user) {
 			this.user = user;
@@ -30,37 +30,37 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 			new_options['data'] = {};
 				
 			for (i in attributes) {
-				new_options['data'][i] = new_model.get(i);
-				new_options['data'] = this.camelToSnakeCase([new_options['data']])[0];	
+				new_options.data[i] = new_model.get(i);
+				new_options.data = this.camelToSnakeCase([new_options.data])[0];	
 			}
-			new_options['data'] = JSON.stringify(new_options['data']);			
-			new_options['dataType'] = 'json';
-			new_options['processData'] = false;
-			new_options['contentType'] = 'application/json';
+			
+			new_options.data = JSON.stringify(new_options['data']);			
+			new_options.dataType = 'json';
+			new_options.processData = false;
+			new_options.contentType = 'application/json';
 			
 			//var success = options['success'] || function(){};
 			//var error = options['error'] || function(){};
 
-			new_options['success'] = $.proxy(function(data, response, xhr) {
+			new_options.success = $.proxy(function(data, response, xhr) {
 				if (typeof data === "string") {
 					data = $.parseJSON(data);
 				}
 	
 				if (data.success == true) {
-					//console.log('Success', data);
+					console.log('Success', data);
 					new_model.set('id', data.id);
 
 					this.add(new_model);
 				} else if(data.message == "Already Added") {
-					//console.log("Already Added", json_response);
+					console.log("Already Added", json_response);
 				} else {
-					//console.log("Unsuccessful", data);
+					console.log("Unsuccessful", data);
 				}
-				//success(data, response, xhr);
 			}, this);
 
 			new_options.error = function(data, response, xhr) {
-				//console.log("Failure", data, response, xhr);
+				console.log("Failure", data, response, xhr);
 			};
 
 			for (i in options) {
@@ -68,29 +68,21 @@ define(['jquery', 'underscore', 'backbone', 'uniqid', 'crypto-js/enc-base64', 'c
 					new_options[i] = options[i];
 				}
 			}		
-			var nonce = uniqid(5);
-			var msg = "POST+" + new_options['url'] + "+" + nonce;
-			//console.log("Message", msg);
-			//console.log("Secret", this.user.get('secret'));
-			var hash = HmacSHA1(msg, this.user.get('secret'));
-			//console.log("Hash", hash.toString());
-			var digest = hash.toString(Base64);							
-			//console.log("Digest", digest);
-			var auth_header = "hmac " + this.user.get('name') + ":" + nonce + ":" + digest;
-			//console.log("Header", auth_header);
-			new_options['headers'] = new_options['headers'] || {};
-			new_options['headers']['Authentication'] = auth_header;					
+
+			new_options.headers = new_options.headers || {};
+			new_options.headers['Authentication'] = authenticate(this.user, new_options.url, "POST");					
 			return Backbone.sync('create', new_model, new_options);
 		},
 		
 		parse: function(snake, options) {
+			
 			var camel = this.snakeToCamelCase(snake);
 			
 			var camels = [];
 			_.each(camel, function(el, i, li) {
 				camels.push(el);
 			}, this);
-			//console.log('Parse', snake, camel, camels, options);
+			console.log('Parse(ExtendedCollection)', snake, camel, camels, options);
 			return camels;
 		},
 		
