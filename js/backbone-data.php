@@ -2,7 +2,7 @@
 //error_reporting (E_ALL);
 $user = "admin";
 $pw = "Wh005eAfra!d0fV!rginaW0Olf?";
-$api_url = "/api/users/{$user}";
+$api_url = "{$_SERVER['HTTP_HOST']}/addendum-generator/api/users/{$user}";
 //$encoded_date = urlencode($date);
 //$nonce = uniqid();
 //$msg = "GET+{$api_url}+{$encoded_date}+{$nonce}";
