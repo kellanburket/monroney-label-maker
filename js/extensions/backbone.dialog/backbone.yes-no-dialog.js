@@ -27,10 +27,14 @@ define(
 			Modal.openDomDocument(html);
 			
 			$('.dialogYes').one('click', function(event) {
+				event.preventDefault();
+				event.stopPropagation();
 				yesCallback.call();
 			});
 
 			$('.dialogNo').one('click', function(event) {
+				event.preventDefault();
+				event.stopPropagation();
 				noCallback.call();
 			});
 			
