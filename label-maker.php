@@ -12,7 +12,7 @@ define('LABEL_MAKER_UPLOADS_URL', $uploads['baseurl'].'/label-maker/user_data');
 
 define('DEVELOPMENT', 1);
 define('LIVE', 2);
-define('LIFECYCLE', DEVELOPMENT);
+define('LIFECYCLE', LIVE);
 
 
 define('MONRONEY_LABEL_GENERATOR_ACTION', 'do_monroney_label_generator_action');
